@@ -48,17 +48,5 @@ flutter build ios --release
 - Apple-inspired glass morphism design
 - Dark mode support
 
-## 🔗 Links
-
-- **Portal**: https://portal-three-rho.vercel.app
-- **Frontend**: https://thothfrontend.vercel.app
-- **GitHub**: https://github.com/thothcraft
-
-## 📞 Support
-
-- GitHub Issues
-- Email: support@thothcraft.com
-
 ---
 
-**Built with ❤️ by Thothcraft**
