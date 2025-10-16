@@ -1,0 +1,84 @@
+name: thothcraft
+description: Revolutionary AI/IoT platform mobile app - Federated Learning, Differential Privacy, and Smart Sensors.
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.6.0 <4.0.0'
+  flutter: '>=3.27.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+
+  # State Management
+  flutter_riverpod: ^2.6.1
+  riverpod_annotation: ^2.6.1
+
+  # Navigation
+  go_router: ^14.6.2
+
+  # HTTP & Networking
+  dio: ^5.7.0
+
+  # Video Player
+  video_player: ^2.9.2
+  chewie: ^1.8.5
+
+  # Storage
+  shared_preferences: ^2.3.3
+
+  # Utilities
+  url_launcher: ^6.3.1
+  package_info_plus: ^8.1.0
+  intl: ^0.20.2
+
+  # UI Enhancements
+  cached_network_image: ^3.4.1
+  shimmer: ^3.0.0
+  carousel_slider: ^5.0.0
+  smooth_page_indicator: ^1.2.0+3
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+
+  # Code Generation
+  build_runner: ^2.4.13
+  riverpod_generator: ^2.6.2
+  json_serializable: ^6.8.0
+
+flutter:
+  uses-material-design: true
+
+  # Assets
+  assets:
+    # Logo
+    - assets/images/thoth_logo.png
+    
+    # Product Images
+    - assets/images/products/white_bg.jpg
+    - assets/images/products/closeup.jpg
+    - assets/images/products/lifestyle.jpg
+    
+    # Animated Icons (GIFs)
+    - assets/images/icons/artificial-intelligence.gif
+    - assets/images/icons/iot.gif
+    - assets/images/icons/data-collection.gif
+    - assets/images/icons/privacy.gif
+    
+    # Video Tutorials
+    - assets/videos/getting_started.mp4
+    - assets/videos/first.mp4
+    - assets/videos/sensors.mp4
+
+  # Fonts (if custom fonts are needed)
+  # fonts:
+  #   - family: SFProDisplay
+  #     fonts:
+  #       - asset: assets/fonts/SFProDisplay-Regular.ttf
+  #       - asset: assets/fonts/SFProDisplay-Bold.ttf
+  #         weight: 700
