@@ -1,0 +1,175 @@
+/* Apple Design System - Global Styles */
+
+/* Global Background */
+body {
+  background: #fbfbfd;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+}
+
+/* Container Override */
+.v-container {
+  background: transparent !important;
+}
+
+/* Apple Card Styles */
+.apple-card-global {
+  background: white !important;
+  border: 1px solid rgba(0, 0, 0, 0.04) !important;
+  border-radius: 18px !important;
+  transition: all 0.3s ease !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04) !important;
+}
+
+.apple-card-global:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08) !important;
+}
+
+/* Apple Button Styles */
+.apple-btn-primary-global {
+  background: #0071e3 !important;
+  color: white !important;
+  border-radius: 12px !important;
+  font-weight: 500 !important;
+  letter-spacing: -0.01em !important;
+  transition: all 0.2s ease !important;
+  text-transform: none !important;
+}
+
+.apple-btn-primary-global:hover {
+  background: #0077ed !important;
+  transform: scale(1.02);
+}
+
+.apple-btn-secondary-global {
+  background: transparent !important;
+  color: #0071e3 !important;
+  border: 1px solid #0071e3 !important;
+  border-radius: 12px !important;
+  font-weight: 500 !important;
+  letter-spacing: -0.01em !important;
+  transition: all 0.2s ease !important;
+  text-transform: none !important;
+}
+
+.apple-btn-secondary-global:hover {
+  background: rgba(0, 113, 227, 0.04) !important;
+  transform: scale(1.02);
+}
+
+/* Apple Hero Styles */
+.apple-hero-global {
+  background: linear-gradient(180deg, #fbfbfd 0%, #f5f5f7 100%);
+  padding: 160px 20px 120px;
+  min-height: 60vh;
+  position: relative;
+}
+
+/* Apple Typography */
+.apple-title-global {
+  color: #1d1d1f !important;
+  font-weight: 600 !important;
+  letter-spacing: -0.02em !important;
+}
+
+.apple-text-global {
+  color: #515154 !important;
+  line-height: 1.6 !important;
+}
+
+.apple-text-secondary {
+  color: #86868b !important;
+  line-height: 1.5 !important;
+}
+
+/* Hero Typography */
+.hero-title {
+  font-size: 4rem !important;
+  font-weight: 600 !important;
+  letter-spacing: -0.03em !important;
+  line-height: 1.1 !important;
+  color: #1d1d1f !important;
+}
+
+.hero-subtitle {
+  font-size: 1.375rem !important;
+  font-weight: 400 !important;
+  line-height: 1.4 !important;
+  color: #86868b !important;
+  max-width: 700px !important;
+  margin: 0 auto !important;
+}
+
+.hero-content {
+  max-width: 900px !important;
+  position: relative !important;
+  z-index: 1 !important;
+}
+
+/* Section Backgrounds */
+.apple-section-light {
+  background: #f5f5f7 !important;
+}
+
+.apple-section-white {
+  background: white !important;
+}
+
+.apple-section-dark {
+  background: #1d1d1f !important;
+  color: #f5f5f7 !important;
+}
+
+/* Vuetify Overrides */
+.v-card {
+  border-radius: 18px !important;
+}
+
+.v-btn {
+  border-radius: 12px !important;
+  font-weight: 500 !important;
+  letter-spacing: -0.01em !important;
+  text-transform: none !important;
+}
+
+.v-expansion-panel {
+  border-radius: 12px !important;
+  margin-bottom: 8px !important;
+  border: 1px solid rgba(0, 0, 0, 0.04) !important;
+}
+
+.v-table {
+  border-radius: 12px !important;
+  overflow: hidden !important;
+  border: 1px solid rgba(0, 0, 0, 0.04) !important;
+}
+
+/* Smooth Scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Selection Styling */
+::selection {
+  background: rgba(0, 113, 227, 0.15);
+  color: #1d1d1f;
+}
+
+::-moz-selection {
+  background: rgba(0, 113, 227, 0.15);
+  color: #1d1d1f;
+}
+
+/* Focus States */
+*:focus-visible {
+  outline: 2px solid #0071e3;
+  outline-offset: 2px;
+}
+
+/* Transitions */
+* {
+  transition-timing-function: cubic-bezier(0.25, 0.1, 0.25, 1);
+}
