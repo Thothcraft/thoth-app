@@ -100,9 +100,9 @@ class ShopScreen extends StatelessWidget {
             margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 32),
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: AppColors.primaryBlue.withOpacity(0.1),
+              color: AppColors.primaryBlue.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: AppColors.primaryBlue.withOpacity(0.3)),
+              border: Border.all(color: AppColors.primaryBlue.withValues(alpha: 0.3)),
             ),
             child: Row(
               children: [
@@ -303,12 +303,12 @@ class ShopScreen extends StatelessWidget {
           end: Alignment.bottomRight,
           colors: [
             Colors.white,
-            AppColors.primaryBlue.withOpacity(0.02),
+            AppColors.primaryBlue.withValues(alpha: 0.02),
           ],
         ),
         boxShadow: [
           BoxShadow(
-            color: AppColors.primaryBlue.withOpacity(0.1),
+            color: AppColors.primaryBlue.withValues(alpha: 0.1),
             blurRadius: 20,
             offset: const Offset(0, 4),
           ),

@@ -52,17 +52,17 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     Image.asset('assets/images/thoth_logo.png',
                         height: 72,
                         errorBuilder: (_, __, ___) =>
-                            const Icon(Icons.science, size: 72)),
+                            const Icon(Icons.science, size: 72),),
                     const SizedBox(height: 16),
                     Text('Sign in to ThothCraft',
                         textAlign: TextAlign.center,
-                        style: Theme.of(context).textTheme.headlineSmall),
+                        style: Theme.of(context).textTheme.headlineSmall,),
                     const SizedBox(height: 32),
                     TextFormField(
                       controller: _username,
                       decoration: const InputDecoration(
                           labelText: 'Username or email',
-                          prefixIcon: Icon(Icons.person)),
+                          prefixIcon: Icon(Icons.person),),
                       validator: (v) =>
                           (v == null || v.trim().isEmpty) ? 'Required' : null,
                     ),
@@ -72,7 +72,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       obscureText: true,
                       decoration: const InputDecoration(
                           labelText: 'Password',
-                          prefixIcon: Icon(Icons.lock)),
+                          prefixIcon: Icon(Icons.lock),),
                       validator: (v) =>
                           (v == null || v.isEmpty) ? 'Required' : null,
                       onFieldSubmitted: (_) => _submit(),
@@ -81,8 +81,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       const SizedBox(height: 16),
                       Text(error,
                           style: TextStyle(
-                              color: Theme.of(context).colorScheme.error),
-                          textAlign: TextAlign.center),
+                              color: Theme.of(context).colorScheme.error,),
+                          textAlign: TextAlign.center,),
                     ],
                     const SizedBox(height: 24),
                     FilledButton(
@@ -91,7 +91,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           ? const SizedBox(
                               height: 20,
                               width: 20,
-                              child: CircularProgressIndicator(strokeWidth: 2))
+                              child: CircularProgressIndicator(strokeWidth: 2),)
                           : const Text('Sign in'),
                     ),
                   ],

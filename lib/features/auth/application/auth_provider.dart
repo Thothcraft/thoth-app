@@ -91,7 +91,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
       return true;
     } catch (e) {
       state = state.copyWith(
-          isLoading: false, error: 'Invalid username or password');
+          isLoading: false, error: 'Invalid username or password',);
       return false;
     }
   }

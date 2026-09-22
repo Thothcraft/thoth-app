@@ -50,3 +50,18 @@ flutter build ios --release
 
 ---
 
+
+## Debug APK for phone testing
+
+```sh
+flutter pub get
+flutter analyze
+flutter test
+flutter build apk --debug --dart-define=BRAIN_URL=https://web-production-d7d37.up.railway.app
+```
+
+Output: `build/app/outputs/flutter-apk/app-debug.apk`. Sideload this debug-signed
+APK on Android. Release distribution requires your signing keystore. The default
+API remains `https://api.thothcraft.com`; BRAIN_URL changes the client's initial
+URL. An already-saved URL in app settings takes precedence. CI uploads the debug
+APK as `thothcraft-debug-apk`.

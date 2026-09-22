@@ -70,15 +70,15 @@ class _LiveScreenState extends State<LiveScreen> {
             child: Column(
               children: [
                 Icon(occupied ? Icons.person : Icons.person_off,
-                    size: 48, color: Colors.white),
+                    size: 48, color: Colors.white,),
                 const SizedBox(height: 8),
                 Text(occupied ? 'Occupied' : 'Empty',
                     style: const TextStyle(
                         color: Colors.white,
                         fontSize: 24,
-                        fontWeight: FontWeight.bold)),
+                        fontWeight: FontWeight.bold,),),
                 Text(label,
-                    style: const TextStyle(color: Colors.white70)),
+                    style: const TextStyle(color: Colors.white70),),
               ],
             ),
           ),
@@ -86,7 +86,7 @@ class _LiveScreenState extends State<LiveScreen> {
             Padding(
               padding: const EdgeInsets.all(8),
               child: Text(_error!,
-                  style: TextStyle(color: Theme.of(context).colorScheme.error)),
+                  style: TextStyle(color: Theme.of(context).colorScheme.error),),
             ),
           Expanded(
             child: _chunks.isEmpty
@@ -107,9 +107,9 @@ class _LiveScreenState extends State<LiveScreen> {
                               : Colors.grey,
                         ),
                         title: Text(
-                            (c['label'] ?? c['prediction'] ?? 'chunk').toString()),
+                            (c['label'] ?? c['prediction'] ?? 'chunk').toString(),),
                         subtitle: Text(
-                            (c['minute'] ?? c['timestamp'] ?? '').toString()),
+                            (c['minute'] ?? c['timestamp'] ?? '').toString(),),
                         trailing: c['confidence'] != null
                             ? Text('${c['confidence']}')
                             : null,

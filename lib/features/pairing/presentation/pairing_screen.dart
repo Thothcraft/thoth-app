@@ -41,7 +41,7 @@ class _PairingScreenState extends ConsumerState<PairingScreen> {
       final res = await BrainClient.instance
           .postJson('/device/pairing/claim', body: {'code': code});
       setState(() =>
-          _success = res['message'] as String? ?? 'Device paired');
+          _success = res['message'] as String? ?? 'Device paired',);
       ref.invalidate(devicesProvider);
     } catch (e) {
       setState(() => _error = 'Pairing failed — check the code and try again');
@@ -81,7 +81,7 @@ class _PairingScreenState extends ConsumerState<PairingScreen> {
             if (_error != null) ...[
               const SizedBox(height: 16),
               Text(_error!,
-                  style: TextStyle(color: Theme.of(context).colorScheme.error)),
+                  style: TextStyle(color: Theme.of(context).colorScheme.error),),
             ],
             if (_success != null) ...[
               const SizedBox(height: 16),
@@ -99,7 +99,7 @@ class _PairingScreenState extends ConsumerState<PairingScreen> {
                   ? const SizedBox(
                       height: 20,
                       width: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2))
+                      child: CircularProgressIndicator(strokeWidth: 2),)
                   : const Text('Pair'),
             ),
           ],

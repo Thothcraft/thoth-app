@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import '../constants/app_constants.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Brain API client — bearer-token auth for mobile.
@@ -9,14 +10,14 @@ class BrainClient {
   BrainClient._();
   static final BrainClient instance = BrainClient._();
 
-  static const String defaultBaseUrl = 'https://api.thothcraft.com';
+  static const String defaultBaseUrl = AppConstants.brainApiUrl;
   static const String _tokenKey = 'brain_access_token';
   static const String _baseUrlKey = 'brain_base_url';
 
   final Dio _dio = Dio(BaseOptions(
     connectTimeout: const Duration(seconds: 15),
     receiveTimeout: const Duration(seconds: 30),
-  ));
+  ),);
 
   String? _token;
   String _baseUrl = defaultBaseUrl;
@@ -49,26 +50,26 @@ class BrainClient {
   Options get _opts => Options(headers: {
         'Accept': 'application/json',
         if (hasToken) 'Authorization': 'Bearer $_token',
-      });
+      },);
 
   String _api(String path) => '$_baseUrl/api$path';
 
   Future<Map<String, dynamic>> getJson(String path,
-      {Map<String, dynamic>? params}) async {
+      {Map<String, dynamic>? params,}) async {
     final res = await _dio.get(_api(path),
-        queryParameters: params, options: _opts);
+        queryParameters: params, options: _opts,);
     return Map<String, dynamic>.from(res.data as Map);
   }
 
   Future<Map<String, dynamic>> postJson(String path,
-      {Map<String, dynamic>? body}) async {
+      {Map<String, dynamic>? body,}) async {
     final res = await _dio.post(_api(path),
-        data: body ?? {}, options: _opts);
+        data: body ?? {}, options: _opts,);
     return Map<String, dynamic>.from(res.data as Map);
   }
 
   Future<Map<String, dynamic>> postMultipart(
-      String path, String field, String filename, List<int> bytes) async {
+      String path, String field, String filename, List<int> bytes,) async {
     final form = FormData.fromMap({
       field: MultipartFile.fromBytes(bytes, filename: filename),
     });
@@ -84,13 +85,13 @@ class BrainClient {
   Future<Map<String, dynamic>> login(String username, String password) async {
     final res = await _dio.post('$_baseUrl/api/token',
         data: {'username': username, 'password': password},
-        options: Options(headers: {'Accept': 'application/json'}));
+        options: Options(headers: {'Accept': 'application/json'}),);
     final data = Map<String, dynamic>.from(res.data as Map);
     final token = data['access_token'] as String?;
     if (token == null) {
       throw DioException(
           requestOptions: res.requestOptions,
-          error: 'No access_token in response');
+          error: 'No access_token in response',);
     }
     await setToken(token);
     return data;

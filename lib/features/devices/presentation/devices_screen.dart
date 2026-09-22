@@ -22,7 +22,7 @@ class DevicesScreen extends ConsumerWidget {
               const Icon(Icons.cloud_off, size: 48),
               const SizedBox(height: 16),
               Center(child: Text('Could not load devices\n$e',
-                  textAlign: TextAlign.center)),
+                  textAlign: TextAlign.center,),),
             ],
           ),
           data: (list) {
@@ -67,7 +67,7 @@ class DevicesScreen extends ConsumerWidget {
                     ),
                     title: Text(d.name),
                     subtitle: Text(
-                        '${d.deviceType ?? 'thoth'} • ${d.online ? 'online' : 'offline'}'),
+                        '${d.deviceType ?? 'thoth'} • ${d.online ? 'online' : 'offline'}',),
                     trailing: d.batteryLevel != null
                         ? Text('${d.batteryLevel}%')
                         : null,

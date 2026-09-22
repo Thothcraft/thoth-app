@@ -78,5 +78,7 @@ class AppConstants {
   };
 
   // Brain API
-  static const String brainApiUrl = 'https://api.thothcraft.com';
+  static const String brainApiUrl = String.fromEnvironment(
+    'BRAIN_URL', defaultValue: 'https://api.thothcraft.com',
+  );
 }

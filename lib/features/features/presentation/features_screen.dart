@@ -500,7 +500,7 @@ class _FeaturesScreenState extends State<FeaturesScreen> with SingleTickerProvid
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              color.withOpacity(0.1),
+              color.withValues(alpha: 0.1),
               Colors.white,
             ],
           ),

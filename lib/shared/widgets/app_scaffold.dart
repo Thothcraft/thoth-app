@@ -102,7 +102,7 @@ class AppScaffold extends ConsumerWidget {
                   width: 48,
                   errorBuilder: (context, error, stackTrace) {
                     return const Icon(Icons.science,
-                        size: 48, color: Colors.white);
+                        size: 48, color: Colors.white,);
                   },
                 ),
                 const SizedBox(height: 8),

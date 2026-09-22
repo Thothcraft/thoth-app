@@ -149,10 +149,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             const Icon(Icons.error_outline, size: 64, color: Colors.red),
             const SizedBox(height: 16),
             Text('Page not found',
-                style: Theme.of(context).textTheme.headlineMedium),
+                style: Theme.of(context).textTheme.headlineMedium,),
             const SizedBox(height: 8),
             Text(state.uri.toString(),
-                style: Theme.of(context).textTheme.bodyMedium),
+                style: Theme.of(context).textTheme.bodyMedium,),
             const SizedBox(height: 24),
             ElevatedButton(
               onPressed: () => context.go(AppRoutes.devices),

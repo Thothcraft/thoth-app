@@ -29,7 +29,7 @@ class ResearchScreen extends ConsumerWidget {
                 const Icon(Icons.science, size: 48),
                 const SizedBox(height: 16),
                 Text('Research Labs',
-                    style: Theme.of(context).textTheme.headlineSmall),
+                    style: Theme.of(context).textTheme.headlineSmall,),
                 const SizedBox(height: 8),
                 const Text(
                   'Labs are available on the Research plan — '
@@ -61,7 +61,7 @@ class ResearchScreen extends ConsumerWidget {
                       leading: const Icon(Icons.science),
                       title: Text(lab['title']?.toString() ?? 'Lab'),
                       subtitle: Text(
-                          '${lab['track_title'] ?? lab['track'] ?? ''} • ${lab['level'] ?? ''}'),
+                          '${lab['track_title'] ?? lab['track'] ?? ''} • ${lab['level'] ?? ''}',),
                       trailing: sub == null
                           ? const Icon(Icons.chevron_right)
                           : Icon(

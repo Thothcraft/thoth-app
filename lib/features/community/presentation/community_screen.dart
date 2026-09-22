@@ -24,7 +24,7 @@ class CommunityScreen extends StatelessWidget {
                 end: Alignment.bottomRight,
                 colors: [
                   AppColors.primaryBlue,
-                  AppColors.primaryBlue.withOpacity(0.8),
+                  AppColors.primaryBlue.withValues(alpha: 0.8),
                 ],
               ),
             ),
@@ -44,7 +44,7 @@ class CommunityScreen extends StatelessWidget {
                   child: Text(
                     'Free tier users: Share projects in forums. Paid/Org: Host private federated sessions. Login to connect.',
                     style: AppTextStyles.bodyLarge.copyWith(
-                      color: Colors.white.withOpacity(0.9),
+                      color: Colors.white.withValues(alpha: 0.9),
                     ),
                     textAlign: TextAlign.center,
                   ),
@@ -348,7 +348,7 @@ class CommunityScreen extends StatelessWidget {
           children: [
             CircleAvatar(
               radius: 40,
-              backgroundColor: color.withOpacity(0.2),
+              backgroundColor: color.withValues(alpha: 0.2),
               child: Icon(icon, size: 40, color: color),
             ),
             const SizedBox(height: 16),
@@ -434,12 +434,12 @@ class CommunityScreen extends StatelessWidget {
               children: [
                 Chip(
                   label: Text(status),
-                  backgroundColor: AppColors.success.withOpacity(0.2),
+                  backgroundColor: AppColors.success.withValues(alpha: 0.2),
                   labelStyle: const TextStyle(color: AppColors.success, fontSize: 12),
                 ),
                 Chip(
                   label: Text(participants),
-                  backgroundColor: AppColors.textTertiaryLight.withOpacity(0.2),
+                  backgroundColor: AppColors.textTertiaryLight.withValues(alpha: 0.2),
                   labelStyle: const TextStyle(fontSize: 12),
                 ),
               ],

@@ -239,11 +239,11 @@ class PlansScreen extends StatelessWidget {
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [Colors.white, AppColors.primaryBlue.withOpacity(0.02)],
+          colors: [Colors.white, AppColors.primaryBlue.withValues(alpha: 0.02)],
         ),
         boxShadow: [
           BoxShadow(
-            color: AppColors.primaryBlue.withOpacity(0.15),
+            color: AppColors.primaryBlue.withValues(alpha: 0.15),
             blurRadius: 24,
             offset: const Offset(0, 6),
           ),

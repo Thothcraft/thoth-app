@@ -504,7 +504,7 @@ class HomeScreen extends StatelessWidget {
                   end: Alignment.bottomRight,
                   colors: [
                     Colors.white,
-                    AppColors.primaryBlue.withOpacity(0.02),
+                    AppColors.primaryBlue.withValues(alpha: 0.02),
                   ],
                 ),
               )
