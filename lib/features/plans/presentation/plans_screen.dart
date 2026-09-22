@@ -64,9 +64,9 @@ class PlansScreen extends StatelessWidget {
                     children: [
                       Expanded(child: _buildFreePlan(context)),
                       const SizedBox(width: 16),
-                      Expanded(child: _buildPaidPlan(context)),
+                      Expanded(child: _buildHomePlan(context)),
                       const SizedBox(width: 16),
-                      Expanded(child: _buildOrgPlan(context)),
+                      Expanded(child: _buildResearchPlan(context)),
                     ],
                   );
                 }
@@ -74,9 +74,9 @@ class PlansScreen extends StatelessWidget {
                   children: [
                     _buildFreePlan(context),
                     const SizedBox(height: 16),
-                    _buildPaidPlan(context),
+                    _buildHomePlan(context),
                     const SizedBox(height: 16),
-                    _buildOrgPlan(context),
+                    _buildResearchPlan(context),
                   ],
                 );
               },
@@ -208,11 +208,11 @@ class PlansScreen extends StatelessWidget {
             ),
             const SizedBox(height: 24),
             _buildFeatureList([
-              'Basic sensor data collection',
-              'Community forum access',
-              'Introductory curriculum',
-              'Multi-platform access',
-              'Basic privacy features',
+              'Occupancy detection and predictions',
+              'Live sensor visualization',
+              'Home Assistant integration',
+              'View captured data (400-minute history)',
+              '1 device',
             ]),
             const SizedBox(height: 24),
             SizedBox(
@@ -231,7 +231,7 @@ class PlansScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildPaidPlan(BuildContext context) {
+  Widget _buildHomePlan(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(18),
@@ -257,7 +257,7 @@ class PlansScreen extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text('Paid', style: AppTextStyles.h2.copyWith(color: AppColors.primaryBlue)),
+                Text('Home', style: AppTextStyles.h2.copyWith(color: AppColors.primaryBlue)),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
@@ -272,21 +272,19 @@ class PlansScreen extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 8),
-            Text('\$9.99', style: AppTextStyles.heroTitle.copyWith(fontSize: 48, color: AppColors.primaryBlue)),
+            Text('\$5', style: AppTextStyles.heroTitle.copyWith(fontSize: 48, color: AppColors.primaryBlue)),
             Text('per month', style: AppTextStyles.bodySmall.copyWith(color: AppColors.textSecondaryLight)),
             const SizedBox(height: 16),
             Text(
-              'For power users and dedicated researchers',
+              'A connected set of smart rooms',
               style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textSecondaryLight),
             ),
             const SizedBox(height: 24),
             _buildFeatureList([
               'Everything in Free',
-              'Full sensor data collection',
-              'Deep learning training',
-              'Private collaboration tools',
-              'Full differential privacy',
-              'Complete curriculum access',
+              'Up to 5 devices',
+              '10 GB cloud storage with auto sync',
+              'Download and export raw data',
             ]),
             const SizedBox(height: 24),
             SizedBox(
@@ -305,30 +303,28 @@ class PlansScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildOrgPlan(BuildContext context) {
+  Widget _buildResearchPlan(BuildContext context) {
     return GlassCard(
       child: Padding(
         padding: const EdgeInsets.all(24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Organization', style: AppTextStyles.h2.copyWith(color: AppColors.textPrimaryLight)),
+            Text('Research', style: AppTextStyles.h2.copyWith(color: AppColors.textPrimaryLight)),
             const SizedBox(height: 8),
-            Text('Custom', style: AppTextStyles.heroTitle.copyWith(fontSize: 48, color: AppColors.textPrimaryLight)),
-            Text('pricing', style: AppTextStyles.bodySmall.copyWith(color: AppColors.textSecondaryLight)),
+            Text('\$15', style: AppTextStyles.heroTitle.copyWith(fontSize: 48, color: AppColors.textPrimaryLight)),
+            Text('per month', style: AppTextStyles.bodySmall.copyWith(color: AppColors.textSecondaryLight)),
             const SizedBox(height: 16),
             Text(
-              'For teams with institutional discounts',
+              'The full research workflow',
               style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textSecondaryLight),
             ),
             const SizedBox(height: 24),
             _buildFeatureList([
-              'Everything in Paid',
-              'Custom sensor configurations',
-              'Enterprise-grade interfaces',
-              'Scalable deep learning',
-              'Compliance-ready privacy',
-              'Dedicated support team',
+              'Everything in Home',
+              'Up to 10 devices, 100 GB cloud storage',
+              'Research datasets and Python SDK',
+              'Research Labs with notebook grading',
             ]),
             const SizedBox(height: 24),
             SizedBox(
@@ -337,7 +333,7 @@ class PlansScreen extends StatelessWidget {
                 onPressed: () => _launchUrl(AppConstants.portalUrl),
                 child: const Padding(
                   padding: EdgeInsets.symmetric(vertical: 12),
-                  child: Text('Contact Sales'),
+                  child: Text('Select Plan'),
                 ),
               ),
             ),
@@ -372,13 +368,13 @@ class PlansScreen extends StatelessWidget {
 
   Widget _buildFeatureComparisonTable() {
     final features = [
-      {'name': 'Sensor Data Collection', 'free': 'Basic', 'paid': 'Full', 'org': 'Full + Custom'},
-      {'name': 'Multi-Platform Interface', 'free': '✓', 'paid': '✓ + Premium', 'org': '✓ Enterprise'},
-      {'name': 'Obsidian Integration', 'free': '✓', 'paid': '✓ Advanced', 'org': '✓ Team Sync'},
-      {'name': 'Deep Learning Training', 'free': '−', 'paid': '✓', 'org': '✓ Scalable'},
-      {'name': 'Collaborative Learning', 'free': 'Community', 'paid': '✓ Private', 'org': '✓ Institutional'},
-      {'name': 'Differential Privacy', 'free': 'Basic', 'paid': '✓ Full', 'org': '✓ Compliant'},
-      {'name': 'Education Curriculum', 'free': '✓ Intro', 'paid': '✓ Full', 'org': '✓ Licensed'},
+      {'name': 'Devices online', 'free': '1', 'paid': '5', 'org': '10'},
+      {'name': 'Occupancy, predictions and live view', 'free': '✓', 'paid': '✓', 'org': '✓'},
+      {'name': 'Home Assistant', 'free': '✓', 'paid': '✓', 'org': '✓'},
+      {'name': 'Cloud storage', 'free': '400 min', 'paid': '10 GB', 'org': '100 GB'},
+      {'name': 'Download / export raw data', 'free': '−', 'paid': '✓', 'org': '✓'},
+      {'name': 'Python SDK', 'free': 'read/control', 'paid': '✓', 'org': '✓'},
+      {'name': 'Research datasets and Labs', 'free': '−', 'paid': '−', 'org': '✓'},
     ];
 
     return GlassCard(
@@ -389,8 +385,8 @@ class PlansScreen extends StatelessWidget {
           columns: const [
             DataColumn(label: Text('Feature', style: TextStyle(fontWeight: FontWeight.w600))),
             DataColumn(label: Text('Free', style: TextStyle(fontWeight: FontWeight.w600))),
-            DataColumn(label: Text('Paid', style: TextStyle(fontWeight: FontWeight.w600))),
-            DataColumn(label: Text('Organization', style: TextStyle(fontWeight: FontWeight.w600))),
+            DataColumn(label: Text('Home', style: TextStyle(fontWeight: FontWeight.w600))),
+            DataColumn(label: Text('Research', style: TextStyle(fontWeight: FontWeight.w600))),
           ],
           rows: features.map((feature) {
             return DataRow(cells: [
@@ -413,13 +409,14 @@ class PlansScreen extends StatelessWidget {
           value: 'free',
           headerBuilder: (context, isExpanded) => const ListTile(
             leading: Icon(Icons.card_giftcard),
-            title: Text('Free Plan - Perfect for Getting Started'),
+            title: Text('Free Plan - A Complete Sensing Device'),
           ),
           body: const Padding(
             padding: EdgeInsets.all(16),
             child: Text(
-              'Dive in risk-free—collect data, take notes, join forums. Upgrade anytime. '
-              'Includes basic sensor data collection, community forum access, and introductory curriculum.',
+              'Everything you need for one device: occupancy detection, predictions, '
+              'live sensor visualization, and Home Assistant. View your last 400 minutes '
+              'of captured data in the Hub.',
             ),
           ),
         ),
@@ -427,13 +424,13 @@ class PlansScreen extends StatelessWidget {
           value: 'paid',
           headerBuilder: (context, isExpanded) => const ListTile(
             leading: Icon(Icons.star),
-            title: Text('Paid Plan - For Serious Researchers'),
+            title: Text('Home Plan - Connected Smart Rooms'),
           ),
           body: const Padding(
             padding: EdgeInsets.all(16),
             child: Text(
-              'Unlock pro tools for training and privacy. Ideal for solo deep dives. '
-              'Everything in Free plus deep learning training, private collaboration, and full privacy features.',
+              'Everything in Free plus up to 5 devices, 10 GB cloud storage with '
+              'automatic sync, and full raw-data download and export.',
             ),
           ),
         ),
@@ -441,13 +438,14 @@ class PlansScreen extends StatelessWidget {
           value: 'org',
           headerBuilder: (context, isExpanded) => const ListTile(
             leading: Icon(Icons.business),
-            title: Text('Organization Plan - For Teams & Institutions'),
+            title: Text('Research Plan - The Full Workflow'),
           ),
           body: const Padding(
             padding: EdgeInsets.all(16),
             child: Text(
-              'Bulk kits, dedicated onboarding, and curricula tailored to your syllabus. '
-              'Everything in Paid plus custom configurations, enterprise interfaces, and dedicated support.',
+              'Everything in Home plus up to 10 devices, 100 GB cloud storage, '
+              'research datasets, the thothcraft Python SDK, and Research Labs '
+              'with notebook submission and grading.',
             ),
           ),
         ),

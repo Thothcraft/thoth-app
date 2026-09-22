@@ -73,7 +73,10 @@ class AppConstants {
   // Plan Pricing
   static const Map<String, String> planPrices = {
     'free': '\$0/mo',
-    'paid': '\$9.99/mo',
-    'organization': 'Custom',
+    'home': '\$5/mo',
+    'research': '\$15/mo',
   };
+
+  // Brain API
+  static const String brainApiUrl = 'https://api.thothcraft.com';
 }

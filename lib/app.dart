@@ -17,8 +17,8 @@ class ThothcraftApp extends ConsumerWidget {
       darkTheme: AppTheme.darkTheme(),
       themeMode: ThemeMode.system, // TODO: Connect to settings provider
       
-      // Routing
-      routerConfig: appRouter,
+      // Routing (auth-aware via provider)
+      routerConfig: ref.watch(appRouterProvider),
       
       // Localization
       supportedLocales: const [
