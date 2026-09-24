@@ -53,12 +53,69 @@ class BrainClient {
       },);
 
   String _api(String path) => '$_baseUrl/api$path';
+  String _v1(String path) => '$_baseUrl/v1$path';
 
   Future<Map<String, dynamic>> getJson(String path,
       {Map<String, dynamic>? params,}) async {
     final res = await _dio.get(_api(path),
         queryParameters: params, options: _opts,);
     return Map<String, dynamic>.from(res.data as Map);
+  }
+
+  /// GET a versioned v1 endpoint.
+  Future<Map<String, dynamic>> getV1(String path,
+      {Map<String, dynamic>? params,}) async {
+    final res = await _dio.get(_v1(path),
+        queryParameters: params, options: _opts,);
+    return Map<String, dynamic>.from(res.data as Map);
+  }
+
+  /// POST a versioned v1 endpoint.
+  Future<Map<String, dynamic>> postV1(String path,
+      {Map<String, dynamic>? body,}) async {
+    final res = await _dio.post(_v1(path),
+        data: body ?? {}, options: _opts,);
+    return Map<String, dynamic>.from(res.data as Map);
+  }
+
+  /// Recent typed predictions for a device (v1 ``PredictionListV1``).
+  Future<List<Map<String, dynamic>>> getDevicePredictions(String deviceId,
+      {int limit = 50,}) async {
+    final res = await getV1('/devices/$deviceId/predictions',
+        params: {'limit': limit},);
+    final list = (res['predictions'] ?? const []) as List;
+    return list
+        .map((e) => Map<String, dynamic>.from(e as Map))
+        .toList();
+  }
+
+  /// Cursor-paged real samples for one sensor (v1 ``StreamPageV1``).
+  /// Returns ``{samples: [...], cursor: String?, state: String}``.
+  Future<Map<String, dynamic>> streamSensor(String deviceId, String sensorId,
+      {String? cursor,}) async {
+    return getV1('/devices/$deviceId/streams/$sensorId',
+        params: {if (cursor != null) 'cursor': cursor},);
+  }
+
+  /// List a device's captures (v1 ``CaptureListV1``).
+  Future<List<Map<String, dynamic>>> getDeviceCaptures(String deviceId) async {
+    final res = await getV1('/devices/$deviceId/captures');
+    final list = (res['captures'] ?? const []) as List;
+    return list
+        .map((e) => Map<String, dynamic>.from(e as Map))
+        .toList();
+  }
+
+  /// Start a capture; returns the durable CaptureV1 (state ``requested``).
+  Future<Map<String, dynamic>> startCapture(String deviceId,
+      {List<String>? sensors,}) async {
+    return postV1('/devices/$deviceId/captures',
+        body: {'sensors': sensors ?? []},);
+  }
+
+  /// Stop a capture by its durable id; returns ``{id, device_id, state}``.
+  Future<Map<String, dynamic>> stopCapture(String captureId) async {
+    return postV1('/captures/$captureId/stop');
   }
 
   Future<Map<String, dynamic>> postJson(String path,

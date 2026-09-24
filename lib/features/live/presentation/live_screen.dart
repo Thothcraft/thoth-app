@@ -2,7 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import '../../../core/api/brain_client.dart';
 
-/// Live view — polls live-chunks for one device and shows the latest
+/// Live view — polls v1 predictions for one device and shows the latest
 /// occupancy/activity prediction stream.
 class LiveScreen extends StatefulWidget {
   const LiveScreen({required this.deviceId, super.key});
@@ -15,9 +15,9 @@ class LiveScreen extends StatefulWidget {
 
 class _LiveScreenState extends State<LiveScreen> {
   final _client = BrainClient.instance;
-  final List<Map<String, dynamic>> _chunks = [];
+  final List<Map<String, dynamic>> _predictions = [];
+  final Set<String> _seenIds = {};
   Timer? _timer;
-  int _cursor = 0;
   String? _error;
 
   @override
@@ -33,31 +33,50 @@ class _LiveScreenState extends State<LiveScreen> {
     super.dispose();
   }
 
+  bool _isOccupied(Map<String, dynamic> p) {
+    final label = (p['label'] ?? '').toString().toLowerCase();
+    if (label == 'occupied') return true;
+    final scores = p['scores'];
+    if (scores is Map && scores['occupied'] is num) {
+      return (scores['occupied'] as num) > 0.5;
+    }
+    return false;
+  }
+
   Future<void> _poll() async {
     try {
-      final payload = await _client.getJson(
-        '/device/${widget.deviceId}/live-chunks',
-        params: {'cursor': _cursor},
-      );
-      final chunks = (payload['chunks'] ?? payload['data'] ?? []) as List;
+      // v1 typed predictions — replaces the legacy live-chunks contract.
+      final preds = await _client.getDevicePredictions(widget.deviceId,
+          limit: 50,);
+      if (!mounted) return;
       setState(() {
         _error = null;
-        for (final c in chunks) {
-          _chunks.insert(0, Map<String, dynamic>.from(c as Map));
+        for (final p in preds.reversed) {
+          // PredictionV1.id may be empty for payloads without one; fall
+          // back to a composite key so dedup still works.
+          var id = (p['id'] ?? '').toString();
+          if (id.isEmpty) {
+            id = '${p['runtime_model_id']}|${p['timestamp']}|${p['label']}';
+          }
+          if (_seenIds.contains(id)) continue;
+          _seenIds.add(id);
+          _predictions.insert(0, p);
         }
-        if (_chunks.length > 100) _chunks.removeRange(100, _chunks.length);
-        _cursor = (payload['cursor'] ?? payload['next_cursor'] ?? _cursor) as int;
+        if (_predictions.length > 100) {
+          _predictions.removeRange(100, _predictions.length);
+        }
       });
     } catch (e) {
+      if (!mounted) return;
       setState(() => _error = e.toString());
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final latest = _chunks.isNotEmpty ? _chunks.first : null;
-    final occupied = latest?['occupied'] == true;
-    final label = (latest?['label'] ?? latest?['prediction'] ?? '—').toString();
+    final latest = _predictions.isNotEmpty ? _predictions.first : null;
+    final occupied = latest != null && _isOccupied(latest);
+    final label = (latest?['label'] ?? '—').toString();
 
     return Scaffold(
       appBar: AppBar(title: const Text('Live')),
@@ -89,29 +108,25 @@ class _LiveScreenState extends State<LiveScreen> {
                   style: TextStyle(color: Theme.of(context).colorScheme.error),),
             ),
           Expanded(
-            child: _chunks.isEmpty
+            child: _predictions.isEmpty
                 ? const Center(child: Text('Waiting for live data…'))
                 : ListView.builder(
-                    itemCount: _chunks.length,
+                    itemCount: _predictions.length,
                     itemBuilder: (context, i) {
-                      final c = _chunks[i];
+                      final p = _predictions[i];
+                      final occ = _isOccupied(p);
                       return ListTile(
                         dense: true,
                         leading: Icon(
-                          c['occupied'] == true
-                              ? Icons.circle
-                              : Icons.circle_outlined,
+                          occ ? Icons.circle : Icons.circle_outlined,
                           size: 12,
-                          color: c['occupied'] == true
-                              ? Colors.green
-                              : Colors.grey,
+                          color: occ ? Colors.green : Colors.grey,
                         ),
-                        title: Text(
-                            (c['label'] ?? c['prediction'] ?? 'chunk').toString(),),
+                        title: Text((p['label'] ?? 'prediction').toString()),
                         subtitle: Text(
-                            (c['minute'] ?? c['timestamp'] ?? '').toString(),),
-                        trailing: c['confidence'] != null
-                            ? Text('${c['confidence']}')
+                            (p['timestamp'] ?? '').toString(),),
+                        trailing: p['confidence'] != null
+                            ? Text('${p['confidence']}')
                             : null,
                       );
                     },
