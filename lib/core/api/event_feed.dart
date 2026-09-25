@@ -17,7 +17,7 @@ class EventFeed {
   final Dio _dio = Dio(BaseOptions(
     // No receive timeout — the stream is long-lived; heartbeats keep it up.
     connectTimeout: const Duration(seconds: 10),
-  ));
+  ),);
 
   CancelToken? _cancel;
   String? _lastEventId;
@@ -124,7 +124,7 @@ class EventFeed {
 
     if (data['kind'] == 'notification') {
       final payload = Map<String, dynamic>.from(
-          (data['data'] as Map?) ?? const {});
+          (data['data'] as Map?) ?? const {},);
       NotificationService.instance.show(
         (payload['title'] as String?) ?? 'Thoth',
         (payload['body'] as String?) ?? '',

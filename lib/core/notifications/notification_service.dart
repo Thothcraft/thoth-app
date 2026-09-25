@@ -30,7 +30,7 @@ class NotificationService {
   }
 
   Future<void> show(String title, String body,
-      {String severity = 'info'}) async {
+      {String severity = 'info',}) async {
     if (!_ready) await init();
     final details = NotificationDetails(
       android: AndroidNotificationDetails(

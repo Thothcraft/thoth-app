@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/api/event_feed.dart';
@@ -57,7 +55,7 @@ final deviceEventFeedProvider = StreamProvider.autoDispose
   return EventFeed.instance.events.map(
       (batch) => batch.where((e) =>
           (e['device_id'] as String?) == deviceId ||
-          ((e['data'] as Map?)?['device_id'] as String?) == deviceId)
+          ((e['data'] as Map?)?['device_id'] as String?) == deviceId,)
           .toList(),
     ).where((batch) => batch.isNotEmpty);
 });
