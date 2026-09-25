@@ -26,7 +26,7 @@ class NodeClient {
         'method': method.toUpperCase(),
         'path': path.startsWith('/') ? path : '/$path',
         if (body != null) 'body': body,
-      });
+      },);
       return res;
     } on DioException catch (e) {
       final status = e.response?.statusCode ?? 0;
@@ -91,22 +91,22 @@ class NodeClient {
   /// Latest events for a device (notification feed; CONTRACT §6).
   /// Pass [since] (event id) for incremental polling.
   Future<List<Map<String, dynamic>>> events(String deviceId,
-      {int limit = 50, String? since}) async {
+      {int limit = 50, String? since,}) async {
     final res = await _brain.getV1('/events', params: {
       'device_id': deviceId,
       'limit': limit,
       if (since != null) 'since': since,
-    });
+    },);
     return (res['events'] as List? ?? const [])
         .map((e) => Map<String, dynamic>.from(e as Map))
         .toList();
   }
 
   Future<void> toggleAutomation(String deviceId, String automationId,
-          {required bool enabled}) =>
+          {required bool enabled,}) =>
       post(deviceId, '/api/automations/$automationId', body: {
         'enabled': enabled,
-      });
+      },);
 
   Future<void> startCapture(String deviceId) =>
       post(deviceId, '/api/captures/start', body: const {});

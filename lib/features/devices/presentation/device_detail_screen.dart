@@ -69,7 +69,7 @@ class _DeviceDetailScreenState extends ConsumerState<DeviceDetailScreen> {
             children: [
               Text(status.valueOrNull?['name']?.toString() ?? 'Device'),
               Text(deviceId,
-                  style: const TextStyle(fontSize: 11, fontFamily: 'monospace')),
+                  style: const TextStyle(fontSize: 11, fontFamily: 'monospace'),),
             ],
           ),
           actions: [
@@ -94,14 +94,14 @@ class _DeviceDetailScreenState extends ConsumerState<DeviceDetailScreen> {
             Tab(text: 'Captures'),
             Tab(text: 'Automations'),
             Tab(text: 'Events'),
-          ]),
+          ],),
         ),
         body: TabBarView(children: [
           _OverviewTab(deviceId: deviceId),
           _CapturesTab(deviceId: deviceId),
           _AutomationsTab(deviceId: deviceId),
           _EventsTab(deviceId: deviceId),
-        ]),
+        ],),
       ),
     );
   }
@@ -113,7 +113,8 @@ class _OfflineNote extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final offline = error is NodeRelayException && error.offline;
+    final e = error;
+    final offline = e is NodeRelayException && e.offline;
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(24),
@@ -159,18 +160,18 @@ class _OverviewTab extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text('Status',
-                        style: Theme.of(context).textTheme.titleMedium),
+                        style: Theme.of(context).textTheme.titleMedium,),
                     const SizedBox(height: 8),
                     _kv('State', '${s['state'] ?? 'unknown'}'),
                     _kv('Uptime',
                         s['uptime_s'] != null
                             ? '${((s['uptime_s'] as num) / 60).round()} min'
-                            : '—'),
+                            : '—',),
                     _kv('Active models', '${s['models_active'] ?? '—'}'),
                     _kv('Paired to cloud',
                         (s['brain'] is Map && s['brain']['paired'] == true)
                             ? 'yes'
-                            : 'no'),
+                            : 'no',),
                   ],
                 ),
               ),
@@ -187,7 +188,7 @@ class _OverviewTab extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text('Sensors (${list.length})',
-                        style: Theme.of(context).textTheme.titleMedium),
+                        style: Theme.of(context).textTheme.titleMedium,),
                     const SizedBox(height: 8),
                     for (final s in list)
                       Padding(
@@ -197,22 +198,22 @@ class _OverviewTab extends ConsumerWidget {
                             Expanded(
                               child: Text('${s['id']}',
                                   style: const TextStyle(
-                                      fontFamily: 'monospace', fontSize: 12)),
+                                      fontFamily: 'monospace', fontSize: 12,),),
                             ),
                             Text('${s['type'] ?? 'sensor'}',
-                                style: Theme.of(context).textTheme.bodySmall),
+                                style: Theme.of(context).textTheme.bodySmall,),
                             const SizedBox(width: 8),
                             Icon(Icons.circle,
                                 size: 8,
                                 color: s['online'] == false
                                     ? Colors.grey
-                                    : Colors.green),
+                                    : Colors.green,),
                           ],
                         ),
                       ),
                     if (list.isEmpty)
                       Text('No sensors reported yet.',
-                          style: Theme.of(context).textTheme.bodySmall),
+                          style: Theme.of(context).textTheme.bodySmall,),
                   ],
                 ),
               ),
@@ -246,12 +247,12 @@ class _OverviewTab extends ConsumerWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text('Context',
-                          style: Theme.of(context).textTheme.titleMedium),
+                          style: Theme.of(context).textTheme.titleMedium,),
                       const SizedBox(height: 8),
                       if (roomName != null) _kv('Room', roomName),
                       if (battery?['percent'] != null)
                         _kv('Battery',
-                            '${battery!['percent']}%${battery['charging'] == true ? ' ⚡' : ''}'),
+                            '${battery!['percent']}%${battery['charging'] == true ? ' ⚡' : ''}',),
                       if (activity?['kind'] != null)
                         _kv('Activity', '${activity!['kind']}'),
                     ],
@@ -300,7 +301,7 @@ class _CapturesTab extends ConsumerWidget {
                   } on NodeRelayException catch (e) {
                     if (context.mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text(e.message)));
+                          SnackBar(content: Text(e.message)),);
                     }
                   }
                 },
@@ -340,11 +341,11 @@ class _CapturesTab extends ConsumerWidget {
                     ),
                     title: Text(id,
                         style: const TextStyle(
-                            fontFamily: 'monospace', fontSize: 13)),
+                            fontFamily: 'monospace', fontSize: 13,),),
                     subtitle: Text([
                       if (labels.isNotEmpty) labels,
                       'sensors: ${(cap['sensors'] as List? ?? const []).length}',
-                    ].join(' · ')),
+                    ].join(' · '),),
                     trailing: active
                         ? IconButton(
                             icon: const Icon(Icons.stop_circle),
@@ -353,11 +354,11 @@ class _CapturesTab extends ConsumerWidget {
                                 await NodeClient.instance
                                     .stopCapture(deviceId, id);
                                 ref.invalidate(
-                                    deviceCapturesProvider(deviceId));
+                                    deviceCapturesProvider(deviceId),);
                               } on NodeRelayException catch (e) {
                                 if (context.mounted) {
                                   ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(content: Text(e.message)));
+                                      SnackBar(content: Text(e.message)),);
                                 }
                               }
                             },
@@ -388,7 +389,7 @@ class _AutomationsTab extends ConsumerWidget {
         if (list.isEmpty) {
           return const Center(
               child: Text('No automations on this node.\nCreate them in the portal dashboard.',
-                  textAlign: TextAlign.center));
+                  textAlign: TextAlign.center,),);
         }
         return ListView.builder(
           itemCount: list.length,
@@ -442,7 +443,7 @@ class _EventsTab extends ConsumerWidget {
     final events = seen.values.toList()
       ..sort((a, b) =>
           (num.tryParse('${b['id']}') ?? 0)
-              .compareTo(num.tryParse('${a['id']}') ?? 0));
+              .compareTo(num.tryParse('${a['id']}') ?? 0),);
 
     if (events.isEmpty) {
       return Center(
@@ -473,8 +474,8 @@ class _EventsTab extends ConsumerWidget {
             size: 18,
           ),
           title: Text('${e['kind']}', style: const TextStyle(fontSize: 13)),
-          subtitle: Text('$when',
-              style: const TextStyle(fontSize: 11, color: Colors.black45)),
+          subtitle: Text(when,
+              style: const TextStyle(fontSize: 11, color: Colors.black45),),
         );
       },
     );
