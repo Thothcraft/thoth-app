@@ -6,6 +6,7 @@ import '../features/auth/presentation/login_screen.dart';
 import '../features/home/presentation/home_screen.dart';
 import '../features/features/presentation/features_screen.dart';
 import '../features/devices/presentation/devices_screen.dart';
+import '../features/devices/presentation/device_detail_screen.dart';
 import '../features/devices/presentation/har_device_screen.dart';
 import '../features/devices/presentation/wifi_device_screen.dart';
 import '../features/devices/presentation/env_device_screen.dart';
@@ -139,6 +140,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/devices/env',
         builder: (context, state) => const EnvDeviceScreen(),
+      ),
+      // Device detail via the Brain node tunnel — declared last so the
+      // literal /devices/{har,wifi,env} routes keep winning.
+      GoRoute(
+        path: '/devices/:id',
+        builder: (context, state) =>
+            DeviceDetailScreen(deviceId: state.pathParameters['id']!),
       ),
     ],
     errorBuilder: (context, state) => Scaffold(

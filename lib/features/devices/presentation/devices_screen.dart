@@ -71,7 +71,7 @@ class DevicesScreen extends ConsumerWidget {
                     trailing: d.batteryLevel != null
                         ? Text('${d.batteryLevel}%')
                         : null,
-                    onTap: () => context.push('/devices/${d.uuid}/live'),
+                    onTap: () => context.push('/devices/${d.uuid}'),
                   ),
                 );
               },
