@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/api/brain_client.dart';
+import '../../../core/api/event_feed.dart';
 
 class AuthState {
   const AuthState({
@@ -60,6 +61,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
         username: profile['username'] as String?,
         plan: (profile['plan'] as String?) ?? 'free',
       );
+      EventFeed.instance.start();
     } catch (_) {
       await _client.setToken(null);
       state = state.copyWith(isLoading: false);
@@ -88,6 +90,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
         username: data['username'] as String? ?? username.trim(),
         plan: (data['plan'] as String?) ?? 'free',
       );
+      EventFeed.instance.start();
       return true;
     } catch (e) {
       state = state.copyWith(
@@ -97,6 +100,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
   }
 
   Future<void> logout() async {
+    EventFeed.instance.stop();
     await _client.logout();
     state = const AuthState(isLoading: false);
   }

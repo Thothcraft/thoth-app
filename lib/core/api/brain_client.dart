@@ -24,6 +24,8 @@ class BrainClient {
 
   String get baseUrl => _baseUrl;
   bool get hasToken => _token != null && _token!.isNotEmpty;
+  /// Bearer token for streaming endpoints (SSE headers).
+  String? get token => _token;
 
   Future<void> init() async {
     final prefs = await SharedPreferences.getInstance();

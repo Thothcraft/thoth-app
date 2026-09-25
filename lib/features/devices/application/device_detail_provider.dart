@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/api/event_feed.dart';
 import '../../../core/api/node_client.dart';
 
 /// Per-device state fetched through Brain's node relay (CONTRACT §5).
@@ -47,23 +48,16 @@ final deviceRoomProvider = FutureProvider.autoDispose
   }
 });
 
-/// Event feed (CONTRACT §6): polls `/v1/events?device_id=&since=<id>`
-/// every 15 s and yields each new batch; the screen listens and shows
-/// snackbars for `trigger_fired`/`room_changed` events.
+/// Event feed (CONTRACT §6): shared SSE subscription to
+/// `/v1/events/stream` — pushed, not polled. Each emission is a
+/// one-element batch (the same `List<Map>` shape the listener expects),
+/// filtered to this device.
 final deviceEventFeedProvider = StreamProvider.autoDispose
-    .family<List<Map<String, dynamic>>, String>((ref, deviceId) async* {
-  var lastId = '0';
-  while (true) {
-    try {
-      final events = await NodeClient.instance
-          .events(deviceId, limit: 50, since: lastId);
-      if (events.isNotEmpty) {
-        lastId = events.last['id']?.toString() ?? lastId;
-        yield events;
-      }
-    } catch (_) {
-      // transient failures just skip a tick
-    }
-    await Future<void>.delayed(const Duration(seconds: 15));
-  }
+    .family<List<Map<String, dynamic>>, String>((ref, deviceId) {
+  return EventFeed.instance.events.map(
+      (batch) => batch.where((e) =>
+          (e['device_id'] as String?) == deviceId ||
+          ((e['data'] as Map?)?['device_id'] as String?) == deviceId)
+          .toList(),
+    ).where((batch) => batch.isNotEmpty);
 });
