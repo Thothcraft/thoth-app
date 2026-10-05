@@ -71,7 +71,12 @@ class WatchManager extends Notifier<Map<String, WatchRelay>> {
 
     final device = BluetoothDevice.fromId(record.bleId);
     final link = WatchLink(device);
-    await link.connect();
+    // Bounded: WatchLink's connect loop retries forever by design for
+    // reconnects, but a pairing-time connect must fail fast or the
+    // "Pairing with Brain" dialog hangs with no feedback.
+    await link.connect().timeout(const Duration(seconds: 60),
+        onTimeout: () => throw TimeoutException(
+            'watch unreachable — keep it awake and in range'));
 
     final relay = WatchRelay(record);
     await relay.start(link);

@@ -186,6 +186,17 @@ class _Scene {
       }
     }
 
+    // ── 2a. Every account device gets a node — the map is the whole
+    // fleet, not only devices that happen to have placements/edges.
+    for (final d in devices) {
+      if (d.uuid.isEmpty || nodes.containsKey(d.uuid)) continue;
+      nodes[d.uuid] = _Node(
+        id: d.uuid,
+        label: d.name,
+        kind: _kind(d.deviceType, d.uuid),
+      );
+    }
+
     // ── 2. Nodes appearing only in BLE edges — orbit their strongest
     // anchor. Anchored devices without placement join the free pool.
     for (final e in edges) {

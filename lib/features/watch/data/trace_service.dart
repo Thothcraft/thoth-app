@@ -233,6 +233,11 @@ class TraceService extends ChangeNotifier {
       ),
     ).listen(_onPosition, onError: (Object e) {
       debugPrint('[trace] position error: $e');
+      // A one-time deny (or revoked grant) kills the stream — re-ask
+      // next attach instead of staying latched denied for the session.
+      _permitted = false;
+      _posSub?.cancel();
+      _posSub = null;
     });
   }
 

@@ -255,11 +255,13 @@ class WatchLink {
       final v = await _chars[PinetimeGatt.charMotion]?.read();
       if (v != null && v.isNotEmpty) {
         _motionRx++;
+        final m = PinetimeCodec.decodeMotion(v);
         if (_motionRx % 50 == 0) {
-          debugPrint('[watch] motionRx=$_motionRx (poll)');
+          debugPrint('[watch] motionRx=$_motionRx (poll) '
+              'xyz=${m == null ? '-' : '${m.x.toStringAsFixed(3)},'
+              '${m.y.toStringAsFixed(3)},${m.z.toStringAsFixed(3)}'}');
         }
-        _telemetry.add(
-            WatchTelemetry(motion: PinetimeCodec.decodeMotion(v)));
+        _telemetry.add(WatchTelemetry(motion: m));
       }
     } catch (_) {
       // Transient read failures (link busy with notify/flush) are normal.
