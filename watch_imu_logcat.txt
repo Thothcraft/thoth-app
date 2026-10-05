@@ -1,0 +1,894 @@
+﻿--------- beginning of main
+10-04 23:40:12.397 11810 11840 I flutter : [IMPORTANT:flutter/shell/platform/android/android_context_vk_impeller.cc(62)] Using the Impeller rendering backend (Vulkan).
+10-04 23:40:12.424 11810 11840 I flutter : [IMPORTANT:flutter/shell/platform/android/android_context_gl_impeller.cc(104)] Using the Impeller rendering backend (OpenGLES).
+10-04 23:40:12.770 11810 11855 I flutter : The Dart VM service is listening on http://127.0.0.1:39523/SI7V9Gn5Mis=/
+10-04 23:40:21.137 11810 11810 I flutter : [FBP] stopScan: already stopped
+10-05 00:25:13.974 11810 11810 I flutter : [FBP] stopScan: already stopped
+10-05 00:26:08.803 11810 11810 I flutter : [FBP] stopScan: already stopped
+10-05 00:26:13.409 11810 11810 I flutter : [watch] subscribed stamped=false
+10-05 00:26:13.641 11810 11810 E flutter : [ERROR:flutter/runtime/dart_vm_initializer.cc(40)] Unhandled Exception: 'package:flutter/src/widgets/navigator.dart': Failed assertion: line 5643 pos 12: '!_debugLocked': is not true.
+10-05 00:26:13.641 11810 11810 E flutter : #0      _AssertionError._doThrowNew (dart:core-patch/errors_patch.dart:67:4)
+10-05 00:26:13.641 11810 11810 E flutter : #1      _AssertionError._throwNew (dart:core-patch/errors_patch.dart:49:5)
+10-05 00:26:13.641 11810 11810 E flutter : #2      NavigatorState.pop (package:flutter/src/widgets/navigator.dart:5643:12)
+10-05 00:26:13.641 11810 11810 E flutter : #3      WatchScanSheet._pair (package:thothcraft/features/watch/presentation/watch_screen.dart:293:31)
+10-05 00:26:13.641 11810 11810 E flutter : <asynchronous suspension>
+10-05 00:26:13.641 11810 11810 E flutter : 
+10-05 00:26:13.783 11810 11810 I flutter : [FBP] stopScan: already stopped
+10-05 00:26:13.791 11810 11810 I flutter : [trace] position error: User denied permissions to access the device's location.
+10-05 00:26:13.882 11810 11810 I flutter : [FBP] stopScan: already stopped
+10-05 00:26:14.034 11810 19275 I flutter : [IMPORTANT:flutter/shell/platform/android/android_context_vk_impeller.cc(62)] Using the Impeller rendering backend (Vulkan).
+10-05 00:26:14.059 11810 19275 I flutter : [IMPORTANT:flutter/shell/platform/android/android_context_gl_impeller.cc(104)] Using the Impeller rendering backend (OpenGLES).
+10-05 00:26:18.532 11810 11810 I flutter : [watch] motionRx=50 (poll)
+10-05 00:26:23.511 11810 11810 I flutter : [watch] motionRx=100 (poll)
+10-05 00:26:28.609 11810 11810 I flutter : [watch] motionRx=150 (poll)
+10-05 00:26:33.469 11810 11810 I flutter : [trace] fgs=true rssi=-59 motionRx=198 sent=1 failed=0 buf=201 pts=0
+10-05 00:26:33.629 11810 11810 I flutter : [watch] motionRx=200 (poll)
+10-05 00:26:38.616 11810 11810 I flutter : [watch] motionRx=250 (poll)
+10-05 00:26:43.624 11810 11810 I flutter : [watch] motionRx=300 (poll)
+10-05 00:26:48.466 11810 11810 I flutter : [trace] fgs=true rssi=-72 motionRx=348 sent=3 failed=0 buf=100 pts=0
+10-05 00:26:48.620 11810 11810 I flutter : [watch] motionRx=350 (poll)
+10-05 00:26:53.616 11810 11810 I flutter : [watch] motionRx=400 (poll)
+10-05 00:26:58.610 11810 11810 I flutter : [watch] motionRx=450 (poll)
+10-05 00:27:03.467 11810 11810 I flutter : [trace] fgs=true rssi=-72 motionRx=498 sent=4 failed=0 buf=203 pts=0
+10-05 00:27:03.621 11810 11810 I flutter : [watch] motionRx=500 (poll)
+10-05 00:27:06.033 11810 19674 I flutter : [IMPORTANT:flutter/shell/platform/android/android_context_vk_impeller.cc(62)] Using the Impeller rendering backend (Vulkan).
+10-05 00:27:06.042 11810 19674 I flutter : [IMPORTANT:flutter/shell/platform/android/android_context_gl_impeller.cc(104)] Using the Impeller rendering backend (OpenGLES).
+10-05 00:27:08.050 11810 11810 I flutter : [FBP] stopScan: already stopped
+10-05 00:27:08.839 11810 11810 I flutter : [FBP] stopScan: already stopped
+10-05 00:28:55.367 11810 11810 I flutter : [watch] notify 00020001-78fc-48fe-8e23-433b3a1942d0 failed: PlatformException(setNotifyValue, gatt.writeDescriptor() returned false, null, null)
+10-05 00:28:55.370 11810 11810 I flutter : [watch] subscribed stamped=false
+10-05 00:29:00.134 11810 11810 I flutter : [watch] motionRx=50 (poll)
+10-05 00:29:05.592 11810 11810 I flutter : [watch] motionRx=100 (poll)
+10-05 00:29:10.595 11810 11810 I flutter : [trace] fgs=true rssi=-91 motionRx=109 sent=1 failed=0 buf=22 pts=3
+10-05 00:29:17.699 11810 11810 I flutter : [watch] motionRx=150 (poll)
+10-05 00:29:25.592 11810 11810 I flutter : [trace] fgs=true rssi=-92 motionRx=179 sent=2 failed=0 buf=0 pts=3
+10-05 00:29:32.925 11810 11810 I flutter : [watch] motionRx=200 (poll)
+10-05 00:29:38.550 11810 11810 I flutter : [watch] motionRx=250 (poll)
+10-05 00:29:40.593 11810 11810 I flutter : [trace] fgs=true rssi=-83 motionRx=270 sent=4 failed=0 buf=105 pts=3
+10-05 00:29:43.543 11810 11810 I flutter : [watch] motionRx=300 (poll)
+10-05 00:29:48.539 11810 11810 I flutter : [watch] motionRx=350 (poll)
+10-05 00:29:53.706 11810 11810 I flutter : [watch] motionRx=400 (poll)
+10-05 00:29:55.593 11810 11810 I flutter : [trace] fgs=true rssi=-65 motionRx=419 sent=5 failed=0 buf=2 pts=3
+10-05 00:29:58.668 11810 11810 I flutter : [watch] motionRx=450 (poll)
+10-05 00:30:03.838 11810 11810 I flutter : [watch] motionRx=500 (poll)
+10-05 00:30:08.864 11810 11810 I flutter : [watch] motionRx=550 (poll)
+10-05 00:30:10.592 11810 11810 I flutter : [trace] fgs=true rssi=-61 motionRx=567 sent=7 failed=0 buf=105 pts=3
+10-05 00:30:13.842 11810 11810 I flutter : [watch] motionRx=600 (poll)
+10-05 00:30:18.839 11810 11810 I flutter : [watch] motionRx=650 (poll)
+10-05 00:30:23.850 11810 11810 I flutter : [watch] motionRx=700 (poll)
+10-05 00:30:25.592 11810 11810 I flutter : [trace] fgs=true rssi=-65 motionRx=717 sent=8 failed=0 buf=2 pts=4
+10-05 00:30:28.844 11810 11810 I flutter : [watch] motionRx=750 (poll)
+10-05 00:30:33.836 11810 11810 I flutter : [watch] motionRx=800 (poll)
+10-05 00:30:35.125 11810 11810 I flutter : [FBP] stopScan: already stopped
+10-05 00:30:38.849 11810 11810 I flutter : [watch] motionRx=850 (poll)
+10-05 00:30:40.593 11810 11810 I flutter : [trace] fgs=true rssi=-65 motionRx=867 sent=10 failed=0 buf=105 pts=4
+10-05 00:30:43.842 11810 11810 I flutter : [watch] motionRx=900 (poll)
+10-05 00:30:48.853 11810 11810 I flutter : [watch] motionRx=950 (poll)
+10-05 00:30:53.862 11810 11810 I flutter : [watch] motionRx=1000 (poll)
+10-05 00:30:55.592 11810 11810 I flutter : [trace] fgs=true rssi=-65 motionRx=1017 sent=11 failed=0 buf=3 pts=4
+10-05 00:30:58.857 11810 11810 I flutter : [watch] motionRx=1050 (poll)
+10-05 00:31:03.852 11810 11810 I flutter : [watch] motionRx=1100 (poll)
+10-05 00:31:08.849 11810 11810 I flutter : [watch] motionRx=1150 (poll)
+10-05 00:31:10.593 11810 11810 I flutter : [trace] fgs=true rssi=-70 motionRx=1167 sent=13 failed=0 buf=105 pts=4
+10-05 00:31:13.844 11810 11810 I flutter : [watch] motionRx=1200 (poll)
+10-05 00:31:18.839 11810 11810 I flutter : [watch] motionRx=1250 (poll)
+10-05 00:31:23.850 11810 11810 I flutter : [watch] motionRx=1300 (poll)
+10-05 00:31:25.592 11810 11810 I flutter : [trace] fgs=true rssi=-69 motionRx=1317 sent=14 failed=0 buf=2 pts=4
+10-05 00:31:28.859 11810 11810 I flutter : [watch] motionRx=1350 (poll)
+10-05 00:31:33.839 11810 11810 I flutter : [watch] motionRx=1400 (poll)
+10-05 00:31:38.848 11810 11810 I flutter : [watch] motionRx=1450 (poll)
+10-05 00:31:40.593 11810 11810 I flutter : [trace] fgs=true rssi=-68 motionRx=1467 sent=16 failed=0 buf=105 pts=4
+10-05 00:31:43.843 11810 11810 I flutter : [watch] motionRx=1500 (poll)
+10-05 00:31:48.838 11810 11810 I flutter : [watch] motionRx=1550 (poll)
+10-05 00:31:53.848 11810 11810 I flutter : [watch] motionRx=1600 (poll)
+10-05 00:31:55.592 11810 11810 I flutter : [trace] fgs=true rssi=-69 motionRx=1617 sent=17 failed=0 buf=2 pts=4
+10-05 00:31:58.844 11810 11810 I flutter : [watch] motionRx=1650 (poll)
+10-05 00:32:03.837 11810 11810 I flutter : [watch] motionRx=1700 (poll)
+10-05 00:32:08.849 11810 11810 I flutter : [watch] motionRx=1750 (poll)
+10-05 00:32:10.594 11810 11810 I flutter : [trace] fgs=true rssi=-70 motionRx=1767 sent=19 failed=0 buf=105 pts=4
+10-05 00:32:13.849 11810 11810 I flutter : [watch] motionRx=1800 (poll)
+10-05 00:32:18.852 11810 11810 I flutter : [watch] motionRx=1850 (poll)
+10-05 00:32:23.850 11810 11810 I flutter : [watch] motionRx=1900 (poll)
+10-05 00:32:25.593 11810 11810 I flutter : [trace] fgs=true rssi=-68 motionRx=1917 sent=20 failed=0 buf=3 pts=4
+10-05 00:32:28.842 11810 11810 I flutter : [watch] motionRx=1950 (poll)
+10-05 00:32:33.855 11810 11810 I flutter : [watch] motionRx=2000 (poll)
+10-05 00:32:38.849 11810 11810 I flutter : [watch] motionRx=2050 (poll)
+10-05 00:32:40.593 11810 11810 I flutter : [trace] fgs=true rssi=-68 motionRx=2067 sent=22 failed=0 buf=105 pts=4
+10-05 00:32:43.845 11810 11810 I flutter : [watch] motionRx=2100 (poll)
+10-05 00:32:48.839 11810 11810 I flutter : [watch] motionRx=2150 (poll)
+10-05 00:32:53.848 11810 11810 I flutter : [watch] motionRx=2200 (poll)
+10-05 00:32:55.593 11810 11810 I flutter : [trace] fgs=true rssi=-68 motionRx=2217 sent=23 failed=0 buf=2 pts=5
+10-05 00:32:58.844 11810 11810 I flutter : [watch] motionRx=2250 (poll)
+10-05 00:33:03.839 11810 11810 I flutter : [watch] motionRx=2300 (poll)
+10-05 00:33:08.850 11810 11810 I flutter : [watch] motionRx=2350 (poll)
+10-05 00:33:10.593 11810 11810 I flutter : [trace] fgs=true rssi=-67 motionRx=2367 sent=25 failed=0 buf=105 pts=5
+10-05 00:33:13.842 11810 11810 I flutter : [watch] motionRx=2400 (poll)
+10-05 00:33:18.840 11810 11810 I flutter : [watch] motionRx=2450 (poll)
+10-05 00:33:24.161 11810 11810 I flutter : [watch] motionRx=2500 (poll)
+10-05 00:33:25.592 11810 11810 I flutter : [trace] fgs=true rssi=-86 motionRx=2514 sent=26 failed=0 buf=2 pts=5
+10-05 00:33:29.248 11810 11810 I flutter : [watch] motionRx=2550 (poll)
+10-05 00:33:34.243 11810 11810 I flutter : [watch] motionRx=2600 (poll)
+10-05 00:33:39.238 11810 11810 I flutter : [watch] motionRx=2650 (poll)
+10-05 00:33:40.593 11810 11810 I flutter : [trace] fgs=true rssi=-74 motionRx=2663 sent=28 failed=0 buf=105 pts=5
+10-05 00:33:44.248 11810 11810 I flutter : [watch] motionRx=2700 (poll)
+10-05 00:33:49.243 11810 11810 I flutter : [watch] motionRx=2750 (poll)
+10-05 00:33:54.254 11810 11810 I flutter : [watch] motionRx=2800 (poll)
+10-05 00:33:55.592 11810 11810 I flutter : [trace] fgs=true rssi=-72 motionRx=2813 sent=29 failed=0 buf=2 pts=5
+10-05 00:33:59.250 11810 11810 I flutter : [watch] motionRx=2850 (poll)
+10-05 00:34:04.242 11810 11810 I flutter : [watch] motionRx=2900 (poll)
+10-05 00:34:09.267 11810 11810 I flutter : [watch] motionRx=2950 (poll)
+10-05 00:34:10.593 11810 11810 I flutter : [trace] fgs=true rssi=-75 motionRx=2963 sent=31 failed=0 buf=105 pts=5
+10-05 00:34:14.247 11810 11810 I flutter : [watch] motionRx=3000 (poll)
+10-05 00:34:19.242 11810 11810 I flutter : [watch] motionRx=3050 (poll)
+10-05 00:34:24.238 11810 11810 I flutter : [watch] motionRx=3100 (poll)
+10-05 00:34:25.592 11810 11810 I flutter : [trace] fgs=true rssi=-74 motionRx=3113 sent=32 failed=0 buf=2 pts=5
+10-05 00:34:29.250 11810 11810 I flutter : [watch] motionRx=3150 (poll)
+10-05 00:34:34.242 11810 11810 I flutter : [watch] motionRx=3200 (poll)
+10-05 00:34:39.238 11810 11810 I flutter : [watch] motionRx=3250 (poll)
+10-05 00:34:40.593 11810 11810 I flutter : [trace] fgs=true rssi=-69 motionRx=3263 sent=34 failed=0 buf=105 pts=5
+10-05 00:34:44.248 11810 11810 I flutter : [watch] motionRx=3300 (poll)
+10-05 00:34:49.242 11810 11810 I flutter : [watch] motionRx=3350 (poll)
+10-05 00:34:54.238 11810 11810 I flutter : [watch] motionRx=3400 (poll)
+10-05 00:34:55.592 11810 11810 I flutter : [trace] fgs=true rssi=-67 motionRx=3413 sent=35 failed=0 buf=2 pts=5
+10-05 00:34:59.250 11810 11810 I flutter : [watch] motionRx=3450 (poll)
+10-05 00:35:04.242 11810 11810 I flutter : [watch] motionRx=3500 (poll)
+10-05 00:35:09.239 11810 11810 I flutter : [watch] motionRx=3550 (poll)
+10-05 00:35:10.594 11810 11810 I flutter : [trace] fgs=true rssi=-71 motionRx=3563 sent=37 failed=0 buf=105 pts=5
+10-05 00:35:14.248 11810 11810 I flutter : [watch] motionRx=3600 (poll)
+10-05 00:35:19.241 11810 11810 I flutter : [watch] motionRx=3650 (poll)
+10-05 00:35:24.255 11810 11810 I flutter : [watch] motionRx=3700 (poll)
+10-05 00:35:25.593 11810 11810 I flutter : [trace] fgs=true rssi=-69 motionRx=3713 sent=38 failed=0 buf=2 pts=6
+10-05 00:35:29.248 11810 11810 I flutter : [watch] motionRx=3750 (poll)
+10-05 00:35:34.243 11810 11810 I flutter : [watch] motionRx=3800 (poll)
+10-05 00:35:39.254 11810 11810 I flutter : [watch] motionRx=3850 (poll)
+10-05 00:35:40.594 11810 11810 I flutter : [trace] fgs=true rssi=-70 motionRx=3863 sent=40 failed=0 buf=105 pts=6
+10-05 00:35:44.249 11810 11810 I flutter : [watch] motionRx=3900 (poll)
+10-05 00:35:49.241 11810 11810 I flutter : [watch] motionRx=3950 (poll)
+10-05 00:35:54.237 11810 11810 I flutter : [watch] motionRx=4000 (poll)
+10-05 00:35:55.592 11810 11810 I flutter : [trace] fgs=true rssi=-66 motionRx=4013 sent=41 failed=0 buf=2 pts=6
+10-05 00:35:59.249 11810 11810 I flutter : [watch] motionRx=4050 (poll)
+10-05 00:36:04.243 11810 11810 I flutter : [watch] motionRx=4100 (poll)
+10-05 00:36:09.237 11810 11810 I flutter : [watch] motionRx=4150 (poll)
+10-05 00:36:10.592 11810 11810 I flutter : [trace] fgs=true rssi=-69 motionRx=4163 sent=43 failed=0 buf=105 pts=6
+10-05 00:36:14.249 11810 11810 I flutter : [watch] motionRx=4200 (poll)
+10-05 00:36:19.244 11810 11810 I flutter : [watch] motionRx=4250 (poll)
+10-05 00:36:24.237 11810 11810 I flutter : [watch] motionRx=4300 (poll)
+10-05 00:36:25.592 11810 11810 I flutter : [trace] fgs=true rssi=-64 motionRx=4313 sent=44 failed=0 buf=2 pts=6
+10-05 00:36:29.249 11810 11810 I flutter : [watch] motionRx=4350 (poll)
+10-05 00:36:34.242 11810 11810 I flutter : [watch] motionRx=4400 (poll)
+10-05 00:36:39.252 11810 11810 I flutter : [watch] motionRx=4450 (poll)
+10-05 00:36:40.594 11810 11810 I flutter : [trace] fgs=true rssi=-73 motionRx=4463 sent=46 failed=0 buf=105 pts=6
+10-05 00:36:44.248 11810 11810 I flutter : [watch] motionRx=4500 (poll)
+10-05 00:36:49.245 11810 11810 I flutter : [watch] motionRx=4550 (poll)
+10-05 00:36:54.238 11810 11810 I flutter : [watch] motionRx=4600 (poll)
+10-05 00:36:55.592 11810 11810 I flutter : [trace] fgs=true rssi=-65 motionRx=4613 sent=47 failed=0 buf=2 pts=6
+10-05 00:36:59.248 11810 11810 I flutter : [watch] motionRx=4650 (poll)
+10-05 00:37:04.243 11810 11810 I flutter : [watch] motionRx=4700 (poll)
+10-05 00:37:09.238 11810 11810 I flutter : [watch] motionRx=4750 (poll)
+10-05 00:37:10.593 11810 11810 I flutter : [trace] fgs=true rssi=-69 motionRx=4763 sent=49 failed=0 buf=105 pts=6
+10-05 00:37:14.248 11810 11810 I flutter : [watch] motionRx=4800 (poll)
+10-05 00:37:19.244 11810 11810 I flutter : [watch] motionRx=4850 (poll)
+10-05 00:37:24.238 11810 11810 I flutter : [watch] motionRx=4900 (poll)
+10-05 00:37:25.592 11810 11810 I flutter : [trace] fgs=true rssi=-66 motionRx=4913 sent=50 failed=0 buf=2 pts=6
+10-05 00:37:29.248 11810 11810 I flutter : [watch] motionRx=4950 (poll)
+10-05 00:37:34.242 11810 11810 I flutter : [watch] motionRx=5000 (poll)
+10-05 00:37:39.239 11810 11810 I flutter : [watch] motionRx=5050 (poll)
+10-05 00:37:40.592 11810 11810 I flutter : [trace] fgs=true rssi=-75 motionRx=5063 sent=52 failed=0 buf=105 pts=6
+10-05 00:37:44.247 11810 11810 I flutter : [watch] motionRx=5100 (poll)
+10-05 00:37:49.243 11810 11810 I flutter : [watch] motionRx=5150 (poll)
+10-05 00:37:54.238 11810 11810 I flutter : [watch] motionRx=5200 (poll)
+10-05 00:37:55.593 11810 11810 I flutter : [trace] fgs=true rssi=-72 motionRx=5213 sent=53 failed=0 buf=2 pts=6
+10-05 00:37:59.249 11810 11810 I flutter : [watch] motionRx=5250 (poll)
+10-05 00:38:04.240 11810 11810 I flutter : [watch] motionRx=5300 (poll)
+10-05 00:38:09.239 11810 11810 I flutter : [watch] motionRx=5350 (poll)
+10-05 00:38:10.593 11810 11810 I flutter : [trace] fgs=true rssi=-72 motionRx=5363 sent=55 failed=0 buf=105 pts=6
+10-05 00:38:14.247 11810 11810 I flutter : [watch] motionRx=5400 (poll)
+10-05 00:38:19.242 11810 11810 I flutter : [watch] motionRx=5450 (poll)
+10-05 00:38:24.238 11810 11810 I flutter : [watch] motionRx=5500 (poll)
+10-05 00:38:25.593 11810 11810 I flutter : [trace] fgs=true rssi=-68 motionRx=5513 sent=56 failed=0 buf=2 pts=7
+10-05 00:38:29.247 11810 11810 I flutter : [watch] motionRx=5550 (poll)
+10-05 00:38:34.242 11810 11810 I flutter : [watch] motionRx=5600 (poll)
+10-05 00:38:39.238 11810 11810 I flutter : [watch] motionRx=5650 (poll)
+10-05 00:38:40.594 11810 11810 I flutter : [trace] fgs=true rssi=-74 motionRx=5663 sent=58 failed=0 buf=105 pts=7
+10-05 00:38:44.247 11810 11810 I flutter : [watch] motionRx=5700 (poll)
+10-05 00:38:49.422 11810 11810 I flutter : [watch] motionRx=5750 (poll)
+10-05 00:38:55.047 11810 11810 I flutter : [watch] motionRx=5800 (poll)
+10-05 00:38:55.596 11810 11810 I flutter : [trace] fgs=true rssi=-83 motionRx=5805 sent=59 failed=0 buf=2 pts=7
+10-05 00:39:01.360 11810 11810 I flutter : [watch] motionRx=5850 (poll)
+10-05 00:39:07.049 11810 11810 I flutter : [watch] motionRx=5900 (poll)
+10-05 00:39:10.593 11810 11810 I flutter : [trace] fgs=true rssi=-80 motionRx=5935 sent=61 failed=0 buf=105 pts=7
+10-05 00:39:12.057 11810 11810 I flutter : [watch] motionRx=5950 (poll)
+10-05 00:39:17.038 11810 11810 I flutter : [watch] motionRx=6000 (poll)
+10-05 00:39:22.047 11810 11810 I flutter : [watch] motionRx=6050 (poll)
+10-05 00:39:25.593 11810 11810 I flutter : [trace] fgs=true rssi=-82 motionRx=6085 sent=62 failed=0 buf=2 pts=7
+10-05 00:39:27.041 11810 11810 I flutter : [watch] motionRx=6100 (poll)
+10-05 00:39:32.053 11810 11810 I flutter : [watch] motionRx=6150 (poll)
+10-05 00:39:37.063 11810 11810 I flutter : [watch] motionRx=6200 (poll)
+10-05 00:39:40.593 11810 11810 I flutter : [trace] fgs=true rssi=-81 motionRx=6234 sent=64 failed=0 buf=103 pts=7
+10-05 00:39:42.146 11810 11810 I flutter : [watch] motionRx=6250 (poll)
+10-05 00:39:47.142 11810 11810 I flutter : [watch] motionRx=6300 (poll)
+10-05 00:39:52.149 11810 11810 I flutter : [watch] motionRx=6350 (poll)
+10-05 00:39:55.623 11810 11810 I flutter : [trace] fgs=true rssi=-80 motionRx=6384 sent=65 failed=0 buf=2 pts=7
+10-05 00:39:57.146 11810 11810 I flutter : [watch] motionRx=6400 (poll)
+10-05 00:40:02.442 11810 11810 I flutter : [watch] motionRx=6450 (poll)
+10-05 00:40:07.452 11810 11810 I flutter : [watch] motionRx=6500 (poll)
+10-05 00:40:10.593 11810 11810 I flutter : [trace] fgs=true rssi=-86 motionRx=6529 sent=67 failed=0 buf=101 pts=7
+10-05 00:40:12.942 11810 11810 I flutter : [watch] motionRx=6550 (poll)
+10-05 00:40:18.043 11810 11810 I flutter : [watch] motionRx=6600 (poll)
+10-05 00:40:23.052 11810 11810 I flutter : [watch] motionRx=6650 (poll)
+10-05 00:40:25.592 11810 11810 I flutter : [trace] fgs=true rssi=-81 motionRx=6675 sent=68 failed=0 buf=2 pts=7
+10-05 00:40:28.048 11810 11810 I flutter : [watch] motionRx=6700 (poll)
+10-05 00:40:33.057 11810 11810 I flutter : [watch] motionRx=6750 (poll)
+10-05 00:40:38.067 11810 11810 I flutter : [watch] motionRx=6800 (poll)
+10-05 00:40:40.594 11810 11810 I flutter : [trace] fgs=true rssi=-78 motionRx=6825 sent=70 failed=0 buf=105 pts=7
+10-05 00:40:43.062 11810 11810 I flutter : [watch] motionRx=6850 (poll)
+10-05 00:40:48.041 11810 11810 I flutter : [watch] motionRx=6900 (poll)
+10-05 00:40:53.052 11810 11810 I flutter : [watch] motionRx=6950 (poll)
+10-05 00:40:55.592 11810 11810 I flutter : [trace] fgs=true rssi=-73 motionRx=6975 sent=71 failed=0 buf=2 pts=7
+10-05 00:40:58.049 11810 11810 I flutter : [watch] motionRx=7000 (poll)
+10-05 00:41:03.041 11810 11810 I flutter : [watch] motionRx=7050 (poll)
+10-05 00:41:08.053 11810 11810 I flutter : [watch] motionRx=7100 (poll)
+10-05 00:41:10.594 11810 11810 I flutter : [trace] fgs=true rssi=-75 motionRx=7125 sent=73 failed=0 buf=105 pts=7
+10-05 00:41:13.049 11810 11810 I flutter : [watch] motionRx=7150 (poll)
+10-05 00:41:18.043 11810 11810 I flutter : [watch] motionRx=7200 (poll)
+10-05 00:41:23.052 11810 11810 I flutter : [watch] motionRx=7250 (poll)
+10-05 00:41:25.592 11810 11810 I flutter : [trace] fgs=true rssi=-60 motionRx=7275 sent=74 failed=0 buf=2 pts=8
+10-05 00:41:28.047 11810 11810 I flutter : [watch] motionRx=7300 (poll)
+10-05 00:41:33.042 11810 11810 I flutter : [watch] motionRx=7350 (poll)
+10-05 00:41:38.036 11810 11810 I flutter : [watch] motionRx=7400 (poll)
+10-05 00:41:40.594 11810 11810 I flutter : [trace] fgs=true rssi=-61 motionRx=7425 sent=76 failed=0 buf=105 pts=8
+10-05 00:41:43.045 11810 11810 I flutter : [watch] motionRx=7450 (poll)
+10-05 00:41:48.041 11810 11810 I flutter : [watch] motionRx=7500 (poll)
+10-05 00:41:53.037 11810 11810 I flutter : [watch] motionRx=7550 (poll)
+10-05 00:41:55.592 11810 11810 I flutter : [trace] fgs=true rssi=-61 motionRx=7575 sent=77 failed=0 buf=2 pts=8
+10-05 00:41:58.047 11810 11810 I flutter : [watch] motionRx=7600 (poll)
+10-05 00:42:03.042 11810 11810 I flutter : [watch] motionRx=7650 (poll)
+10-05 00:42:08.052 11810 11810 I flutter : [watch] motionRx=7700 (poll)
+10-05 00:42:10.594 11810 11810 I flutter : [trace] fgs=true rssi=-62 motionRx=7725 sent=79 failed=0 buf=105 pts=8
+10-05 00:42:13.048 11810 11810 I flutter : [watch] motionRx=7750 (poll)
+10-05 00:42:18.041 11810 11810 I flutter : [watch] motionRx=7800 (poll)
+10-05 00:42:23.038 11810 11810 I flutter : [watch] motionRx=7850 (poll)
+10-05 00:42:25.592 11810 11810 I flutter : [trace] fgs=true rssi=-61 motionRx=7875 sent=80 failed=0 buf=3 pts=8
+10-05 00:42:28.048 11810 11810 I flutter : [watch] motionRx=7900 (poll)
+10-05 00:42:33.042 11810 11810 I flutter : [watch] motionRx=7950 (poll)
+10-05 00:42:38.036 11810 11810 I flutter : [watch] motionRx=8000 (poll)
+10-05 00:42:40.593 11810 11810 I flutter : [trace] fgs=true rssi=-62 motionRx=8025 sent=82 failed=0 buf=105 pts=8
+10-05 00:42:43.047 11810 11810 I flutter : [watch] motionRx=8050 (poll)
+10-05 00:42:48.042 11810 11810 I flutter : [watch] motionRx=8100 (poll)
+10-05 00:42:53.038 11810 11810 I flutter : [watch] motionRx=8150 (poll)
+10-05 00:42:55.592 11810 11810 I flutter : [trace] fgs=true rssi=-69 motionRx=8175 sent=83 failed=0 buf=2 pts=8
+10-05 00:42:58.047 11810 11810 I flutter : [watch] motionRx=8200 (poll)
+10-05 00:43:03.056 11810 11810 I flutter : [watch] motionRx=8250 (poll)
+10-05 00:43:08.038 11810 11810 I flutter : [watch] motionRx=8300 (poll)
+10-05 00:43:10.593 11810 11810 I flutter : [trace] fgs=true rssi=-68 motionRx=8325 sent=85 failed=0 buf=105 pts=8
+10-05 00:43:13.047 11810 11810 I flutter : [watch] motionRx=8350 (poll)
+10-05 00:43:18.039 11810 11810 I flutter : [watch] motionRx=8400 (poll)
+10-05 00:43:23.037 11810 11810 I flutter : [watch] motionRx=8450 (poll)
+10-05 00:43:25.612 11810 11810 I flutter : [trace] fgs=true rssi=-64 motionRx=8475 sent=86 failed=0 buf=2 pts=8
+10-05 00:43:28.046 11810 11810 I flutter : [watch] motionRx=8500 (poll)
+10-05 00:43:33.042 11810 11810 I flutter : [watch] motionRx=8550 (poll)
+10-05 00:43:38.051 11810 11810 I flutter : [watch] motionRx=8600 (poll)
+10-05 00:43:40.592 11810 11810 I flutter : [trace] fgs=true rssi=-64 motionRx=8625 sent=88 failed=0 buf=105 pts=8
+10-05 00:43:43.046 11810 11810 I flutter : [watch] motionRx=8650 (poll)
+10-05 00:43:48.043 11810 11810 I flutter : [watch] motionRx=8700 (poll)
+10-05 00:43:53.053 11810 11810 I flutter : [watch] motionRx=8750 (poll)
+10-05 00:43:55.592 11810 11810 I flutter : [trace] fgs=true rssi=-64 motionRx=8775 sent=89 failed=0 buf=2 pts=8
+10-05 00:43:58.048 11810 11810 I flutter : [watch] motionRx=8800 (poll)
+10-05 00:44:03.041 11810 11810 I flutter : [watch] motionRx=8850 (poll)
+10-05 00:44:08.051 11810 11810 I flutter : [watch] motionRx=8900 (poll)
+10-05 00:44:10.593 11810 11810 I flutter : [trace] fgs=true rssi=-62 motionRx=8925 sent=91 failed=0 buf=105 pts=8
+10-05 00:44:13.047 11810 11810 I flutter : [watch] motionRx=8950 (poll)
+10-05 00:44:18.042 11810 11810 I flutter : [watch] motionRx=9000 (poll)
+10-05 00:44:23.067 11810 11810 I flutter : [watch] motionRx=9050 (poll)
+10-05 00:44:25.592 11810 11810 I flutter : [trace] fgs=true rssi=-65 motionRx=9075 sent=92 failed=0 buf=2 pts=8
+10-05 00:44:28.047 11810 11810 I flutter : [watch] motionRx=9100 (poll)
+10-05 00:44:33.041 11810 11810 I flutter : [watch] motionRx=9150 (poll)
+10-05 00:44:38.052 11810 11810 I flutter : [watch] motionRx=9200 (poll)
+10-05 00:44:40.593 11810 11810 I flutter : [trace] fgs=true rssi=-66 motionRx=9225 sent=94 failed=0 buf=105 pts=8
+10-05 00:44:43.046 11810 11810 I flutter : [watch] motionRx=9250 (poll)
+10-05 00:44:48.042 11810 11810 I flutter : [watch] motionRx=9300 (poll)
+10-05 00:44:53.081 11810 11810 I flutter : [watch] motionRx=9350 (poll)
+10-05 00:44:55.592 11810 11810 I flutter : [trace] fgs=true rssi=-67 motionRx=9375 sent=95 failed=0 buf=2 pts=8
+10-05 00:44:58.046 11810 11810 I flutter : [watch] motionRx=9400 (poll)
+10-05 00:45:03.042 11810 11810 I flutter : [watch] motionRx=9450 (poll)
+10-05 00:45:08.053 11810 11810 I flutter : [watch] motionRx=9500 (poll)
+10-05 00:45:10.594 11810 11810 I flutter : [trace] fgs=true rssi=-66 motionRx=9525 sent=97 failed=0 buf=105 pts=8
+10-05 00:45:13.046 11810 11810 I flutter : [watch] motionRx=9550 (poll)
+10-05 00:45:18.041 11810 11810 I flutter : [watch] motionRx=9600 (poll)
+10-05 00:45:23.052 11810 11810 I flutter : [watch] motionRx=9650 (poll)
+10-05 00:45:25.592 11810 11810 I flutter : [trace] fgs=true rssi=-67 motionRx=9675 sent=98 failed=0 buf=2 pts=8
+10-05 00:45:28.046 11810 11810 I flutter : [watch] motionRx=9700 (poll)
+10-05 00:45:33.040 11810 11810 I flutter : [watch] motionRx=9750 (poll)
+10-05 00:45:38.051 11810 11810 I flutter : [watch] motionRx=9800 (poll)
+10-05 00:45:40.593 11810 11810 I flutter : [trace] fgs=true rssi=-66 motionRx=9825 sent=100 failed=0 buf=105 pts=8
+10-05 00:45:43.045 11810 11810 I flutter : [watch] motionRx=9850 (poll)
+10-05 00:45:48.042 11810 11810 I flutter : [watch] motionRx=9900 (poll)
+10-05 00:45:53.051 11810 11810 I flutter : [watch] motionRx=9950 (poll)
+10-05 00:45:55.593 11810 11810 I flutter : [trace] fgs=true rssi=-67 motionRx=9975 sent=101 failed=0 buf=2 pts=8
+10-05 00:45:58.046 11810 11810 I flutter : [watch] motionRx=10000 (poll)
+10-05 00:46:03.041 11810 11810 I flutter : [watch] motionRx=10050 (poll)
+10-05 00:46:08.051 11810 11810 I flutter : [watch] motionRx=10100 (poll)
+10-05 00:46:10.594 11810 11810 I flutter : [trace] fgs=true rssi=-75 motionRx=10125 sent=103 failed=0 buf=105 pts=8
+10-05 00:46:13.046 11810 11810 I flutter : [watch] motionRx=10150 (poll)
+10-05 00:46:18.040 11810 11810 I flutter : [watch] motionRx=10200 (poll)
+10-05 00:46:23.036 11810 11810 I flutter : [watch] motionRx=10250 (poll)
+10-05 00:46:25.592 11810 11810 I flutter : [trace] fgs=true rssi=-72 motionRx=10275 sent=104 failed=0 buf=2 pts=8
+10-05 00:46:28.046 11810 11810 I flutter : [watch] motionRx=10300 (poll)
+10-05 00:46:33.041 11810 11810 I flutter : [watch] motionRx=10350 (poll)
+10-05 00:46:38.051 11810 11810 I flutter : [watch] motionRx=10400 (poll)
+10-05 00:46:40.593 11810 11810 I flutter : [trace] fgs=true rssi=-72 motionRx=10425 sent=106 failed=0 buf=105 pts=8
+10-05 00:46:43.046 11810 11810 I flutter : [watch] motionRx=10450 (poll)
+10-05 00:46:48.041 11810 11810 I flutter : [watch] motionRx=10500 (poll)
+10-05 00:46:53.051 11810 11810 I flutter : [watch] motionRx=10550 (poll)
+10-05 00:46:55.623 11810 11810 I flutter : [trace] fgs=true rssi=-70 motionRx=10575 sent=107 failed=0 buf=2 pts=8
+10-05 00:46:58.046 11810 11810 I flutter : [watch] motionRx=10600 (poll)
+10-05 00:47:03.041 11810 11810 I flutter : [watch] motionRx=10650 (poll)
+10-05 00:47:08.051 11810 11810 I flutter : [watch] motionRx=10700 (poll)
+10-05 00:47:10.593 11810 11810 I flutter : [trace] fgs=true rssi=-83 motionRx=10725 sent=109 failed=0 buf=105 pts=8
+10-05 00:47:13.046 11810 11810 I flutter : [watch] motionRx=10750 (poll)
+10-05 00:47:18.041 11810 11810 I flutter : [watch] motionRx=10800 (poll)
+10-05 00:47:23.053 11810 11810 I flutter : [watch] motionRx=10850 (poll)
+10-05 00:47:25.593 11810 11810 I flutter : [trace] fgs=true rssi=-69 motionRx=10875 sent=110 failed=0 buf=2 pts=8
+10-05 00:47:28.046 11810 11810 I flutter : [watch] motionRx=10900 (poll)
+10-05 00:47:33.043 11810 11810 I flutter : [watch] motionRx=10950 (poll)
+10-05 00:47:38.054 11810 11810 I flutter : [watch] motionRx=11000 (poll)
+10-05 00:47:40.593 11810 11810 I flutter : [trace] fgs=true rssi=-68 motionRx=11025 sent=112 failed=0 buf=105 pts=8
+10-05 00:47:43.046 11810 11810 I flutter : [watch] motionRx=11050 (poll)
+10-05 00:47:48.041 11810 11810 I flutter : [watch] motionRx=11100 (poll)
+10-05 00:47:53.052 11810 11810 I flutter : [watch] motionRx=11150 (poll)
+10-05 00:47:55.592 11810 11810 I flutter : [trace] fgs=true rssi=-72 motionRx=11175 sent=113 failed=0 buf=2 pts=8
+10-05 00:47:58.046 11810 11810 I flutter : [watch] motionRx=11200 (poll)
+10-05 00:48:03.042 11810 11810 I flutter : [watch] motionRx=11250 (poll)
+10-05 00:48:08.053 11810 11810 I flutter : [watch] motionRx=11300 (poll)
+10-05 00:48:10.593 11810 11810 I flutter : [trace] fgs=true rssi=-71 motionRx=11325 sent=115 failed=0 buf=105 pts=8
+10-05 00:48:13.045 11810 11810 I flutter : [watch] motionRx=11350 (poll)
+10-05 00:48:18.040 11810 11810 I flutter : [watch] motionRx=11400 (poll)
+10-05 00:48:23.051 11810 11810 I flutter : [watch] motionRx=11450 (poll)
+10-05 00:48:25.592 11810 11810 I flutter : [trace] fgs=true rssi=-69 motionRx=11475 sent=116 failed=0 buf=2 pts=8
+10-05 00:48:28.046 11810 11810 I flutter : [watch] motionRx=11500 (poll)
+10-05 00:48:33.041 11810 11810 I flutter : [watch] motionRx=11550 (poll)
+10-05 00:48:38.051 11810 11810 I flutter : [watch] motionRx=11600 (poll)
+10-05 00:48:40.594 11810 11810 I flutter : [trace] fgs=true rssi=-64 motionRx=11625 sent=118 failed=0 buf=105 pts=8
+10-05 00:48:43.046 11810 11810 I flutter : [watch] motionRx=11650 (poll)
+10-05 00:48:48.040 11810 11810 I flutter : [watch] motionRx=11700 (poll)
+10-05 00:48:53.052 11810 11810 I flutter : [watch] motionRx=11750 (poll)
+10-05 00:48:55.592 11810 11810 I flutter : [trace] fgs=true rssi=-69 motionRx=11775 sent=119 failed=0 buf=2 pts=8
+10-05 00:48:58.046 11810 11810 I flutter : [watch] motionRx=11800 (poll)
+10-05 00:49:03.041 11810 11810 I flutter : [watch] motionRx=11850 (poll)
+10-05 00:49:08.051 11810 11810 I flutter : [watch] motionRx=11900 (poll)
+10-05 00:49:10.592 11810 11810 I flutter : [trace] fgs=true rssi=-66 motionRx=11925 sent=121 failed=0 buf=105 pts=8
+10-05 00:49:13.046 11810 11810 I flutter : [watch] motionRx=11950 (poll)
+10-05 00:49:18.040 11810 11810 I flutter : [watch] motionRx=12000 (poll)
+10-05 00:49:23.051 11810 11810 I flutter : [watch] motionRx=12050 (poll)
+10-05 00:49:25.593 11810 11810 I flutter : [trace] fgs=true rssi=-65 motionRx=12075 sent=122 failed=0 buf=2 pts=8
+10-05 00:49:28.046 11810 11810 I flutter : [watch] motionRx=12100 (poll)
+10-05 00:49:33.041 11810 11810 I flutter : [watch] motionRx=12150 (poll)
+10-05 00:49:38.051 11810 11810 I flutter : [watch] motionRx=12200 (poll)
+10-05 00:49:40.594 11810 11810 I flutter : [trace] fgs=true rssi=-64 motionRx=12225 sent=124 failed=0 buf=105 pts=8
+10-05 00:49:43.058 11810 11810 I flutter : [watch] motionRx=12250 (poll)
+10-05 00:49:48.057 11810 11810 I flutter : [watch] motionRx=12300 (poll)
+10-05 00:49:53.066 11810 11810 I flutter : [watch] motionRx=12350 (poll)
+10-05 00:49:55.593 11810 11810 I flutter : [trace] fgs=true rssi=-67 motionRx=12375 sent=125 failed=0 buf=2 pts=8
+10-05 00:49:58.046 11810 11810 I flutter : [watch] motionRx=12400 (poll)
+10-05 00:50:03.041 11810 11810 I flutter : [watch] motionRx=12450 (poll)
+10-05 00:50:08.065 11810 11810 I flutter : [watch] motionRx=12500 (poll)
+10-05 00:50:10.594 11810 11810 I flutter : [trace] fgs=true rssi=-71 motionRx=12525 sent=127 failed=0 buf=105 pts=8
+10-05 00:50:13.046 11810 11810 I flutter : [watch] motionRx=12550 (poll)
+10-05 00:50:18.041 11810 11810 I flutter : [watch] motionRx=12600 (poll)
+10-05 00:50:23.050 11810 11810 I flutter : [watch] motionRx=12650 (poll)
+10-05 00:50:25.600 11810 11810 I flutter : [trace] fgs=true rssi=-64 motionRx=12675 sent=128 failed=0 buf=2 pts=8
+10-05 00:50:28.046 11810 11810 I flutter : [watch] motionRx=12700 (poll)
+10-05 00:50:33.040 11810 11810 I flutter : [watch] motionRx=12750 (poll)
+10-05 00:50:38.050 11810 11810 I flutter : [watch] motionRx=12800 (poll)
+10-05 00:50:40.593 11810 11810 I flutter : [trace] fgs=true rssi=-71 motionRx=12825 sent=130 failed=0 buf=105 pts=8
+10-05 00:50:43.046 11810 11810 I flutter : [watch] motionRx=12850 (poll)
+10-05 00:50:48.055 11810 11810 I flutter : [watch] motionRx=12900 (poll)
+10-05 00:50:53.051 11810 11810 I flutter : [watch] motionRx=12950 (poll)
+10-05 00:50:55.592 11810 11810 I flutter : [trace] fgs=true rssi=-70 motionRx=12975 sent=131 failed=0 buf=2 pts=8
+10-05 00:50:58.046 11810 11810 I flutter : [watch] motionRx=13000 (poll)
+10-05 00:51:03.039 11810 11810 I flutter : [watch] motionRx=13050 (poll)
+10-05 00:51:08.051 11810 11810 I flutter : [watch] motionRx=13100 (poll)
+10-05 00:51:10.593 11810 11810 I flutter : [trace] fgs=true rssi=-80 motionRx=13125 sent=133 failed=0 buf=105 pts=8
+10-05 00:51:13.046 11810 11810 I flutter : [watch] motionRx=13150 (poll)
+10-05 00:51:18.040 11810 11810 I flutter : [watch] motionRx=13200 (poll)
+10-05 00:51:23.050 11810 11810 I flutter : [watch] motionRx=13250 (poll)
+10-05 00:51:25.592 11810 11810 I flutter : [trace] fgs=true rssi=-67 motionRx=13275 sent=134 failed=0 buf=2 pts=8
+10-05 00:51:28.046 11810 11810 I flutter : [watch] motionRx=13300 (poll)
+10-05 00:51:33.041 11810 11810 I flutter : [watch] motionRx=13350 (poll)
+10-05 00:51:38.051 11810 11810 I flutter : [watch] motionRx=13400 (poll)
+10-05 00:51:40.593 11810 11810 I flutter : [trace] fgs=true rssi=-67 motionRx=13425 sent=136 failed=0 buf=105 pts=8
+10-05 00:51:43.046 11810 11810 I flutter : [watch] motionRx=13450 (poll)
+10-05 00:51:48.042 11810 11810 I flutter : [watch] motionRx=13500 (poll)
+10-05 00:51:53.050 11810 11810 I flutter : [watch] motionRx=13550 (poll)
+10-05 00:51:55.593 11810 11810 I flutter : [trace] fgs=true rssi=-68 motionRx=13575 sent=137 failed=0 buf=2 pts=8
+10-05 00:51:58.046 11810 11810 I flutter : [watch] motionRx=13600 (poll)
+10-05 00:52:03.041 11810 11810 I flutter : [watch] motionRx=13650 (poll)
+10-05 00:52:08.050 11810 11810 I flutter : [watch] motionRx=13700 (poll)
+10-05 00:52:10.592 11810 11810 I flutter : [trace] fgs=true rssi=-73 motionRx=13725 sent=139 failed=0 buf=105 pts=8
+10-05 00:52:13.046 11810 11810 I flutter : [watch] motionRx=13750 (poll)
+10-05 00:52:18.042 11810 11810 I flutter : [watch] motionRx=13800 (poll)
+10-05 00:52:23.049 11810 11810 I flutter : [watch] motionRx=13850 (poll)
+10-05 00:52:25.592 11810 11810 I flutter : [trace] fgs=true rssi=-67 motionRx=13875 sent=140 failed=0 buf=2 pts=8
+10-05 00:52:28.047 11810 11810 I flutter : [watch] motionRx=13900 (poll)
+10-05 00:52:33.041 11810 11810 I flutter : [watch] motionRx=13950 (poll)
+10-05 00:52:38.050 11810 11810 I flutter : [watch] motionRx=14000 (poll)
+10-05 00:52:40.593 11810 11810 I flutter : [trace] fgs=true rssi=-68 motionRx=14025 sent=142 failed=0 buf=105 pts=8
+10-05 00:52:43.046 11810 11810 I flutter : [watch] motionRx=14050 (poll)
+10-05 00:52:48.040 11810 11810 I flutter : [watch] motionRx=14100 (poll)
+10-05 00:52:53.049 11810 11810 I flutter : [watch] motionRx=14150 (poll)
+10-05 00:52:55.593 11810 11810 I flutter : [trace] fgs=true rssi=-69 motionRx=14175 sent=143 failed=0 buf=2 pts=8
+10-05 00:52:58.046 11810 11810 I flutter : [watch] motionRx=14200 (poll)
+10-05 00:53:03.041 11810 11810 I flutter : [watch] motionRx=14250 (poll)
+10-05 00:53:08.049 11810 11810 I flutter : [watch] motionRx=14300 (poll)
+10-05 00:53:10.593 11810 11810 I flutter : [trace] fgs=true rssi=-63 motionRx=14325 sent=145 failed=0 buf=105 pts=8
+10-05 00:53:13.046 11810 11810 I flutter : [watch] motionRx=14350 (poll)
+10-05 00:53:18.041 11810 11810 I flutter : [watch] motionRx=14400 (poll)
+10-05 00:53:23.050 11810 11810 I flutter : [watch] motionRx=14450 (poll)
+10-05 00:53:25.593 11810 11810 I flutter : [trace] fgs=true rssi=-63 motionRx=14475 sent=146 failed=0 buf=2 pts=8
+10-05 00:53:28.047 11810 11810 I flutter : [watch] motionRx=14500 (poll)
+10-05 00:53:33.040 11810 11810 I flutter : [watch] motionRx=14550 (poll)
+10-05 00:53:38.050 11810 11810 I flutter : [watch] motionRx=14600 (poll)
+10-05 00:53:40.593 11810 11810 I flutter : [trace] fgs=true rssi=-71 motionRx=14625 sent=148 failed=0 buf=105 pts=8
+10-05 00:53:43.045 11810 11810 I flutter : [watch] motionRx=14650 (poll)
+10-05 00:53:48.045 11810 11810 I flutter : [watch] motionRx=14700 (poll)
+10-05 00:53:53.049 11810 11810 I flutter : [watch] motionRx=14750 (poll)
+10-05 00:53:55.614 11810 11810 I flutter : [trace] fgs=true rssi=-65 motionRx=14775 sent=149 failed=0 buf=2 pts=8
+10-05 00:53:58.045 11810 11810 I flutter : [watch] motionRx=14800 (poll)
+10-05 00:54:03.041 11810 11810 I flutter : [watch] motionRx=14850 (poll)
+10-05 00:54:08.050 11810 11810 I flutter : [watch] motionRx=14900 (poll)
+10-05 00:54:10.594 11810 11810 I flutter : [trace] fgs=true rssi=-68 motionRx=14925 sent=151 failed=0 buf=105 pts=8
+10-05 00:54:13.047 11810 11810 I flutter : [watch] motionRx=14950 (poll)
+10-05 00:54:18.040 11810 11810 I flutter : [watch] motionRx=15000 (poll)
+10-05 00:54:23.050 11810 11810 I flutter : [watch] motionRx=15050 (poll)
+10-05 00:54:25.593 11810 11810 I flutter : [trace] fgs=true rssi=-66 motionRx=15075 sent=152 failed=0 buf=2 pts=8
+10-05 00:54:28.045 11810 11810 I flutter : [watch] motionRx=15100 (poll)
+10-05 00:54:33.041 11810 11810 I flutter : [watch] motionRx=15150 (poll)
+10-05 00:54:38.050 11810 11810 I flutter : [watch] motionRx=15200 (poll)
+10-05 00:54:40.593 11810 11810 I flutter : [trace] fgs=true rssi=-79 motionRx=15225 sent=154 failed=0 buf=105 pts=8
+10-05 00:54:43.044 11810 11810 I flutter : [watch] motionRx=15250 (poll)
+10-05 00:54:48.040 11810 11810 I flutter : [watch] motionRx=15300 (poll)
+10-05 00:54:53.051 11810 11810 I flutter : [watch] motionRx=15350 (poll)
+10-05 00:54:55.593 11810 11810 I flutter : [trace] fgs=true rssi=-64 motionRx=15375 sent=155 failed=0 buf=2 pts=8
+10-05 00:54:58.046 11810 11810 I flutter : [watch] motionRx=15400 (poll)
+10-05 00:55:03.041 11810 11810 I flutter : [watch] motionRx=15450 (poll)
+10-05 00:55:08.035 11810 11810 I flutter : [watch] motionRx=15500 (poll)
+10-05 00:55:10.592 11810 11810 I flutter : [trace] fgs=true rssi=-60 motionRx=15524 sent=157 failed=0 buf=103 pts=9
+10-05 00:55:13.137 11810 11810 I flutter : [watch] motionRx=15550 (poll)
+10-05 00:55:18.146 11810 11810 I flutter : [watch] motionRx=15600 (poll)
+10-05 00:55:23.139 11810 11810 I flutter : [watch] motionRx=15650 (poll)
+10-05 00:55:25.593 11810 11810 I flutter : [trace] fgs=true rssi=-63 motionRx=15674 sent=158 failed=0 buf=2 pts=9
+10-05 00:55:28.164 11810 11810 I flutter : [watch] motionRx=15700 (poll)
+10-05 00:55:33.145 11810 11810 I flutter : [watch] motionRx=15750 (poll)
+10-05 00:55:38.153 11810 11810 I flutter : [watch] motionRx=15800 (poll)
+10-05 00:55:40.592 11810 11810 I flutter : [trace] fgs=true rssi=-71 motionRx=15824 sent=160 failed=0 buf=105 pts=9
+10-05 00:55:43.164 11810 11810 I flutter : [watch] motionRx=15850 (poll)
+10-05 00:55:48.146 11810 11810 I flutter : [watch] motionRx=15900 (poll)
+10-05 00:55:53.143 11810 11810 I flutter : [watch] motionRx=15950 (poll)
+10-05 00:55:55.593 11810 11810 I flutter : [trace] fgs=true rssi=-70 motionRx=15974 sent=161 failed=0 buf=3 pts=9
+10-05 00:55:58.148 11810 11810 I flutter : [watch] motionRx=16000 (poll)
+10-05 00:56:03.145 11810 11810 I flutter : [watch] motionRx=16050 (poll)
+10-05 00:56:08.139 11810 11810 I flutter : [watch] motionRx=16100 (poll)
+10-05 00:56:10.592 11810 11810 I flutter : [trace] fgs=true rssi=-66 motionRx=16124 sent=163 failed=0 buf=105 pts=0
+10-05 00:56:13.178 11810 11810 I flutter : [watch] motionRx=16150 (poll)
+10-05 00:56:18.145 11810 11810 I flutter : [watch] motionRx=16200 (poll)
+10-05 00:56:23.142 11810 11810 I flutter : [watch] motionRx=16250 (poll)
+10-05 00:56:25.593 11810 11810 I flutter : [trace] fgs=true rssi=-67 motionRx=16274 sent=164 failed=0 buf=2 pts=0
+10-05 00:56:28.450 11810 11810 I flutter : [watch] motionRx=16300 (poll)
+10-05 00:56:33.445 11810 11810 I flutter : [watch] motionRx=16350 (poll)
+10-05 00:56:38.465 11810 11810 I flutter : [watch] motionRx=16400 (poll)
+10-05 00:56:40.593 11810 11810 I flutter : [trace] fgs=true rssi=-64 motionRx=16421 sent=166 failed=0 buf=105 pts=0
+10-05 00:56:43.451 11810 11810 I flutter : [watch] motionRx=16450 (poll)
+10-05 00:56:48.446 11810 11810 I flutter : [watch] motionRx=16500 (poll)
+10-05 00:56:53.441 11810 11810 I flutter : [watch] motionRx=16550 (poll)
+10-05 00:56:55.592 11810 11810 I flutter : [trace] fgs=true rssi=-67 motionRx=16571 sent=167 failed=0 buf=2 pts=0
+10-05 00:56:58.450 11810 11810 I flutter : [watch] motionRx=16600 (poll)
+10-05 00:57:03.445 11810 11810 I flutter : [watch] motionRx=16650 (poll)
+10-05 00:57:08.440 11810 11810 I flutter : [watch] motionRx=16700 (poll)
+10-05 00:57:10.593 11810 11810 I flutter : [trace] fgs=true rssi=-67 motionRx=16721 sent=169 failed=0 buf=105 pts=0
+10-05 00:57:13.465 11810 11810 I flutter : [watch] motionRx=16750 (poll)
+10-05 00:57:18.445 11810 11810 I flutter : [watch] motionRx=16800 (poll)
+10-05 00:57:23.439 11810 11810 I flutter : [watch] motionRx=16850 (poll)
+10-05 00:57:25.592 11810 11810 I flutter : [trace] fgs=true rssi=-65 motionRx=16871 sent=170 failed=0 buf=2 pts=1
+10-05 00:57:28.463 11810 11810 I flutter : [watch] motionRx=16900 (poll)
+10-05 00:57:33.445 11810 11810 I flutter : [watch] motionRx=16950 (poll)
+10-05 00:57:38.440 11810 11810 I flutter : [watch] motionRx=17000 (poll)
+10-05 00:57:40.594 11810 11810 I flutter : [trace] fgs=true rssi=-85 motionRx=17021 sent=172 failed=0 buf=105 pts=1
+10-05 00:57:43.451 11810 11810 I flutter : [watch] motionRx=17050 (poll)
+10-05 00:57:48.446 11810 11810 I flutter : [watch] motionRx=17100 (poll)
+10-05 00:57:53.440 11810 11810 I flutter : [watch] motionRx=17150 (poll)
+10-05 00:57:55.593 11810 11810 I flutter : [trace] fgs=true rssi=-62 motionRx=17171 sent=173 failed=0 buf=2 pts=1
+10-05 00:57:58.450 11810 11810 I flutter : [watch] motionRx=17200 (poll)
+10-05 00:58:03.447 11810 11810 I flutter : [watch] motionRx=17250 (poll)
+10-05 00:58:08.441 11810 11810 I flutter : [watch] motionRx=17300 (poll)
+10-05 00:58:10.594 11810 11810 I flutter : [trace] fgs=true rssi=-58 motionRx=17321 sent=175 failed=0 buf=105 pts=1
+10-05 00:58:13.450 11810 11810 I flutter : [watch] motionRx=17350 (poll)
+10-05 00:58:18.447 11810 11810 I flutter : [watch] motionRx=17400 (poll)
+10-05 00:58:23.441 11810 11810 I flutter : [watch] motionRx=17450 (poll)
+10-05 00:58:25.594 11810 11810 I flutter : [trace] fgs=true rssi=-62 motionRx=17471 sent=176 failed=0 buf=2 pts=1
+10-05 00:58:28.450 11810 11810 I flutter : [watch] motionRx=17500 (poll)
+10-05 00:58:33.445 11810 11810 I flutter : [watch] motionRx=17550 (poll)
+10-05 00:58:38.440 11810 11810 I flutter : [watch] motionRx=17600 (poll)
+10-05 00:58:40.594 11810 11810 I flutter : [trace] fgs=true rssi=-72 motionRx=17621 sent=178 failed=0 buf=105 pts=1
+10-05 00:58:43.449 11810 11810 I flutter : [watch] motionRx=17650 (poll)
+10-05 00:58:48.445 11810 11810 I flutter : [watch] motionRx=17700 (poll)
+10-05 00:58:53.438 11810 11810 I flutter : [watch] motionRx=17750 (poll)
+10-05 00:58:55.615 11810 11810 I flutter : [trace] fgs=true rssi=-59 motionRx=17771 sent=179 failed=0 buf=2 pts=1
+10-05 00:58:58.451 11810 11810 I flutter : [watch] motionRx=17800 (poll)
+10-05 00:59:03.444 11810 11810 I flutter : [watch] motionRx=17850 (poll)
+10-05 00:59:08.440 11810 11810 I flutter : [watch] motionRx=17900 (poll)
+10-05 00:59:10.594 11810 11810 I flutter : [trace] fgs=true rssi=-67 motionRx=17921 sent=181 failed=0 buf=105 pts=1
+10-05 00:59:13.451 11810 11810 I flutter : [watch] motionRx=17950 (poll)
+10-05 00:59:18.549 11810 11810 I flutter : [watch] motionRx=18000 (poll)
+10-05 00:59:23.650 11810 11810 I flutter : [watch] motionRx=18050 (poll)
+10-05 00:59:25.593 11810 11810 I flutter : [trace] fgs=true rssi=-57 motionRx=18069 sent=182 failed=0 buf=2 pts=1
+10-05 00:59:28.646 11810 11810 I flutter : [watch] motionRx=18100 (poll)
+10-05 00:59:33.641 11810 11810 I flutter : [watch] motionRx=18150 (poll)
+10-05 00:59:38.650 11810 11810 I flutter : [watch] motionRx=18200 (poll)
+10-05 00:59:40.593 11810 11810 I flutter : [trace] fgs=true rssi=-54 motionRx=18219 sent=184 failed=0 buf=105 pts=1
+10-05 00:59:43.646 11810 11810 I flutter : [watch] motionRx=18250 (poll)
+10-05 00:59:48.640 11810 11810 I flutter : [watch] motionRx=18300 (poll)
+10-05 00:59:53.650 11810 11810 I flutter : [watch] motionRx=18350 (poll)
+10-05 00:59:55.592 11810 11810 I flutter : [trace] fgs=true rssi=-66 motionRx=18369 sent=185 failed=0 buf=2 pts=1
+10-05 00:59:58.645 11810 11810 I flutter : [watch] motionRx=18400 (poll)
+10-05 01:00:03.639 11810 11810 I flutter : [watch] motionRx=18450 (poll)
+10-05 01:00:08.649 11810 11810 I flutter : [watch] motionRx=18500 (poll)
+10-05 01:00:10.593 11810 11810 I flutter : [trace] fgs=true rssi=-71 motionRx=18519 sent=187 failed=0 buf=105 pts=1
+10-05 01:00:13.644 11810 11810 I flutter : [watch] motionRx=18550 (poll)
+10-05 01:00:18.642 11810 11810 I flutter : [watch] motionRx=18600 (poll)
+10-05 01:00:23.650 11810 11810 I flutter : [watch] motionRx=18650 (poll)
+10-05 01:00:25.592 11810 11810 I flutter : [trace] fgs=true rssi=-65 motionRx=18669 sent=188 failed=0 buf=2 pts=1
+10-05 01:00:28.643 11810 11810 I flutter : [watch] motionRx=18700 (poll)
+10-05 01:00:33.655 11810 11810 I flutter : [watch] motionRx=18750 (poll)
+10-05 01:00:38.650 11810 11810 I flutter : [watch] motionRx=18800 (poll)
+10-05 01:00:40.593 11810 11810 I flutter : [trace] fgs=true rssi=-65 motionRx=18819 sent=190 failed=0 buf=105 pts=1
+10-05 01:00:43.645 11810 11810 I flutter : [watch] motionRx=18850 (poll)
+10-05 01:00:48.639 11810 11810 I flutter : [watch] motionRx=18900 (poll)
+10-05 01:00:53.651 11810 11810 I flutter : [watch] motionRx=18950 (poll)
+10-05 01:00:55.592 11810 11810 I flutter : [trace] fgs=true rssi=-64 motionRx=18969 sent=191 failed=0 buf=2 pts=1
+10-05 01:00:58.646 11810 11810 I flutter : [watch] motionRx=19000 (poll)
+10-05 01:01:03.639 11810 11810 I flutter : [watch] motionRx=19050 (poll)
+10-05 01:01:08.650 11810 11810 I flutter : [watch] motionRx=19100 (poll)
+10-05 01:01:10.592 11810 11810 I flutter : [trace] fgs=true rssi=-62 motionRx=19119 sent=193 failed=0 buf=105 pts=1
+10-05 01:01:13.646 11810 11810 I flutter : [watch] motionRx=19150 (poll)
+10-05 01:01:18.640 11810 11810 I flutter : [watch] motionRx=19200 (poll)
+10-05 01:01:23.650 11810 11810 I flutter : [watch] motionRx=19250 (poll)
+10-05 01:01:25.593 11810 11810 I flutter : [trace] fgs=true rssi=-65 motionRx=19269 sent=194 failed=0 buf=3 pts=1
+10-05 01:01:28.649 11810 11810 I flutter : [watch] motionRx=19300 (poll)
+10-05 01:01:33.639 11810 11810 I flutter : [watch] motionRx=19350 (poll)
+10-05 01:01:38.651 11810 11810 I flutter : [watch] motionRx=19400 (poll)
+10-05 01:01:40.594 11810 11810 I flutter : [trace] fgs=true rssi=-71 motionRx=19419 sent=196 failed=0 buf=105 pts=1
+10-05 01:01:43.645 11810 11810 I flutter : [watch] motionRx=19450 (poll)
+10-05 01:01:48.639 11810 11810 I flutter : [watch] motionRx=19500 (poll)
+10-05 01:01:53.649 11810 11810 I flutter : [watch] motionRx=19550 (poll)
+10-05 01:01:55.592 11810 11810 I flutter : [trace] fgs=true rssi=-65 motionRx=19569 sent=197 failed=0 buf=2 pts=1
+10-05 01:01:58.660 11810 11810 I flutter : [watch] motionRx=19600 (poll)
+10-05 01:02:03.655 11810 11810 I flutter : [watch] motionRx=19650 (poll)
+10-05 01:02:08.650 11810 11810 I flutter : [watch] motionRx=19700 (poll)
+10-05 01:02:10.593 11810 11810 I flutter : [trace] fgs=true rssi=-67 motionRx=19719 sent=199 failed=0 buf=105 pts=1
+10-05 01:02:13.645 11810 11810 I flutter : [watch] motionRx=19750 (poll)
+10-05 01:02:18.638 11810 11810 I flutter : [watch] motionRx=19800 (poll)
+10-05 01:02:23.650 11810 11810 I flutter : [watch] motionRx=19850 (poll)
+10-05 01:02:25.593 11810 11810 I flutter : [trace] fgs=true rssi=-63 motionRx=19869 sent=200 failed=0 buf=3 pts=1
+10-05 01:02:28.655 11810 11810 I flutter : [watch] motionRx=19900 (poll)
+10-05 01:03:00.267 32635 32668 I flutter : [IMPORTANT:flutter/shell/platform/android/android_context_vk_impeller.cc(62)] Using the Impeller rendering backend (Vulkan).
+10-05 01:03:00.275 32635 32668 I flutter : [IMPORTANT:flutter/shell/platform/android/android_context_gl_impeller.cc(104)] Using the Impeller rendering backend (OpenGLES).
+10-05 01:03:00.348 32635 32678 I flutter : The Dart VM service is listening on http://127.0.0.1:40541/V6LL3ovKgYg=/
+10-05 01:03:02.364 32635 32635 I flutter : [FBP] stopScan: already stopped
+10-05 01:03:03.910 32635 32635 I flutter : [FBP] stopScan: already stopped
+10-05 01:03:22.259 32635 32635 I flutter : [FBP] stopScan: already stopped
+10-05 01:03:27.138 32635 32635 I flutter : [watch] subscribed stamped=false
+10-05 01:03:27.481 32635 32635 I flutter : [FBP] stopScan: already stopped
+10-05 01:03:27.490 32635 32635 I flutter : [trace] position error: User denied permissions to access the device's location.
+10-05 01:03:27.693 32635  1547 I flutter : [IMPORTANT:flutter/shell/platform/android/android_context_vk_impeller.cc(62)] Using the Impeller rendering backend (Vulkan).
+10-05 01:03:27.701 32635  1547 I flutter : [IMPORTANT:flutter/shell/platform/android/android_context_gl_impeller.cc(104)] Using the Impeller rendering backend (OpenGLES).
+10-05 01:03:27.734 32635 32635 I flutter : [FBP] stopScan: already stopped
+10-05 01:03:32.243 32635 32635 I flutter : [watch] motionRx=50 (poll)
+10-05 01:03:37.260 32635 32635 I flutter : [watch] motionRx=100 (poll)
+10-05 01:03:42.358 32635 32635 I flutter : [watch] motionRx=150 (poll)
+10-05 01:03:47.350 32635 32635 I flutter : [watch] motionRx=200 (poll)
+10-05 01:03:47.839 32635 32635 I flutter : [trace] fgs=true rssi=-62 motionRx=204 sent=2 failed=0 buf=10 pts=0
+10-05 01:03:52.348 32635 32635 I flutter : [watch] motionRx=250 (poll)
+10-05 01:03:57.355 32635 32635 I flutter : [watch] motionRx=300 (poll)
+10-05 01:04:02.351 32635 32635 I flutter : [watch] motionRx=350 (poll)
+10-05 01:04:02.835 32635 32635 I flutter : [trace] fgs=true rssi=-61 motionRx=354 sent=3 failed=0 buf=112 pts=0
+10-05 01:04:07.348 32635 32635 I flutter : [watch] motionRx=400 (poll)
+10-05 01:04:12.355 32635 32635 I flutter : [watch] motionRx=450 (poll)
+10-05 01:04:17.353 32635 32635 I flutter : [watch] motionRx=500 (poll)
+10-05 01:04:17.837 32635 32635 I flutter : [trace] fgs=true rssi=-64 motionRx=504 sent=5 failed=0 buf=10 pts=0
+10-05 01:04:22.345 32635 32635 I flutter : [watch] motionRx=550 (poll)
+10-05 01:04:27.359 32635 32635 I flutter : [watch] motionRx=600 (poll)
+10-05 01:04:32.349 32635 32635 I flutter : [watch] motionRx=650 (poll)
+10-05 01:04:32.835 32635 32635 I flutter : [trace] fgs=true rssi=-63 motionRx=654 sent=6 failed=0 buf=112 pts=0
+10-05 01:04:37.345 32635 32635 I flutter : [watch] motionRx=700 (poll)
+10-05 01:04:42.354 32635 32635 I flutter : [watch] motionRx=750 (poll)
+10-05 01:04:47.352 32635 32635 I flutter : [watch] motionRx=800 (poll)
+10-05 01:04:47.836 32635 32635 I flutter : [trace] fgs=true rssi=-57 motionRx=804 sent=8 failed=0 buf=10 pts=0
+10-05 01:04:52.345 32635 32635 I flutter : [watch] motionRx=850 (poll)
+10-05 01:04:57.362 32635 32635 I flutter : [watch] motionRx=900 (poll)
+10-05 01:05:02.350 32635 32635 I flutter : [watch] motionRx=950 (poll)
+10-05 01:05:02.835 32635 32635 I flutter : [trace] fgs=true rssi=-78 motionRx=954 sent=9 failed=0 buf=112 pts=0
+10-05 01:05:07.450 32635 32635 I flutter : [watch] motionRx=1000 (poll)
+10-05 01:05:12.446 32635 32635 I flutter : [watch] motionRx=1050 (poll)
+10-05 01:05:17.454 32635 32635 I flutter : [watch] motionRx=1100 (poll)
+10-05 01:05:17.837 32635 32635 I flutter : [trace] fgs=true rssi=-61 motionRx=1103 sent=11 failed=0 buf=10 pts=0
+10-05 01:05:22.448 32635 32635 I flutter : [watch] motionRx=1150 (poll)
+10-05 01:05:27.442 32635 32635 I flutter : [watch] motionRx=1200 (poll)
+10-05 01:05:29.226 32635 32635 I flutter : [FBP] stopScan: already stopped
+10-05 01:05:29.463 32635 32635 I flutter : [FBP] stopScan: already stopped
+10-05 01:05:29.692 32635 32635 I flutter : [FBP] stopScan: already stopped
+10-05 01:05:32.439 32635 32635 I flutter : [watch] motionRx=1250 (poll)
+10-05 01:05:32.835 32635 32635 I flutter : [trace] fgs=true rssi=-62 motionRx=1253 sent=12 failed=0 buf=112 pts=0
+10-05 01:05:37.448 32635 32635 I flutter : [watch] motionRx=1300 (poll)
+10-05 01:05:42.445 32635 32635 I flutter : [watch] motionRx=1350 (poll)
+10-05 01:05:47.455 32635 32635 I flutter : [watch] motionRx=1400 (poll)
+10-05 01:05:47.837 32635 32635 I flutter : [trace] fgs=true rssi=-67 motionRx=1403 sent=14 failed=0 buf=10 pts=0
+10-05 01:05:52.450 32635 32635 I flutter : [watch] motionRx=1450 (poll)
+10-05 01:05:57.446 32635 32635 I flutter : [watch] motionRx=1500 (poll)
+10-05 01:06:02.453 32635 32635 I flutter : [watch] motionRx=1550 (poll)
+10-05 01:06:02.836 32635 32635 I flutter : [trace] fgs=true rssi=-66 motionRx=1553 sent=15 failed=0 buf=112 pts=0
+10-05 01:06:07.553 32635 32635 I flutter : [watch] motionRx=1600 (poll)
+10-05 01:06:12.550 32635 32635 I flutter : [watch] motionRx=1650 (poll)
+10-05 01:06:17.545 32635 32635 I flutter : [watch] motionRx=1700 (poll)
+10-05 01:06:17.836 32635 32635 I flutter : [trace] fgs=true rssi=-65 motionRx=1702 sent=17 failed=0 buf=10 pts=0
+10-05 01:06:22.555 32635 32635 I flutter : [watch] motionRx=1750 (poll)
+10-05 01:06:27.549 32635 32635 I flutter : [watch] motionRx=1800 (poll)
+10-05 01:06:32.650 32635 32635 I flutter : [watch] motionRx=1850 (poll)
+10-05 01:06:32.835 32635 32635 I flutter : [trace] fgs=true rssi=-66 motionRx=1851 sent=18 failed=0 buf=110 pts=0
+10-05 01:06:37.647 32635 32635 I flutter : [watch] motionRx=1900 (poll)
+10-05 01:06:42.655 32635 32635 I flutter : [watch] motionRx=1950 (poll)
+10-05 01:06:47.755 32635 32635 I flutter : [watch] motionRx=2000 (poll)
+10-05 01:06:47.837 32635 32635 I flutter : [trace] fgs=true rssi=-75 motionRx=2000 sent=20 failed=0 buf=10 pts=0
+10-05 01:06:52.751 32635 32635 I flutter : [watch] motionRx=2050 (poll)
+10-05 01:06:57.745 32635 32635 I flutter : [watch] motionRx=2100 (poll)
+10-05 01:07:02.755 32635 32635 I flutter : [watch] motionRx=2150 (poll)
+10-05 01:07:02.835 32635 32635 I flutter : [trace] fgs=true rssi=-60 motionRx=2150 sent=21 failed=0 buf=112 pts=0
+10-05 01:07:07.749 32635 32635 I flutter : [watch] motionRx=2200 (poll)
+10-05 01:07:12.744 32635 32635 I flutter : [watch] motionRx=2250 (poll)
+10-05 01:07:17.739 32635 32635 I flutter : [watch] motionRx=2300 (poll)
+10-05 01:07:17.836 32635 32635 I flutter : [trace] fgs=true rssi=-61 motionRx=2300 sent=23 failed=0 buf=10 pts=0
+10-05 01:07:22.766 32635 32635 I flutter : [watch] motionRx=2350 (poll)
+10-05 01:07:27.744 32635 32635 I flutter : [watch] motionRx=2400 (poll)
+10-05 01:07:32.778 32635 32635 I flutter : [watch] motionRx=2450 (poll)
+10-05 01:07:32.835 32635 32635 I flutter : [trace] fgs=true rssi=-62 motionRx=2450 sent=24 failed=0 buf=112 pts=0
+10-05 01:07:37.877 32635 32635 I flutter : [watch] motionRx=2500 (poll)
+10-05 01:07:42.884 32635 32635 I flutter : [watch] motionRx=2550 (poll)
+10-05 01:07:47.835 32635 32635 I flutter : [trace] fgs=true rssi=-82 motionRx=2599 sent=26 failed=0 buf=10 pts=0
+10-05 01:07:47.883 32635 32635 I flutter : [watch] motionRx=2600 (poll)
+10-05 01:07:52.884 32635 32635 I flutter : [watch] motionRx=2650 (poll)
+10-05 01:07:57.850 32635 32635 I flutter : [watch] motionRx=2700 (poll)
+10-05 01:08:02.835 32635 32635 I flutter : [trace] fgs=true rssi=-72 motionRx=2749 sent=27 failed=0 buf=112 pts=0
+10-05 01:08:02.881 32635 32635 I flutter : [watch] motionRx=2750 (poll)
+10-05 01:08:07.884 32635 32635 I flutter : [watch] motionRx=2800 (poll)
+10-05 01:08:12.850 32635 32635 I flutter : [watch] motionRx=2850 (poll)
+10-05 01:08:17.835 32635 32635 I flutter : [trace] fgs=true rssi=-69 motionRx=2899 sent=29 failed=0 buf=10 pts=0
+10-05 01:08:17.844 32635 32635 I flutter : [watch] motionRx=2900 (poll)
+10-05 01:08:22.867 32635 32635 I flutter : [watch] motionRx=2950 (poll)
+10-05 01:08:27.867 32635 32635 I flutter : [watch] motionRx=3000 (poll)
+10-05 01:08:32.835 32635 32635 I flutter : [trace] fgs=true rssi=-70 motionRx=3049 sent=30 failed=0 buf=112 pts=0
+10-05 01:08:32.867 32635 32635 I flutter : [watch] motionRx=3050 (poll)
+10-05 01:08:37.867 32635 32635 I flutter : [watch] motionRx=3100 (poll)
+10-05 01:08:42.869 32635 32635 I flutter : [watch] motionRx=3150 (poll)
+10-05 01:08:47.836 32635 32635 I flutter : [trace] fgs=true rssi=-72 motionRx=3199 sent=32 failed=0 buf=10 pts=0
+10-05 01:08:47.868 32635 32635 I flutter : [watch] motionRx=3200 (poll)
+10-05 01:08:52.870 32635 32635 I flutter : [watch] motionRx=3250 (poll)
+10-05 01:08:57.870 32635 32635 I flutter : [watch] motionRx=3300 (poll)
+10-05 01:09:02.835 32635 32635 I flutter : [trace] fgs=true rssi=-69 motionRx=3349 sent=33 failed=0 buf=112 pts=0
+10-05 01:09:02.844 32635 32635 I flutter : [watch] motionRx=3350 (poll)
+10-05 01:09:07.875 32635 32635 I flutter : [watch] motionRx=3400 (poll)
+10-05 01:09:12.876 32635 32635 I flutter : [watch] motionRx=3450 (poll)
+10-05 01:09:17.835 32635 32635 I flutter : [trace] fgs=true rssi=-61 motionRx=3499 sent=35 failed=0 buf=10 pts=0
+10-05 01:09:17.844 32635 32635 I flutter : [watch] motionRx=3500 (poll)
+10-05 01:09:22.880 32635 32635 I flutter : [watch] motionRx=3550 (poll)
+10-05 01:09:27.850 32635 32635 I flutter : [watch] motionRx=3600 (poll)
+10-05 01:09:32.835 32635 32635 I flutter : [trace] fgs=true rssi=-62 motionRx=3649 sent=36 failed=0 buf=112 pts=0
+10-05 01:09:32.844 32635 32635 I flutter : [watch] motionRx=3650 (poll)
+10-05 01:09:37.864 32635 32635 I flutter : [watch] motionRx=3700 (poll)
+10-05 01:09:42.865 32635 32635 I flutter : [watch] motionRx=3750 (poll)
+10-05 01:09:47.836 32635 32635 I flutter : [trace] fgs=true rssi=-60 motionRx=3799 sent=38 failed=0 buf=10 pts=0
+10-05 01:09:47.868 32635 32635 I flutter : [watch] motionRx=3800 (poll)
+10-05 01:09:52.869 32635 32635 I flutter : [watch] motionRx=3850 (poll)
+10-05 01:09:57.868 32635 32635 I flutter : [watch] motionRx=3900 (poll)
+10-05 01:10:02.835 32635 32635 I flutter : [trace] fgs=true rssi=-58 motionRx=3949 sent=39 failed=0 buf=112 pts=0
+10-05 01:10:02.844 32635 32635 I flutter : [watch] motionRx=3950 (poll)
+10-05 01:10:07.865 32635 32635 I flutter : [watch] motionRx=4000 (poll)
+10-05 01:10:12.870 32635 32635 I flutter : [watch] motionRx=4050 (poll)
+10-05 01:10:17.835 32635 32635 I flutter : [trace] fgs=true rssi=-58 motionRx=4099 sent=40 failed=0 buf=10 pts=0
+10-05 01:10:17.843 32635 32635 I flutter : [watch] motionRx=4100 (poll)
+10-05 01:10:22.877 32635 32635 I flutter : [watch] motionRx=4150 (poll)
+10-05 01:10:27.849 32635 32635 I flutter : [watch] motionRx=4200 (poll)
+10-05 01:10:32.835 32635 32635 I flutter : [trace] fgs=true rssi=-56 motionRx=4249 sent=42 failed=0 buf=112 pts=0
+10-05 01:10:32.843 32635 32635 I flutter : [watch] motionRx=4250 (poll)
+10-05 01:10:37.854 32635 32635 I flutter : [watch] motionRx=4300 (poll)
+10-05 01:10:42.864 32635 32635 I flutter : [watch] motionRx=4350 (poll)
+10-05 01:10:47.835 32635 32635 I flutter : [trace] fgs=true rssi=-56 motionRx=4399 sent=44 failed=0 buf=10 pts=0
+10-05 01:10:47.865 32635 32635 I flutter : [watch] motionRx=4400 (poll)
+10-05 01:10:52.866 32635 32635 I flutter : [watch] motionRx=4450 (poll)
+10-05 01:10:57.866 32635 32635 I flutter : [watch] motionRx=4500 (poll)
+10-05 01:11:02.835 32635 32635 I flutter : [trace] fgs=true rssi=-56 motionRx=4549 sent=45 failed=0 buf=112 pts=0
+10-05 01:11:02.843 32635 32635 I flutter : [watch] motionRx=4550 (poll)
+10-05 01:11:07.867 32635 32635 I flutter : [watch] motionRx=4600 (poll)
+10-05 01:11:12.868 32635 32635 I flutter : [watch] motionRx=4650 (poll)
+10-05 01:11:17.836 32635 32635 I flutter : [trace] fgs=true rssi=-55 motionRx=4699 sent=47 failed=0 buf=10 pts=0
+10-05 01:11:17.844 32635 32635 I flutter : [watch] motionRx=4700 (poll)
+10-05 01:11:22.870 32635 32635 I flutter : [watch] motionRx=4750 (poll)
+10-05 01:11:27.875 32635 32635 I flutter : [watch] motionRx=4800 (poll)
+10-05 01:11:32.836 32635 32635 I flutter : [trace] fgs=true rssi=-66 motionRx=4849 sent=48 failed=0 buf=112 pts=0
+10-05 01:11:32.842 32635 32635 I flutter : [watch] motionRx=4850 (poll)
+10-05 01:11:37.870 32635 32635 I flutter : [watch] motionRx=4900 (poll)
+10-05 01:11:42.850 32635 32635 I flutter : [watch] motionRx=4950 (poll)
+10-05 01:11:47.835 32635 32635 I flutter : [trace] fgs=true rssi=-63 motionRx=4999 sent=50 failed=0 buf=10 pts=0
+10-05 01:11:47.844 32635 32635 I flutter : [watch] motionRx=5000 (poll)
+10-05 01:11:52.876 32635 32635 I flutter : [watch] motionRx=5050 (poll)
+10-05 01:11:57.849 32635 32635 I flutter : [watch] motionRx=5100 (poll)
+10-05 01:12:02.836 32635 32635 I flutter : [trace] fgs=true rssi=-65 motionRx=5149 sent=51 failed=0 buf=112 pts=0
+10-05 01:12:02.842 32635 32635 I flutter : [watch] motionRx=5150 (poll)
+10-05 01:12:07.853 32635 32635 I flutter : [watch] motionRx=5200 (poll)
+10-05 01:12:12.849 32635 32635 I flutter : [watch] motionRx=5250 (poll)
+10-05 01:12:17.836 32635 32635 I flutter : [trace] fgs=true rssi=-68 motionRx=5299 sent=53 failed=0 buf=10 pts=0
+10-05 01:12:17.843 32635 32635 I flutter : [watch] motionRx=5300 (poll)
+10-05 01:12:22.862 32635 32635 I flutter : [watch] motionRx=5350 (poll)
+10-05 01:12:27.864 32635 32635 I flutter : [watch] motionRx=5400 (poll)
+10-05 01:12:32.836 32635 32635 I flutter : [trace] fgs=true rssi=-73 motionRx=5449 sent=54 failed=0 buf=112 pts=0
+10-05 01:12:32.864 32635 32635 I flutter : [watch] motionRx=5450 (poll)
+10-05 01:12:37.865 32635 32635 I flutter : [watch] motionRx=5500 (poll)
+10-05 01:12:42.866 32635 32635 I flutter : [watch] motionRx=5550 (poll)
+10-05 01:12:47.836 32635 32635 I flutter : [trace] fgs=true rssi=-72 motionRx=5599 sent=56 failed=0 buf=10 pts=0
+10-05 01:12:47.843 32635 32635 I flutter : [watch] motionRx=5600 (poll)
+10-05 01:12:52.867 32635 32635 I flutter : [watch] motionRx=5650 (poll)
+10-05 01:12:57.868 32635 32635 I flutter : [watch] motionRx=5700 (poll)
+10-05 01:13:02.836 32635 32635 I flutter : [trace] fgs=true rssi=-68 motionRx=5749 sent=57 failed=0 buf=112 pts=0
+10-05 01:13:02.844 32635 32635 I flutter : [watch] motionRx=5750 (poll)
+10-05 01:13:07.869 32635 32635 I flutter : [watch] motionRx=5800 (poll)
+10-05 01:13:12.872 32635 32635 I flutter : [watch] motionRx=5850 (poll)
+10-05 01:13:17.836 32635 32635 I flutter : [trace] fgs=true rssi=-66 motionRx=5899 sent=59 failed=0 buf=10 pts=0
+10-05 01:13:17.844 32635 32635 I flutter : [watch] motionRx=5900 (poll)
+10-05 01:13:22.875 32635 32635 I flutter : [watch] motionRx=5950 (poll)
+10-05 01:13:27.848 32635 32635 I flutter : [watch] motionRx=6000 (poll)
+10-05 01:13:32.836 32635 32635 I flutter : [trace] fgs=true rssi=-68 motionRx=6049 sent=60 failed=0 buf=112 pts=0
+10-05 01:13:32.842 32635 32635 I flutter : [watch] motionRx=6050 (poll)
+10-05 01:13:37.854 32635 32635 I flutter : [watch] motionRx=6100 (poll)
+10-05 01:13:42.861 32635 32635 I flutter : [watch] motionRx=6150 (poll)
+10-05 01:13:47.836 32635 32635 I flutter : [trace] fgs=true rssi=-64 motionRx=6199 sent=62 failed=0 buf=8 pts=0
+10-05 01:13:47.843 32635 32635 I flutter : [watch] motionRx=6200 (poll)
+10-05 01:13:52.864 32635 32635 I flutter : [watch] motionRx=6250 (poll)
+10-05 01:13:57.865 32635 32635 I flutter : [watch] motionRx=6300 (poll)
+10-05 01:14:02.835 32635 32635 I flutter : [trace] fgs=true rssi=-61 motionRx=6349 sent=63 failed=0 buf=112 pts=0
+10-05 01:14:02.865 32635 32635 I flutter : [watch] motionRx=6350 (poll)
+10-05 01:14:07.866 32635 32635 I flutter : [watch] motionRx=6400 (poll)
+10-05 01:14:12.866 32635 32635 I flutter : [watch] motionRx=6450 (poll)
+10-05 01:14:17.836 32635 32635 I flutter : [trace] fgs=true rssi=-75 motionRx=6499 sent=65 failed=0 buf=10 pts=0
+10-05 01:14:17.865 32635 32635 I flutter : [watch] motionRx=6500 (poll)
+10-05 01:14:22.866 32635 32635 I flutter : [watch] motionRx=6550 (poll)
+10-05 01:14:27.866 32635 32635 I flutter : [watch] motionRx=6600 (poll)
+10-05 01:14:32.836 32635 32635 I flutter : [trace] fgs=true rssi=-77 motionRx=6649 sent=66 failed=0 buf=112 pts=0
+10-05 01:14:32.843 32635 32635 I flutter : [watch] motionRx=6650 (poll)
+10-05 01:14:37.868 32635 32635 I flutter : [watch] motionRx=6700 (poll)
+10-05 01:14:42.868 32635 32635 I flutter : [watch] motionRx=6750 (poll)
+10-05 01:14:47.835 32635 32635 I flutter : [trace] fgs=true rssi=-75 motionRx=6799 sent=68 failed=0 buf=10 pts=0
+10-05 01:14:47.842 32635 32635 I flutter : [watch] motionRx=6800 (poll)
+10-05 01:14:52.874 32635 32635 I flutter : [watch] motionRx=6850 (poll)
+10-05 01:14:57.849 32635 32635 I flutter : [watch] motionRx=6900 (poll)
+10-05 01:15:02.836 32635 32635 I flutter : [trace] fgs=true rssi=-77 motionRx=6949 sent=69 failed=0 buf=112 pts=0
+10-05 01:15:02.843 32635 32635 I flutter : [watch] motionRx=6950 (poll)
+10-05 01:15:07.876 32635 32635 I flutter : [watch] motionRx=7000 (poll)
+10-05 01:15:12.848 32635 32635 I flutter : [watch] motionRx=7050 (poll)
+10-05 01:15:17.836 32635 32635 I flutter : [trace] fgs=true rssi=-67 motionRx=7099 sent=71 failed=0 buf=10 pts=0
+10-05 01:15:17.843 32635 32635 I flutter : [watch] motionRx=7100 (poll)
+10-05 01:15:22.868 32635 32635 I flutter : [watch] motionRx=7150 (poll)
+10-05 01:15:27.861 32635 32635 I flutter : [watch] motionRx=7200 (poll)
+10-05 01:15:32.835 32635 32635 I flutter : [trace] fgs=true rssi=-73 motionRx=7249 sent=72 failed=0 buf=110 pts=0
+10-05 01:15:32.862 32635 32635 I flutter : [watch] motionRx=7250 (poll)
+10-05 01:15:37.864 32635 32635 I flutter : [watch] motionRx=7300 (poll)
+10-05 01:15:42.868 32635 32635 I flutter : [watch] motionRx=7350 (poll)
+10-05 01:15:47.835 32635 32635 I flutter : [trace] fgs=true rssi=-73 motionRx=7399 sent=74 failed=0 buf=10 pts=0
+10-05 01:15:47.865 32635 32635 I flutter : [watch] motionRx=7400 (poll)
+10-05 01:15:52.857 32635 32635 I flutter : [watch] motionRx=7450 (poll)
+10-05 01:15:57.867 32635 32635 I flutter : [watch] motionRx=7500 (poll)
+10-05 01:16:02.836 32635 32635 I flutter : [trace] fgs=true rssi=-74 motionRx=7549 sent=75 failed=0 buf=112 pts=0
+10-05 01:16:02.867 32635 32635 I flutter : [watch] motionRx=7550 (poll)
+10-05 01:16:07.857 32635 32635 I flutter : [watch] motionRx=7600 (poll)
+10-05 01:16:12.868 32635 32635 I flutter : [watch] motionRx=7650 (poll)
+10-05 01:16:17.835 32635 32635 I flutter : [trace] fgs=true rssi=-79 motionRx=7699 sent=77 failed=0 buf=10 pts=0
+10-05 01:16:17.843 32635 32635 I flutter : [watch] motionRx=7700 (poll)
+10-05 01:16:22.868 32635 32635 I flutter : [watch] motionRx=7750 (poll)
+10-05 01:16:27.868 32635 32635 I flutter : [watch] motionRx=7800 (poll)
+10-05 01:16:32.836 32635 32635 I flutter : [trace] fgs=true rssi=-77 motionRx=7849 sent=78 failed=0 buf=112 pts=0
+10-05 01:16:32.842 32635 32635 I flutter : [watch] motionRx=7850 (poll)
+10-05 01:16:37.853 32635 32635 I flutter : [watch] motionRx=7900 (poll)
+10-05 01:16:42.846 32635 32635 I flutter : [watch] motionRx=7950 (poll)
+10-05 01:16:47.836 32635 32635 I flutter : [trace] fgs=true rssi=-58 motionRx=7999 sent=80 failed=0 buf=10 pts=0
+10-05 01:16:47.844 32635 32635 I flutter : [watch] motionRx=8000 (poll)
+10-05 01:16:52.851 32635 32635 I flutter : [watch] motionRx=8050 (poll)
+10-05 01:16:54.958 32635 32635 I flutter : [FBP] stopScan: already stopped
+10-05 01:16:57.847 32635 32635 I flutter : [watch] motionRx=8100 (poll)
+10-05 01:17:02.835 32635 32635 I flutter : [trace] fgs=true rssi=-56 motionRx=8149 sent=81 failed=0 buf=112 pts=0
+10-05 01:17:02.841 32635 32635 I flutter : [watch] motionRx=8150 (poll)
+10-05 01:17:07.852 32635 32635 I flutter : [watch] motionRx=8200 (poll)
+10-05 01:17:12.863 32635 32635 I flutter : [watch] motionRx=8250 (poll)
+10-05 01:17:17.837 32635 32635 I flutter : [trace] fgs=true rssi=-58 motionRx=8299 sent=83 failed=0 buf=10 pts=0
+10-05 01:17:17.859 32635 32635 I flutter : [watch] motionRx=8300 (poll)
+10-05 01:17:22.851 32635 32635 I flutter : [watch] motionRx=8350 (poll)
+10-05 01:17:27.862 32635 32635 I flutter : [watch] motionRx=8400 (poll)
+10-05 01:17:32.836 32635 32635 I flutter : [trace] fgs=true rssi=-59 motionRx=8449 sent=84 failed=0 buf=112 pts=0
+10-05 01:17:32.857 32635 32635 I flutter : [watch] motionRx=8450 (poll)
+10-05 01:17:37.852 32635 32635 I flutter : [watch] motionRx=8500 (poll)
+10-05 01:17:42.861 32635 32635 I flutter : [watch] motionRx=8550 (poll)
+10-05 01:17:47.836 32635 32635 I flutter : [trace] fgs=true rssi=-59 motionRx=8599 sent=86 failed=0 buf=10 pts=0
+10-05 01:17:47.842 32635 32635 I flutter : [watch] motionRx=8600 (poll)
+10-05 01:17:52.852 32635 32635 I flutter : [watch] motionRx=8650 (poll)
+10-05 01:17:57.847 32635 32635 I flutter : [watch] motionRx=8700 (poll)
+10-05 01:18:02.836 32635 32635 I flutter : [trace] fgs=true rssi=-58 motionRx=8749 sent=87 failed=0 buf=112 pts=0
+10-05 01:18:02.841 32635 32635 I flutter : [watch] motionRx=8750 (poll)
+10-05 01:18:07.853 32635 32635 I flutter : [watch] motionRx=8800 (poll)
+10-05 01:18:12.848 32635 32635 I flutter : [watch] motionRx=8850 (poll)
+10-05 01:18:17.836 32635 32635 I flutter : [trace] fgs=true rssi=-58 motionRx=8899 sent=89 failed=0 buf=10 pts=0
+10-05 01:18:17.859 32635 32635 I flutter : [watch] motionRx=8900 (poll)
+10-05 01:18:22.853 32635 32635 I flutter : [watch] motionRx=8950 (poll)
+10-05 01:18:27.861 32635 32635 I flutter : [watch] motionRx=9000 (poll)
+10-05 01:19:25.286  9985 10014 I flutter : [IMPORTANT:flutter/shell/platform/android/android_context_vk_impeller.cc(62)] Using the Impeller rendering backend (Vulkan).
+10-05 01:19:25.293  9985 10014 I flutter : [IMPORTANT:flutter/shell/platform/android/android_context_gl_impeller.cc(104)] Using the Impeller rendering backend (OpenGLES).
+10-05 01:19:25.373  9985 10026 I flutter : The Dart VM service is listening on http://127.0.0.1:40247/LxDmuk8rNeU=/
+10-05 01:19:27.381  9985  9985 I flutter : [FBP] stopScan: already stopped
+10-05 01:19:29.358  9985  9985 I flutter : [FBP] stopScan: already stopped
+10-05 01:20:15.618  9985  9985 I flutter : [FBP] stopScan: already stopped
+10-05 01:20:18.855  9985  9985 I flutter : [watch] subscribed stamped=false
+10-05 01:20:19.105  9985  9985 I flutter : [FBP] stopScan: already stopped
+10-05 01:20:19.112  9985  9985 I flutter : [trace] position error: User denied permissions to access the device's location.
+10-05 01:20:19.277  9985 10677 I flutter : [IMPORTANT:flutter/shell/platform/android/android_context_vk_impeller.cc(62)] Using the Impeller rendering backend (Vulkan).
+10-05 01:20:19.293  9985 10677 I flutter : [IMPORTANT:flutter/shell/platform/android/android_context_gl_impeller.cc(104)] Using the Impeller rendering backend (OpenGLES).
+10-05 01:20:19.365  9985  9985 I flutter : [FBP] stopScan: already stopped
+10-05 01:20:23.904  9985  9985 I flutter : [watch] motionRx=50 (poll) xyz=-0.570,0.803,0.149
+10-05 01:20:28.897  9985  9985 I flutter : [watch] motionRx=100 (poll) xyz=-0.570,0.803,0.149
+10-05 01:20:33.908  9985  9985 I flutter : [watch] motionRx=150 (poll) xyz=-0.570,0.803,0.149
+10-05 01:20:37.149  9985  9985 I flutter : [trace] fgs=true rssi=-66 motionRx=182 sent=1 failed=0 buf=168 pts=2
+10-05 01:20:38.903  9985  9985 I flutter : [watch] motionRx=200 (poll) xyz=-0.570,0.803,0.149
+10-05 01:20:43.897  9985  9985 I flutter : [watch] motionRx=250 (poll) xyz=-0.570,0.803,0.149
+10-05 01:20:48.910  9985  9985 I flutter : [watch] motionRx=300 (poll) xyz=-0.570,0.803,0.149
+10-05 01:20:52.148  9985  9985 I flutter : [trace] fgs=true rssi=-64 motionRx=332 sent=3 failed=0 buf=63 pts=2
+10-05 01:20:53.902  9985  9985 I flutter : [watch] motionRx=350 (poll) xyz=-0.570,0.803,0.149
+10-05 01:20:58.912  9985  9985 I flutter : [watch] motionRx=400 (poll) xyz=-0.570,0.803,0.149
+10-05 01:21:03.892  9985  9985 I flutter : [watch] motionRx=450 (poll) xyz=-0.570,0.803,0.149
+10-05 01:21:07.147  9985  9985 I flutter : [trace] fgs=true rssi=-65 motionRx=482 sent=4 failed=0 buf=168 pts=2
+10-05 01:21:08.902  9985  9985 I flutter : [watch] motionRx=500 (poll) xyz=-0.570,0.803,0.149
+10-05 01:21:13.900  9985  9985 I flutter : [watch] motionRx=550 (poll) xyz=-0.570,0.803,0.149
+10-05 01:21:18.905  9985  9985 I flutter : [watch] motionRx=600 (poll) xyz=-0.570,0.803,0.149
+10-05 01:21:22.148  9985  9985 I flutter : [trace] fgs=true rssi=-66 motionRx=632 sent=6 failed=0 buf=63 pts=2
+10-05 01:21:23.902  9985  9985 I flutter : [watch] motionRx=650 (poll) xyz=-0.570,0.803,0.149
+10-05 01:21:28.896  9985  9985 I flutter : [watch] motionRx=700 (poll) xyz=-0.570,0.803,0.149
+10-05 01:21:34.107  9985  9985 I flutter : [watch] motionRx=750 (poll) xyz=-0.570,0.803,0.149
+10-05 01:21:37.147  9985  9985 I flutter : [trace] fgs=true rssi=-65 motionRx=780 sent=7 failed=0 buf=162 pts=2
+10-05 01:21:39.250  9985  9985 I flutter : [watch] motionRx=800 (poll) xyz=-0.570,0.803,0.149
+10-05 01:21:44.302  9985  9985 I flutter : [watch] motionRx=850 (poll) xyz=-0.570,0.803,0.149
+10-05 01:21:49.324  9985  9985 I flutter : [watch] motionRx=900 (poll) xyz=-0.570,0.803,0.149
+10-05 01:21:52.147  9985  9985 I flutter : [trace] fgs=true rssi=-61 motionRx=928 sent=9 failed=0 buf=65 pts=2
+10-05 01:21:54.314  9985  9985 I flutter : [watch] motionRx=950 (poll) xyz=-0.570,0.803,0.149
+10-05 01:21:59.519  9985  9985 I flutter : [watch] motionRx=1000 (poll) xyz=-0.371,0.919,-0.037
+10-05 01:22:04.538  9985  9985 I flutter : [watch] motionRx=1050 (poll) xyz=-0.344,0.938,-0.053
+10-05 01:22:07.148  9985  9985 I flutter : [trace] fgs=true rssi=-52 motionRx=1076 sent=10 failed=0 buf=249 pts=2
+10-05 01:22:09.538  9985  9985 I flutter : [watch] motionRx=1100 (poll) xyz=0.340,0.620,-0.724
+10-05 01:22:14.521  9985  9985 I flutter : [watch] motionRx=1150 (poll) xyz=-0.339,-0.191,-0.939
+10-05 01:22:19.493  9985  9985 I flutter : [watch] motionRx=1200 (poll) xyz=-0.339,-0.191,-0.939
+10-05 01:22:22.149  9985  9985 I flutter : [trace] fgs=true rssi=-58 motionRx=1226 sent=12 failed=0 buf=63 pts=2
+10-05 01:22:24.502  9985  9985 I flutter : [watch] motionRx=1250 (poll) xyz=-0.339,-0.191,-0.939
+10-05 01:22:29.510  9985  9985 I flutter : [watch] motionRx=1300 (poll) xyz=-0.339,-0.191,-0.939
+10-05 01:22:34.508  9985  9985 I flutter : [watch] motionRx=1350 (poll) xyz=-0.339,-0.191,-0.939
+10-05 01:22:37.155  9985  9985 I flutter : [trace] fgs=true rssi=-64 motionRx=1376 sent=13 failed=0 buf=168 pts=2
+10-05 01:22:39.502  9985  9985 I flutter : [watch] motionRx=1400 (poll) xyz=-0.339,-0.191,-0.939
+10-05 01:22:44.498  9985  9985 I flutter : [watch] motionRx=1450 (poll) xyz=-0.339,-0.191,-0.939
+10-05 01:22:49.507  9985  9985 I flutter : [watch] motionRx=1500 (poll) xyz=-0.339,-0.191,-0.939
+10-05 01:22:52.147  9985  9985 I flutter : [trace] fgs=true rssi=-61 motionRx=1526 sent=15 failed=0 buf=63 pts=2
+10-05 01:22:54.502  9985  9985 I flutter : [watch] motionRx=1550 (poll) xyz=-0.339,-0.191,-0.939
+10-05 01:22:59.512  9985  9985 I flutter : [watch] motionRx=1600 (poll) xyz=-0.339,-0.191,-0.939
+10-05 01:23:04.507  9985  9985 I flutter : [watch] motionRx=1650 (poll) xyz=-0.339,-0.191,-0.939
+10-05 01:23:07.147  9985  9985 I flutter : [trace] fgs=true rssi=-77 motionRx=1676 sent=16 failed=0 buf=168 pts=2
+10-05 01:23:09.504  9985  9985 I flutter : [watch] motionRx=1700 (poll) xyz=-0.339,-0.191,-0.939
+10-05 01:23:14.513  9985  9985 I flutter : [watch] motionRx=1750 (poll) xyz=-0.339,-0.191,-0.939
+10-05 01:23:19.508  9985  9985 I flutter : [watch] motionRx=1800 (poll) xyz=-0.339,-0.191,-0.939
+10-05 01:23:22.148  9985  9985 I flutter : [trace] fgs=true rssi=-77 motionRx=1826 sent=18 failed=0 buf=63 pts=2
+10-05 01:23:24.500  9985  9985 I flutter : [watch] motionRx=1850 (poll) xyz=-0.339,-0.191,-0.939
+10-05 01:23:29.497  9985  9985 I flutter : [watch] motionRx=1900 (poll) xyz=-0.339,-0.191,-0.939
+10-05 01:23:34.509  9985  9985 I flutter : [watch] motionRx=1950 (poll) xyz=-0.339,-0.191,-0.939
+10-05 01:23:37.148  9985  9985 I flutter : [trace] fgs=true rssi=-75 motionRx=1976 sent=19 failed=0 buf=168 pts=2
+10-05 01:23:39.503  9985  9985 I flutter : [watch] motionRx=2000 (poll) xyz=-0.339,-0.191,-0.939
+10-05 01:23:44.497  9985  9985 I flutter : [watch] motionRx=2050 (poll) xyz=-0.339,-0.191,-0.939
+10-05 01:23:49.508  9985  9985 I flutter : [watch] motionRx=2100 (poll) xyz=-0.339,-0.191,-0.939
