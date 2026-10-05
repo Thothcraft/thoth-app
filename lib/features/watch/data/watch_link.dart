@@ -29,6 +29,12 @@ class WatchLink {
   Timer? _motionPollTimer;
   bool _stampedMotion = false;
   int _motionRx = 0;
+  /// Stock InfiniTime stops sampling the BMA421 while dozing — reads
+  /// return a latched register. Track identical consecutive payloads so
+  /// the UI can say "parked" instead of showing a misleading flat line.
+  List<int>? _lastMotionRaw;
+  int _identicalMotion = 0;
+  bool _motionStale = false;
 
   Stream<WatchTelemetry> get telemetry => _telemetry.stream;
   /// Whether the thoth-fork stamped motion char (00030003) is present —
@@ -37,6 +43,30 @@ class WatchLink {
   /// Motion samples received since connect — diagnostics for the
   /// screen-off stream check.
   int get motionRx => _motionRx;
+
+  /// True once ≥20 consecutive motion payloads are byte-identical — the
+  /// watch is dozing and the sensor register is parked. Resets on any
+  /// changed sample (the watch woke or actually moved).
+  bool get motionStale => _motionStale;
+
+  void _noteMotionPayload(List<int> v) {
+    final last = _lastMotionRaw;
+    final same = last != null &&
+        last.length == v.length &&
+        List.generate(v.length, (i) => v[i] == last[i])
+            .every((e) => e);
+    _lastMotionRaw = List.of(v);
+    if (same) {
+      _identicalMotion++;
+      if (_identicalMotion >= 20 && !_motionStale) {
+        _motionStale = true;
+        debugPrint('[watch] motion parked — watch dozing');
+      }
+    } else {
+      _identicalMotion = 0;
+      _motionStale = false;
+    }
+  }
   Stream<BluetoothConnectionState> get connection => _connection.stream;
 
   String get bleId => device.remoteId.str;
@@ -176,6 +206,7 @@ class WatchLink {
           PinetimeGatt.charMotionStamped,
           (v) {
             _motionRx++;
+            _noteMotionPayload(v);
             if (_motionRx % 50 == 0) {
               debugPrint('[watch] motionRx=$_motionRx (stamped)');
             }
@@ -255,6 +286,7 @@ class WatchLink {
       final v = await _chars[PinetimeGatt.charMotion]?.read();
       if (v != null && v.isNotEmpty) {
         _motionRx++;
+        _noteMotionPayload(v);
         final m = PinetimeCodec.decodeMotion(v);
         if (_motionRx % 50 == 0) {
           debugPrint('[watch] motionRx=$_motionRx (poll) '

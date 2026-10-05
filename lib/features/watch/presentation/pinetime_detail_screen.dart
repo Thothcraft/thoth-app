@@ -179,6 +179,11 @@ class _SensorsTab extends ConsumerWidget {
                     Text('Accelerometer (g)',
                         style: Theme.of(context).textTheme.titleMedium),
                     const Spacer(),
+                    // Stock firmware parks the accel while dozing — say
+                    // so instead of implying a dead stream.
+                    if (relay?.link?.motionStale == true)
+                      _statChip(context, 'dozing'),
+                    const SizedBox(width: 8),
                     _statChip(context, _rateLabel()),
                     const SizedBox(width: 8),
                     _statChip(context,
@@ -656,7 +661,7 @@ class _BackgroundCard extends ConsumerWidget {
               contentPadding: EdgeInsets.zero,
               title: const Text('Background relay'),
               subtitle: const Text(
-                  'IMU keeps streaming with the screen off (foreground service + wakelock).',
+                  'Phone stays connected while the screen is off. On stock InfiniTime the accel parks when the watch dozes — samples resume on wake; the thoth firmware streams unconditionally.',
                   style: TextStyle(fontSize: 11)),
               value: settings?.backgroundRelay ?? true,
               onChanged: (v) => notifier.setBackgroundRelay(v),
