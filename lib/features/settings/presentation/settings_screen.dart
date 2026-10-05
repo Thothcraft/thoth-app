@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/constants/app_constants.dart';
@@ -65,8 +66,9 @@ class SettingsScreen extends ConsumerWidget {
             secondary: const Icon(Icons.bluetooth_searching),
             title: const Text('BLE proximity evidence'),
             subtitle: const Text(
-                'Post RSSI for your enrolled devices only — unknown '
-                'nearby devices are never identified or stored'),
+                'Post RSSI for enrolled devices plus unenrolled '
+                'advertisers (shown as unknowns on the BLE map). Ids '
+                'stay on your account only.'),
             value: s?.bleRssiCollection ?? false,
             onChanged: notifier.setBleRssiCollection,
           ),
@@ -98,6 +100,41 @@ class SettingsScreen extends ConsumerWidget {
                 style: TextStyle(fontSize: 11, color: Colors.black45)),
           ),
           const Divider(height: 24),
+          const _SectionLabel('Location zones'),
+          ListTile(
+            dense: true,
+            leading: const Icon(Icons.map_outlined, size: 18),
+            title: const Text(
+                'Map-level geofences for the person entity — entering a '
+                'zone posts a transition and sets your location.zone '
+                'state. Requires GPS evidence on.',
+                style: TextStyle(fontSize: 11, color: Colors.black45)),
+          ),
+          for (final z in s?.geoZones ?? const <GeoZone>[])
+            ListTile(
+              dense: true,
+              leading: const Icon(Icons.place_outlined),
+              title: Text(z.name),
+              subtitle: Text(
+                  '${z.latitude.toStringAsFixed(5)}, '
+                  '${z.longitude.toStringAsFixed(5)} · '
+                  '${z.radiusM.toStringAsFixed(0)} m',
+                  style: const TextStyle(fontSize: 11)),
+              trailing: IconButton(
+                icon: const Icon(Icons.delete_outline, size: 18),
+                onPressed: () => notifier.setGeoZones([
+                  for (final x in s!.geoZones)
+                    if (x.name != z.name) x,
+                ]),
+              ),
+            ),
+          ListTile(
+            dense: true,
+            leading: const Icon(Icons.add_location_alt_outlined),
+            title: const Text('Add zone at current location'),
+            onTap: () => _addZoneHere(context, ref),
+          ),
+          const Divider(height: 24),
           const _SectionLabel('About'),
           ListTile(
             leading: const Icon(Icons.info_outline),
@@ -114,6 +151,86 @@ class SettingsScreen extends ConsumerWidget {
         ],
       ),
     );
+  }
+
+  /// Name + radius dialog → adds a geofence at the phone's live fix.
+  Future<void> _addZoneHere(BuildContext context, WidgetRef ref) async {
+    final perm = await Geolocator.requestPermission();
+    if (perm == LocationPermission.denied ||
+        perm == LocationPermission.deniedForever) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+            content: Text('Location permission needed to place a zone')));
+      }
+      return;
+    }
+    Position? pos;
+    try {
+      pos = await Geolocator.getCurrentPosition(
+          desiredAccuracy: LocationAccuracy.medium);
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('No GPS fix: $e')));
+      }
+      return;
+    }
+    if (!context.mounted) return;
+
+    final nameCtrl = TextEditingController();
+    var radius = 150.0;
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (dctx) => StatefulBuilder(
+        builder: (dctx, setD) => AlertDialog(
+          title: const Text('New zone'),
+          content: Column(mainAxisSize: MainAxisSize.min, children: [
+            TextField(
+              controller: nameCtrl,
+              autofocus: true,
+              decoration: const InputDecoration(
+                  hintText: 'home / office / backyard / university',
+                  labelText: 'Name'),
+            ),
+            const SizedBox(height: 12),
+            Row(children: [
+              const Text('Radius'),
+              Expanded(
+                child: Slider(
+                  value: radius,
+                  min: 25,
+                  max: 1000,
+                  divisions: 39,
+                  label: '${radius.round()} m',
+                  onChanged: (v) => setD(() => radius = v),
+                ),
+              ),
+              Text('${radius.round()} m',
+                  style: const TextStyle(fontSize: 11)),
+            ]),
+          ]),
+          actions: [
+            TextButton(
+                onPressed: () => Navigator.pop(dctx, false),
+                child: const Text('Cancel')),
+            FilledButton(
+                onPressed: () => Navigator.pop(dctx, true),
+                child: const Text('Add')),
+          ],
+        ),
+      ),
+    );
+    if (ok != true || nameCtrl.text.trim().isEmpty) return;
+    final s = ref.read(appSettingsProvider).valueOrNull ??
+        const AppSettings();
+    await ref.read(appSettingsProvider.notifier).setGeoZones([
+      ...s.geoZones,
+      GeoZone(
+          name: nameCtrl.text.trim().toLowerCase(),
+          latitude: pos.latitude,
+          longitude: pos.longitude,
+          radiusM: radius),
+    ]);
   }
 
   void _pickTheme(BuildContext context, AppSettingsNotifier notifier,

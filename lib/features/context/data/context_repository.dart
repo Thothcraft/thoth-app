@@ -105,6 +105,30 @@ class ContextRepository {
         .toList();
   }
 
+  /// Upsert a context state — e.g. `location.zone` for the person on a
+  /// geofence transition.
+  Future<ContextState> postState({
+    required String stateKey,
+    required String entityId,
+    required Map<String, dynamic> value,
+    String? estimator,
+    double? confidence,
+    double? since,
+    String? transition,
+  }) async {
+    final res = await _brain.postV1('/context/state', body: {
+      'key': stateKey,
+      'entity_id': entityId,
+      'value': value,
+      if (since != null) 'since': since,
+      if (transition != null) 'transition': transition,
+      if (estimator != null) 'estimator': estimator,
+      if (confidence != null) 'confidence': confidence,
+    });
+    return ContextState.fromJson(
+        Map<String, dynamic>.from(res['state'] ?? res));
+  }
+
   Future<List<ContextEvent>> events(
       {String? key, double? since, int limit = 200}) async {
     final res = await _brain.getV1('/context/events', params: {

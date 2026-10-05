@@ -1,6 +1,40 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+/// A named geographic zone (map-level geofence — "home", "university",
+/// "backyard"). The phone's GPS stream detects enter/exit transitions
+/// and posts them as `geo.zone.v1` evidence + a `location.zone` state
+/// for the person entity.
+class GeoZone {
+  const GeoZone({
+    required this.name,
+    required this.latitude,
+    required this.longitude,
+    this.radiusM = 150,
+  });
+
+  final String name;
+  final double latitude;
+  final double longitude;
+  final double radiusM;
+
+  Map<String, dynamic> toJson() => {
+        'name': name,
+        'lat': latitude,
+        'lon': longitude,
+        'radius_m': radiusM,
+      };
+
+  factory GeoZone.fromJson(Map<String, dynamic> j) => GeoZone(
+        name: (j['name'] ?? 'zone').toString(),
+        latitude: (j['lat'] as num?)?.toDouble() ?? 0,
+        longitude: (j['lon'] as num?)?.toDouble() ?? 0,
+        radiusM: (j['radius_m'] as num?)?.toDouble() ?? 150,
+      );
+}
 
 /// User-facing app settings persisted via SharedPreferences.
 class AppSettings {
@@ -36,6 +70,10 @@ class AppSettings {
 
     /// Cached account username for source labels.
     this.username,
+
+    /// Map-level named zones — geofence transitions emit `geo.zone.v1`
+    /// evidence and drive `location.zone` state for `person:<user>`.
+    this.geoZones = const [],
   });
 
   final ThemeMode themeMode;
@@ -46,6 +84,7 @@ class AppSettings {
   final bool gpsEvidence;
   final bool phoneMotion;
   final String? username;
+  final List<GeoZone> geoZones;
 
   AppSettings copyWith({
     ThemeMode? themeMode,
@@ -56,6 +95,7 @@ class AppSettings {
     bool? gpsEvidence,
     bool? phoneMotion,
     String? username,
+    List<GeoZone>? geoZones,
   }) =>
       AppSettings(
         themeMode: themeMode ?? this.themeMode,
@@ -66,6 +106,7 @@ class AppSettings {
         gpsEvidence: gpsEvidence ?? this.gpsEvidence,
         phoneMotion: phoneMotion ?? this.phoneMotion,
         username: username ?? this.username,
+        geoZones: geoZones ?? this.geoZones,
       );
 
   static const _kTheme = 'settings.theme';
@@ -76,6 +117,7 @@ class AppSettings {
   static const _kGpsEvidence = 'settings.gps_evidence';
   static const _kMotion = 'settings.phone_motion';
   static const _kUsername = 'settings.username';
+  static const _kGeoZones = 'settings.geo_zones';
 }
 
 final appSettingsProvider =
@@ -99,6 +141,10 @@ class AppSettingsNotifier extends AsyncNotifier<AppSettings> {
       gpsEvidence: p.getBool(AppSettings._kGpsEvidence) ?? false,
       phoneMotion: p.getBool(AppSettings._kMotion) ?? false,
       username: p.getString(AppSettings._kUsername),
+      geoZones: (json.decode(
+              p.getString(AppSettings._kGeoZones) ?? '[]') as List)
+          .map((e) => GeoZone.fromJson(Map<String, dynamic>.from(e)))
+          .toList(),
     );
   }
 
@@ -149,6 +195,13 @@ class AppSettingsNotifier extends AsyncNotifier<AppSettings> {
     state = AsyncData((state.valueOrNull ?? const AppSettings())
         .copyWith(phoneMotion: v));
     await _save((p) => p.setBool(AppSettings._kMotion, v));
+  }
+
+  Future<void> setGeoZones(List<GeoZone> zones) async {
+    state = AsyncData((state.valueOrNull ?? const AppSettings())
+        .copyWith(geoZones: zones));
+    await _save((p) => p.setString(AppSettings._kGeoZones,
+        json.encode(zones.map((z) => z.toJson()).toList())));
   }
 
   Future<void> setUsername(String? v) async {

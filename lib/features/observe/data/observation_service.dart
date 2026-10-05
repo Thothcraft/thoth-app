@@ -39,10 +39,23 @@ class ObservationService {
   bool _running = false;
 
   /// Enrolled targets the BLE scanner reports on — Thoth devices the user
-  /// owns (watch BLE ids, node ids). Unknown devices are ignored entirely.
+  /// owns (watch BLE ids, node ids).
   final Set<String> knownTargets = {};
   /// Observer id: this phone's logical source identity.
   String observerId = 'phone:this';
+
+  /// Unenrolled advertisers seen in the current scan window — reported
+  /// as `ble.discovery.v1` so unknown devices appear on the relation map
+  /// (raw id stays on the user's own account; never a global fingerprint).
+  final Map<String, double> _unknownRssi = {};
+  final Map<String, String> _unknownName = {};
+
+  /// Map-level geofences + the zone the phone is currently inside.
+  List<GeoZone> _geoZones = const [];
+  String? _insideZone;
+
+  /// Person entity this phone's presence is attributed to.
+  String get personEntity => 'person:${observerId.split(':').last}';
 
   int get sentBatches => _sent;
   int get failedBatches => _failed;
@@ -61,6 +74,7 @@ class ObservationService {
     required bool motion,
     Set<String>? targets,
     String? observer,
+    List<GeoZone>? geoZones,
   }) async {
     if (targets != null) {
       knownTargets
@@ -68,6 +82,7 @@ class ObservationService {
         ..addAll(targets);
     }
     if (observer != null) observerId = observer;
+    if (geoZones != null) _geoZones = geoZones;
     await stop();
     _running = bleRssi || gps || motion;
     _flushTimer ??= Timer.periodic(
@@ -114,10 +129,20 @@ class ObservationService {
       _bleSub = fbp.FlutterBluePlus.scanResults.listen((results) {
         for (final r in results) {
           final id = r.device.remoteId.str;
-          if (!knownTargets.contains(id)) continue; // never fingerprint strangers
-          final prev = _rssiByTarget[id];
-          if (prev == null || r.rssi > prev) {
-            _rssiByTarget[id] = r.rssi.toDouble();
+          if (knownTargets.contains(id)) {
+            final prev = _rssiByTarget[id];
+            if (prev == null || r.rssi > prev) {
+              _rssiByTarget[id] = r.rssi.toDouble();
+            }
+          } else {
+            // Unenrolled advertiser — remember the strongest reading and
+            // any advertised name for the discovery map layer.
+            final prev = _unknownRssi[id];
+            if (prev == null || r.rssi > prev) {
+              _unknownRssi[id] = r.rssi.toDouble();
+            }
+            final nm = r.advertisementData.advName;
+            if (nm.isNotEmpty) _unknownName[id] = nm;
           }
         }
       });
@@ -145,6 +170,28 @@ class ObservationService {
           },
         });
       }
+      // Unenrolled neighbors — strongest first, capped so random-MAC
+      // churn in crowded places can't flood the spool.
+      final unknowns = _unknownRssi.entries.toList()
+        ..sort((a, b) => b.value.compareTo(a.value));
+      for (final e in unknowns.take(8)) {
+        _pending.add({
+          'key': ContextKeys.bleDiscovery,
+          'value': {
+            'observer': observerId,
+            'target': 'ble:${e.key}',
+            'rssi_dbm': e.value,
+            'adv_name': _unknownName[e.key],
+            'known': false,
+          },
+          'timestamp': DateTime.now().millisecondsSinceEpoch / 1000.0,
+          'external_id': const Uuid().v4(),
+          'source_id': 'mobile.ble_scan',
+          'provenance': {'collector': 'thoth-app', 'policy': 'discovery'},
+        });
+      }
+      _unknownRssi.clear();
+      _unknownName.clear();
       await flush();
       await Future<void>.delayed(bleCycle);
     }
@@ -175,10 +222,55 @@ class ObservationService {
           'source_id': 'mobile.gps',
           'provenance': {'collector': 'thoth-app', 'class': 'geographic'},
         });
+        _checkGeoZones(p);
       });
     } catch (e) {
       debugPrint('[observe] gps failed: $e');
     }
+  }
+
+  // ── Map-level geofences → geo.zone.v1 evidence + location.zone state ────
+
+  void _checkGeoZones(Position p) {
+    if (_geoZones.isEmpty) return;
+    String? inside;
+    for (final z in _geoZones) {
+      final d = Geolocator.distanceBetween(
+          p.latitude, p.longitude, z.latitude, z.longitude);
+      if (d <= z.radiusM) {
+        inside = z.name;
+        break;
+      }
+    }
+    if (inside == _insideZone) return;
+    final prev = _insideZone;
+    _insideZone = inside;
+    _pending.add({
+      'key': ContextKeys.geoZoneEvidence,
+      'value': {
+        'observer': observerId,
+        'subject': personEntity,
+        'event': inside != null ? 'enter' : 'exit',
+        'zone': inside ?? prev,
+        'lat': p.latitude,
+        'lon': p.longitude,
+        'acc_m': p.accuracy,
+      },
+      'timestamp': p.timestamp.millisecondsSinceEpoch / 1000.0,
+      'external_id': const Uuid().v4(),
+      'source_id': 'mobile.geofence',
+      'provenance': {'collector': 'thoth-app', 'class': 'geofence'},
+    });
+    final ts = p.timestamp.millisecondsSinceEpoch / 1000.0;
+    unawaited(_repo.postState(
+      stateKey: ContextKeys.locationZone,
+      entityId: personEntity,
+      value: {'zone': inside ?? 'away'},
+      since: ts,
+      transition: inside != null ? 'entered' : 'exited',
+      estimator: 'mobile.geofence',
+      confidence: (p.accuracy <= 25 ? 0.9 : 0.6),
+    ));
   }
 
   // ── Phone motion evidence (optional generic source) ──────────────────────
@@ -247,6 +339,7 @@ final observationControllerProvider =
     motion: settings.phoneMotion,
     targets: watches,
     observer: 'phone:${settings.username ?? 'this'}',
+    geoZones: settings.geoZones,
   ));
 });
 

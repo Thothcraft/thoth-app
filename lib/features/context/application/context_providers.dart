@@ -98,23 +98,38 @@ final entityEventsProvider =
   return all.where((e) => e.entityId == entityId).toList();
 });
 
-/// BLE proximity evidence → observer→target edges for the relation graph.
+/// Unified BLE proximity evidence → observer→target edges.
+///
+/// Three producers feed the same relation graph:
+///   `ble.proximity.v1` — phone scan of enrolled wearables (flat value).
+///   `ble.rssi.v1`      — node BLE observer (observation/v1 wrapper:
+///                        `value.value.rssi_dbm`, `value.subject` is the
+///                        target; `device_id` column is the node uuid).
+///   `ble.discovery.v1` — phone scan of unenrolled advertisers (privacy:
+///                        raw MAC stays on account; known=false).
 final bleRelationsProvider =
     StreamProvider.autoDispose<List<BleRelation>>((ref) async* {
   final repo = ref.watch(contextRepoProvider);
+  final since =
+      (DateTime.now().millisecondsSinceEpoch - 10 * 60 * 1000) / 1000.0;
   for (;;) {
-    final rows = await repo.evidence(
-        key: ContextKeys.bleProximityEvidence, limit: 500);
+    final rows = <ContextEvidence>[];
+    for (final key in [
+      ContextKeys.bleProximityEvidence,
+      ContextKeys.bleRssi,
+      ContextKeys.bleDiscovery,
+    ]) {
+      try {
+        rows.addAll(await repo.evidence(key: key, since: since, limit: 400));
+      } catch (_) {/* key may have no rows yet */}
+    }
+
     // Keep the freshest edge per (observer, target).
     final byKey = <String, BleRelation>{};
     for (final e in rows) {
-      final v = e.value is Map ? Map<String, dynamic>.from(e.value) : null;
-      if (v == null) continue;
-      final observer = '${v['observer'] ?? e.sourceId ?? 'unknown'}';
-      final target = '${v['target'] ?? ''}';
-      final rssi = (v['rssi_dbm'] as num?)?.toDouble() ??
-          (v['rssi'] as num?)?.toDouble();
-      if (target.isEmpty || rssi == null) continue;
+      final parsed = _edgeFrom(e);
+      if (parsed == null) continue;
+      final (observer, target, rssi, known, advName) = parsed;
       final key = '$observer→$target';
       final existing = byKey[key];
       final ts = e.timestamp ?? 0;
@@ -126,6 +141,8 @@ final bleRelationsProvider =
           timestamp: ts,
           count: (existing?.count ?? 0) + 1,
           confidence: e.confidence,
+          known: known,
+          advName: advName,
           rssiWindow: [
             ...?existing?.rssiWindow,
             rssi,
@@ -140,6 +157,36 @@ final bleRelationsProvider =
   }
 });
 
+/// Normalizes one evidence row into (observer, target, rssi, known,
+/// advName) regardless of which producer wrote it.
+(String, String, double, bool, String?)? _edgeFrom(ContextEvidence e) {
+  final outer = e.value is Map ? Map<String, dynamic>.from(e.value) : null;
+  if (outer == null) return null;
+
+  if (e.key == ContextKeys.bleRssi) {
+    // Node observation envelope: value nests {value, subject, sequence}.
+    final inner = outer['value'];
+    final v = inner is Map ? Map<String, dynamic>.from(inner) : outer;
+    final subject = '${outer['subject'] ?? v['subject'] ?? ''}';
+    final rssi = (v['rssi_dbm'] as num?)?.toDouble() ??
+        (v['rssi'] as num?)?.toDouble();
+    if (subject.isEmpty || rssi == null) return null;
+    final observer = e.deviceId ?? e.sourceId ?? 'node';
+    final known = !subject.startsWith('device:ble:');
+    return (observer, subject, rssi, known, null);
+  }
+
+  // ble.proximity.v1 / ble.discovery.v1 — flat value.
+  final observer = '${outer['observer'] ?? e.sourceId ?? 'unknown'}';
+  final target = '${outer['target'] ?? ''}';
+  final rssi = (outer['rssi_dbm'] as num?)?.toDouble() ??
+      (outer['rssi'] as num?)?.toDouble();
+  if (target.isEmpty || rssi == null) return null;
+  final known = e.key != ContextKeys.bleDiscovery;
+  final advName = outer['adv_name']?.toString();
+  return (observer, target, rssi, known, advName);
+}
+
 class BleRelation {
   const BleRelation({
     required this.observer,
@@ -149,6 +196,8 @@ class BleRelation {
     this.count = 1,
     this.confidence,
     this.rssiWindow = const [],
+    this.known = true,
+    this.advName,
   });
 
   final String observer;
@@ -160,6 +209,11 @@ class BleRelation {
 
   /// Recent RSSI samples for this edge (oldest→newest, ≤12).
   final List<double> rssiWindow;
+
+  /// False for unenrolled advertisers (ble.discovery.v1 / anonymous
+  /// node subjects) — the map renders them as unknowns.
+  final bool known;
+  final String? advName;
 
   /// Age in seconds — freshness coloring on the graph edge.
   double get ageSeconds =>
@@ -186,7 +240,9 @@ class BleRelation {
       timestamp: timestamp,
       count: count ?? this.count,
       confidence: confidence,
-      rssiWindow: rssiWindow);
+      rssiWindow: rssiWindow,
+      known: known,
+      advName: advName);
 }
 
 /// Owned devices (for claim/space pickers in setup).

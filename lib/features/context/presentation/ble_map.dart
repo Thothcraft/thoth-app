@@ -71,6 +71,9 @@ class _Node {
   bool moving = false;
   bool placed;
   String side = ''; // left | center | right within its space row
+  /// False for unenrolled advertisers — drawn as hollow unknowns.
+  bool known = true;
+  String? advName;
 }
 
 class _SpaceBox {
@@ -208,9 +211,24 @@ class _Scene {
             watchNames.containsKey(raw);
         nodes[k] = _Node(
           id: k,
-          label: d?.name ?? watchNames[raw] ?? raw.split(':').last,
+          label: d?.name ??
+              watchNames[raw] ??
+              e.advName ??
+              raw.split(':').last,
           kind: isWatch ? 'watch' : _kind(d?.deviceType, k),
         );
+      }
+      // Any endpoint of a discovery edge is an unknown device.
+      if (!e.known) {
+        for (final raw in [e.observer, e.target]) {
+          final n = nodes[raw];
+          if (n != null) {
+            n.known = false;
+            if (e.advName != null && n.kind == 'unknown') {
+              n.advName = e.advName;
+            }
+          }
+        }
       }
     }
 
@@ -253,6 +271,13 @@ class _Scene {
     // Fallback for a solitary unplaced node.
     for (final n in nodes.values) {
       if (n.pos == Offset.zero) n.pos = center;
+    }
+
+    // Unknown-flag pass: node rows also mark subjects anonymous.
+    for (final n in nodes.values) {
+      if (n.id.startsWith('ble:') || n.id.startsWith('device:ble:')) {
+        n.known = false;
+      }
     }
 
     // ── 3. Enrich: side ordering + moving flag.
@@ -375,12 +400,20 @@ class _BleMapPainter extends CustomPainter {
               ..color = Colors.orange.withValues(alpha: 0.25)
               ..style = PaintingStyle.fill);
       }
+      // Unknown advertisers render hollow.
       canvas.drawCircle(
           p,
           11,
           Paint()
-            ..color = color
+            ..color = n.known ? color : color.withValues(alpha: 0.18)
             ..style = PaintingStyle.fill);
+      if (!n.known) {
+        final dash = Paint()
+          ..color = color
+          ..strokeWidth = 1.2
+          ..style = PaintingStyle.stroke;
+        canvas.drawCircle(p, 11, dash);
+      }
       canvas.drawCircle(
           p,
           11,
@@ -393,6 +426,7 @@ class _BleMapPainter extends CustomPainter {
       _text(canvas, n.label, p + const Offset(-14, 13),
           Colors.black87, 10, bold: true);
       final tag = [
+        if (!n.known) 'unknown${n.advName != null ? ' · ${n.advName}' : ''}',
         if (n.floor.isNotEmpty) n.floor,
         if (n.side.isNotEmpty) n.side,
         if (n.moving) 'moving' else 'stationary',
@@ -403,6 +437,7 @@ class _BleMapPainter extends CustomPainter {
   }
 
   Color _nodeColor(_Node n) {
+    if (!n.known) return Colors.grey;
     switch (n.kind) {
       case 'phone':
         return Colors.deepPurple;

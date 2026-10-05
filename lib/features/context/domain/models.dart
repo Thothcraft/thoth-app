@@ -25,6 +25,12 @@ abstract final class ContextKeys {
   /// Mobile-produced observation evidence keys (they are evidence, never
   /// asserted context state — an estimator produces the state).
   static const bleProximityEvidence = 'ble.proximity.v1';
+  /// Node-side BLE observer schema (thoth bluetooth subsystem).
+  static const bleRssi = 'ble.rssi.v1';
+  /// Phone-side unenrolled-advertiser sightings for the unified map.
+  static const bleDiscovery = 'ble.discovery.v1';
+  /// Phone-side geofence transitions for person location zones.
+  static const geoZoneEvidence = 'geo.zone.v1';
   static const geoEvidence = 'location.geo.v1';
   static const phoneMotionEvidence = 'activity.motion.v1';
 
