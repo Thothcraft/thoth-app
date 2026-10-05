@@ -49,18 +49,31 @@ class BrainClient {
     await prefs.setString(_baseUrlKey, _baseUrl);
   }
 
-  Options get _opts => Options(headers: {
+  Options get _opts => _options();
+
+  /// Request options — [bearerToken] overrides the stored user token so a
+  /// gateway can act with a device-scoped JWT (heartbeat/pairing-status);
+  /// [headers] merges extras such as ``X-Pairing-Secret``.
+  Options _options({String? bearerToken, Map<String, dynamic>? headers}) =>
+      Options(headers: {
         'Accept': 'application/json',
-        if (hasToken) 'Authorization': 'Bearer $_token',
+        if (bearerToken != null)
+          'Authorization': 'Bearer $bearerToken'
+        else if (hasToken)
+          'Authorization': 'Bearer $_token',
+        ...?headers,
       },);
 
   String _api(String path) => '$_baseUrl/api$path';
   String _v1(String path) => '$_baseUrl/v1$path';
 
   Future<Map<String, dynamic>> getJson(String path,
-      {Map<String, dynamic>? params,}) async {
+      {Map<String, dynamic>? params,
+      String? bearerToken,
+      Map<String, dynamic>? headers,}) async {
     final res = await _dio.get(_api(path),
-        queryParameters: params, options: _opts,);
+        queryParameters: params,
+        options: _options(bearerToken: bearerToken, headers: headers),);
     return Map<String, dynamic>.from(res.data as Map);
   }
 
@@ -78,6 +91,22 @@ class BrainClient {
     final res = await _dio.post(_v1(path),
         data: body ?? {}, options: _opts,);
     return Map<String, dynamic>.from(res.data as Map);
+  }
+
+  /// PUT a legacy ``/api`` endpoint.
+  Future<Map<String, dynamic>> putJson(String path,
+      {Map<String, dynamic>? body,}) async {
+    final res = await _dio.put(_api(path),
+        data: body ?? {}, options: _opts,);
+    return Map<String, dynamic>.from(res.data as Map);
+  }
+
+  /// DELETE a versioned v1 endpoint.
+  Future<Map<String, dynamic>> deleteV1(String path) async {
+    final res = await _dio.delete(_v1(path), options: _opts);
+    return res.data is Map
+        ? Map<String, dynamic>.from(res.data as Map)
+        : <String, dynamic>{};
   }
 
   /// Recent typed predictions for a device (v1 ``PredictionListV1``).
@@ -121,11 +150,82 @@ class BrainClient {
   }
 
   Future<Map<String, dynamic>> postJson(String path,
-      {Map<String, dynamic>? body,}) async {
+      {Map<String, dynamic>? body,
+      String? bearerToken,
+      Map<String, dynamic>? headers,}) async {
     final res = await _dio.post(_api(path),
-        data: body ?? {}, options: _opts,);
+        data: body ?? {},
+        options: _options(bearerToken: bearerToken, headers: headers),);
     return Map<String, dynamic>.from(res.data as Map);
   }
+
+  // ── Watch (PineTime) gateway endpoints ───────────────────────────────────
+
+  /// POST /api/device/pairing/start — begin pairing on the watch's behalf.
+  /// The response carries ``code`` (user-facing) and ``pairing_secret``
+  /// (gateway-held credential for /pairing/status).
+  Future<Map<String, dynamic>> devicePairingStart({
+    required String deviceId,
+    required String deviceName,
+    String deviceType = 'pinetime',
+    Map<String, dynamic>? hardwareInfo,
+  }) =>
+      postJson('/device/pairing/start', body: {
+        'device_id': deviceId,
+        'device_name': deviceName,
+        'device_type': deviceType,
+        if (hardwareInfo != null) 'hardware_info': hardwareInfo,
+      });
+
+  /// GET /api/device/pairing/status — poll until the user claims the code.
+  /// Returns ``access_token`` (device JWT) once paired.
+  Future<Map<String, dynamic>> devicePairingStatus(String deviceId,
+          String pairingSecret) =>
+      getJson('/device/pairing/status',
+          params: {'device_id': deviceId},
+          headers: {'X-Pairing-Secret': pairingSecret});
+
+  /// POST /api/device/heartbeat on behalf of the watch (device JWT).
+  Future<Map<String, dynamic>> deviceHeartbeat(String deviceToken,
+          Map<String, dynamic> body) =>
+      postJson('/device/heartbeat', body: body, bearerToken: deviceToken);
+
+  /// GET /api/device/list — all approved devices on the account.
+  Future<List<Map<String, dynamic>>> listDevices(
+      {bool includeOffline = true,}) async {
+    final res = await getJson('/device/list',
+        params: {'include_offline': includeOffline});
+    final list = (res['devices'] ?? const []) as List;
+    return list.map((e) => Map<String, dynamic>.from(e as Map)).toList();
+  }
+
+  /// GET /api/device/{uuid}/live-chunks — current-minute chunks; each
+  /// chunk's ``samples`` holds SensorSampleV1 maps (gps/prox/imu…).
+  Future<Map<String, dynamic>> getLiveChunks(String deviceUuid) =>
+      getJson('/device/$deviceUuid/live-chunks');
+
+  /// POST /api/device/{uuid}/live-chunks — user-token auth (device tokens
+  /// are rejected by get_current_user; the watch device belongs to the
+  /// app's owner so the user token is both valid and required).
+  Future<Map<String, dynamic>> uploadLiveChunk(
+          String deviceUuid, Map<String, dynamic> payload) =>
+      postJson('/device/$deviceUuid/live-chunks', body: payload);
+
+  /// POST /api/device/{uuid}/commands — queue a command the gateway drains
+  /// (watch_notify / watch_nav / watch_alert / ble_gatt_write …).
+  Future<Map<String, dynamic>> queueDeviceCommand(
+          String deviceUuid, String command,
+          {Map<String, dynamic>? payload}) =>
+      postJson('/device/$deviceUuid/commands',
+          body: {'command': command, 'payload': payload ?? {}});
+
+  /// POST /api/device/{uuid}/commands/{id}/ack — acknowledge an executed
+  /// command; accepts either the device JWT or the owner user token.
+  Future<Map<String, dynamic>> ackDeviceCommand(
+          String deviceUuid, int commandId, Map<String, dynamic> result,
+          {String? bearerToken}) =>
+      postJson('/device/$deviceUuid/commands/$commandId/ack',
+          body: result, bearerToken: bearerToken);
 
   Future<Map<String, dynamic>> postMultipart(
       String path, String field, String filename, List<int> bytes,) async {

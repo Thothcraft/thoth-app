@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../application/devices_provider.dart';
+import '../../watch/presentation/pinetime_detail_screen.dart';
+import '../../watch/presentation/watch_screen.dart';
 
 /// Devices tab — real paired devices from Brain.
 class DevicesScreen extends ConsumerWidget {
@@ -46,7 +48,7 @@ class DevicesScreen extends ConsumerWidget {
             }
             return ListView.builder(
               padding: const EdgeInsets.all(16),
-              itemCount: list.length + 1,
+              itemCount: list.length + 2,
               itemBuilder: (context, i) {
                 if (i == list.length) {
                   return Padding(
@@ -58,11 +60,26 @@ class DevicesScreen extends ConsumerWidget {
                     ),
                   );
                 }
+                if (i == list.length + 1) {
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    child: OutlinedButton.icon(
+                      onPressed: () => showModalBottomSheet(
+                        context: context,
+                        isScrollControlled: true,
+                        builder: (_) => const WatchScanSheet(),
+                      ),
+                      icon: const Icon(Icons.watch),
+                      label: const Text('Add PineTime watch'),
+                    ),
+                  );
+                }
                 final d = list[i];
+                final isWatch = d.deviceType == 'pinetime';
                 return Card(
                   child: ListTile(
                     leading: Icon(
-                      Icons.sensors,
+                      isWatch ? Icons.watch : Icons.sensors,
                       color: d.online ? Colors.green : Colors.grey,
                     ),
                     title: Text(d.name),
@@ -71,7 +88,16 @@ class DevicesScreen extends ConsumerWidget {
                     trailing: d.batteryLevel != null
                         ? Text('${d.batteryLevel}%')
                         : null,
-                    onTap: () => context.push('/devices/${d.uuid}'),
+                    onTap: () {
+                      if (isWatch) {
+                        final bleId = bleIdForDeviceUuid(ref, d.uuid);
+                        if (bleId != null) {
+                          context.push('/watch/${Uri.encodeComponent(bleId)}');
+                          return;
+                        }
+                      }
+                      context.push('/devices/${d.uuid}');
+                    },
                   ),
                 );
               },

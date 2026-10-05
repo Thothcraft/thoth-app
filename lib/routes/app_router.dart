@@ -13,6 +13,17 @@ import '../features/devices/presentation/env_device_screen.dart';
 import '../features/demos/presentation/demos_screen.dart';
 import '../features/live/presentation/live_screen.dart';
 import '../features/pairing/presentation/pairing_screen.dart';
+import '../features/setup/presentation/setup_screen.dart';
+import '../features/setup/presentation/ap_recovery_screen.dart';
+import '../features/calibrate/presentation/calibrate_screen.dart';
+import '../features/context/presentation/context_home_screen.dart';
+import '../features/context/presentation/entity_detail_screen.dart';
+import '../features/context/presentation/relations_screen.dart';
+import '../features/watch/presentation/enroll_screen.dart';
+import '../features/watch/presentation/watch_screen.dart';
+import '../features/watch/presentation/pinetime_detail_screen.dart';
+import '../features/events/presentation/events_screen.dart';
+import '../features/actuators/presentation/actuators_screen.dart';
 import '../features/research/presentation/research_screen.dart';
 import '../features/contact/presentation/contact_screen.dart';
 import '../features/settings/presentation/settings_screen.dart';
@@ -21,6 +32,7 @@ import '../features/shop/presentation/shop_screen.dart';
 import '../features/plans/presentation/plans_screen.dart';
 import '../features/community/presentation/community_screen.dart';
 import '../shared/widgets/app_scaffold.dart';
+import '../shared/widgets/page_scaffold.dart';
 
 /// Route paths
 class AppRoutes {
@@ -37,6 +49,12 @@ class AppRoutes {
   static const String contact = '/contact';
   static const String settings = '/settings';
   static const String legal = '/legal';
+  static const String watch = '/watch';
+  static const String events = '/events';
+  static const String actuators = '/actuators';
+  static const String context = '/context';
+  static const String setup = '/setup';
+  static const String calibrate = '/calibrate';
 }
 
 /// Router is a provider so redirects react to auth state changes.
@@ -81,9 +99,33 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             ),
           ),
           GoRoute(
+            path: AppRoutes.watch,
+            pageBuilder: (context, state) => const NoTransitionPage(
+              child: WatchScreen(),
+            ),
+          ),
+          GoRoute(
+            path: AppRoutes.events,
+            pageBuilder: (context, state) => const NoTransitionPage(
+              child: EventsScreen(),
+            ),
+          ),
+          GoRoute(
+            path: AppRoutes.actuators,
+            pageBuilder: (context, state) => const NoTransitionPage(
+              child: ActuatorsScreen(),
+            ),
+          ),
+          GoRoute(
             path: AppRoutes.home,
             pageBuilder: (context, state) => const NoTransitionPage(
               child: HomeScreen(),
+            ),
+          ),
+          GoRoute(
+            path: AppRoutes.context,
+            pageBuilder: (context, state) => const NoTransitionPage(
+              child: ContextHomeScreen(),
             ),
           ),
         ],
@@ -95,31 +137,70 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const PairingScreen(),
       ),
       GoRoute(
+        path: AppRoutes.setup,
+        builder: (context, state) => const SetupScreen(),
+      ),
+      GoRoute(
+        path: '/setup/ap',
+        builder: (context, state) => const ApRecoveryScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.calibrate,
+        builder: (context, state) => const CalibrateScreen(),
+      ),
+      GoRoute(
+        path: '/watch/enroll',
+        builder: (context, state) => const EnrollScreen(),
+      ),
+      GoRoute(
+        path: '/context/entities/:id',
+        builder: (context, state) => EntityDetailScreen(
+          entityId: Uri.decodeComponent(state.pathParameters['id']!),
+        ),
+      ),
+      GoRoute(
+        path: '/context/relations',
+        builder: (context, state) => const RelationsScreen(),
+      ),
+      GoRoute(
+        path: '/watch/:bleId',
+        builder: (context, state) => PinetimeDetailScreen(
+          bleId: Uri.decodeComponent(state.pathParameters['bleId']!),
+        ),
+      ),
+      GoRoute(
         path: '/devices/:id/live',
         builder: (context, state) =>
             LiveScreen(deviceId: state.pathParameters['id']!),
       ),
 
-      // Marketing / info pages (drawer)
+      // Marketing / info pages (drawer) — these screens were authored as
+      // bare scroll views without a Scaffold; PageScaffold supplies the
+      // app bar + back button for the pushed route.
       GoRoute(
         path: AppRoutes.features,
-        builder: (context, state) => const FeaturesScreen(),
+        builder: (context, state) =>
+            const PageScaffold(title: 'Features', child: FeaturesScreen()),
       ),
       GoRoute(
         path: AppRoutes.demos,
-        builder: (context, state) => const DemosScreen(),
+        builder: (context, state) =>
+            const PageScaffold(title: 'Demos', child: DemosScreen()),
       ),
       GoRoute(
         path: AppRoutes.shop,
-        builder: (context, state) => const ShopScreen(),
+        builder: (context, state) =>
+            const PageScaffold(title: 'Shop', child: ShopScreen()),
       ),
       GoRoute(
         path: AppRoutes.plans,
-        builder: (context, state) => const PlansScreen(),
+        builder: (context, state) =>
+            const PageScaffold(title: 'Plans', child: PlansScreen()),
       ),
       GoRoute(
         path: AppRoutes.community,
-        builder: (context, state) => const CommunityScreen(),
+        builder: (context, state) =>
+            const PageScaffold(title: 'Community', child: CommunityScreen()),
       ),
       GoRoute(
         path: AppRoutes.contact,

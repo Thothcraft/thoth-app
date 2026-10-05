@@ -33,6 +33,31 @@ dependencies:
   # Local notifications (Brain event feed -> push)
   flutter_local_notifications: ^17.2.4
 
+  # BLE (PineTime / InfiniTime gateway + node commissioning)
+  flutter_blue_plus: ^1.35.5
+  permission_handler: ^11.3.1
+
+  # Setup QR scanning + phone motion source
+  mobile_scanner: ^6.0.2
+  sensors_plus: ^6.1.0
+  crypto: ^3.0.5
+
+  # Foreground service — keeps the BLE relay + GPS alive with screen off
+  flutter_foreground_task: ^8.1.1
+
+  # Phone GPS trace + map rendering (OSM tiles)
+  geolocator: ^13.0.2
+  flutter_map: ^7.0.2
+  latlong2: ^0.9.1
+
+  # Secure storage (watch device JWTs, pairing secrets)
+  flutter_secure_storage: ^9.2.4
+  uuid: ^4.5.1
+
+  # OTA firmware update (Nordic Secure DFU over mcuboot)
+  nordic_dfu: ^7.0.0
+  file_picker: ^8.1.2
+
   # Utilities
   url_launcher: ^6.3.1
   package_info_plus: ^8.1.0
@@ -43,6 +68,11 @@ dependencies:
   shimmer: ^3.0.0
   carousel_slider: ^5.0.0
   smooth_page_indicator: ^1.2.0+3
+
+# flutter_plugin_android_lifecycle ≥2.0.26 ships AAR metadata compiled
+# against API 36, failing file_picker's checkAarMetadata at compileSdk <36.
+dependency_overrides:
+  flutter_plugin_android_lifecycle: 2.0.20
 
 dev_dependencies:
   flutter_test:

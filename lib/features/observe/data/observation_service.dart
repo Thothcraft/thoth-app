@@ -1,0 +1,262 @@
+import 'dart:async';
+
+import 'package:flutter/foundation.dart';
+import 'package:flutter_blue_plus/flutter_blue_plus.dart' as fbp;
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'package:sensors_plus/sensors_plus.dart';
+import 'package:uuid/uuid.dart';
+
+import '../../context/data/context_repository.dart';
+import '../../context/domain/models.dart';
+import '../../settings/application/app_settings.dart';
+import '../../watch/application/watch_providers.dart';
+
+/// Mobile-device observation producers (Part 4).
+///
+/// Everything posted here is *evidence* (observations), never asserted
+/// context state. BLE proximity is reported as RSSI — never as a
+/// distance unless a localization estimator produces one. Unknown
+/// neighboring BLE devices are never fingerprinted into identities.
+class ObservationService {
+  ObservationService._();
+  static final ObservationService instance = ObservationService._();
+
+  final _repo = ContextRepository();
+
+  StreamSubscription<List<fbp.ScanResult>>? _bleSub;
+  StreamSubscription<Position>? _gpsSub;
+  StreamSubscription<AccelerometerEvent>? _motionSub;
+  Timer? _flushTimer;
+
+  final List<Map<String, dynamic>> _pending = [];
+  final Map<String, double> _rssiByTarget = {};
+  DateTime? _lastFlush;
+  int _sent = 0;
+  int _failed = 0;
+  String? _lastError;
+  bool _running = false;
+
+  /// Enrolled targets the BLE scanner reports on — Thoth devices the user
+  /// owns (watch BLE ids, node ids). Unknown devices are ignored entirely.
+  final Set<String> knownTargets = {};
+  /// Observer id: this phone's logical source identity.
+  String observerId = 'phone:this';
+
+  int get sentBatches => _sent;
+  int get failedBatches => _failed;
+  String? get lastError => _lastError;
+  DateTime? get lastFlush => _lastFlush;
+  bool get running => _running;
+
+  /// Battery-aware BLE scan policy — duty-cycled windows instead of a
+  /// permanent scan; long gaps when the phone is not the relay source.
+  static const bleWindow = Duration(seconds: 8);
+  static const bleCycle = Duration(seconds: 45);
+
+  Future<void> configure({
+    required bool bleRssi,
+    required bool gps,
+    required bool motion,
+    Set<String>? targets,
+    String? observer,
+  }) async {
+    if (targets != null) {
+      knownTargets
+        ..clear()
+        ..addAll(targets);
+    }
+    if (observer != null) observerId = observer;
+    await stop();
+    _running = bleRssi || gps || motion;
+    _flushTimer ??= Timer.periodic(
+        const Duration(seconds: 60), (_) => unawaited(flush()));
+
+    if (bleRssi) await _startBleScan();
+    if (gps) await _startGps();
+    if (motion) _startMotion();
+  }
+
+  Future<void> stop() async {
+    _running = false;
+    await _bleSub?.cancel();
+    _bleSub = null;
+    await _gpsSub?.cancel();
+    _gpsSub = null;
+    await _motionSub?.cancel();
+    _motionSub = null;
+    try {
+      await fbp.FlutterBluePlus.stopScan();
+    } catch (_) {}
+    _flushTimer?.cancel();
+    _flushTimer = null;
+  }
+
+  // ── BLE RSSI evidence ────────────────────────────────────────────────────
+
+  Future<void> _startBleScan() async {
+    if (defaultTargetPlatform == TargetPlatform.android) {
+      final granted = await [
+        Permission.bluetoothScan,
+        Permission.bluetoothConnect,
+      ].request();
+      if (!granted.values.every((s) => s.isGranted)) return;
+    }
+    // Duty-cycle: scan a short window each cycle.
+    unawaited(_bleLoop());
+  }
+
+  Future<void> _bleLoop() async {
+    while (_running) {
+      _rssiByTarget.clear();
+      await _bleSub?.cancel();
+      _bleSub = fbp.FlutterBluePlus.scanResults.listen((results) {
+        for (final r in results) {
+          final id = r.device.remoteId.str;
+          if (!knownTargets.contains(id)) continue; // never fingerprint strangers
+          final prev = _rssiByTarget[id];
+          if (prev == null || r.rssi > prev) {
+            _rssiByTarget[id] = r.rssi.toDouble();
+          }
+        }
+      });
+      try {
+        await fbp.FlutterBluePlus.startScan(timeout: bleWindow);
+      } catch (e) {
+        debugPrint('[observe] ble scan failed: $e');
+        break;
+      }
+      await Future<void>.delayed(bleWindow + const Duration(seconds: 2));
+      for (final e in _rssiByTarget.entries) {
+        _pending.add({
+          'key': ContextKeys.bleProximityEvidence,
+          'value': {
+            'observer': observerId,
+            'target': e.key,
+            'rssi_dbm': e.value, // RSSI only — no distance assertion
+          },
+          'timestamp': DateTime.now().millisecondsSinceEpoch / 1000.0,
+          'external_id': const Uuid().v4(),
+          'source_id': 'mobile.ble_scan',
+          'provenance': {
+            'collector': 'thoth-app',
+            'policy': 'duty_cycled',
+          },
+        });
+      }
+      await flush();
+      await Future<void>.delayed(bleCycle);
+    }
+  }
+
+  // ── GPS evidence (geographic/site, not room positioning) ─────────────────
+
+  Future<void> _startGps() async {
+    final perm = await Permission.locationWhenInUse.request();
+    if (!perm.isGranted) return;
+    try {
+      _gpsSub = Geolocator.getPositionStream(
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.low, // site evidence — battery-first
+          distanceFilter: 100,
+        ),
+      ).listen((p) {
+        _pending.add({
+          'key': ContextKeys.geoEvidence,
+          'value': {
+            'lat': p.latitude,
+            'lon': p.longitude,
+            'acc_m': p.accuracy,
+            'speed_mps': p.speed,
+          },
+          'timestamp': p.timestamp.millisecondsSinceEpoch / 1000.0,
+          'external_id': const Uuid().v4(),
+          'source_id': 'mobile.gps',
+          'provenance': {'collector': 'thoth-app', 'class': 'geographic'},
+        });
+      });
+    } catch (e) {
+      debugPrint('[observe] gps failed: $e');
+    }
+  }
+
+  // ── Phone motion evidence (optional generic source) ──────────────────────
+
+  void _startMotion() {
+    try {
+      var lastSent = DateTime.fromMillisecondsSinceEpoch(0);
+      _motionSub = accelerometerEventStream().listen((e) {
+        // Downsample to ~1 Hz — we ship coarse motion energy, not the raw
+        // IMU stream (that's what wearables are for).
+        final now = DateTime.now();
+        if (now.difference(lastSent) < const Duration(seconds: 1)) return;
+        lastSent = now;
+        _pending.add({
+          'key': ContextKeys.phoneMotionEvidence,
+          'value': {'acc_x': e.x, 'acc_y': e.y, 'acc_z': e.z},
+          'timestamp': now.millisecondsSinceEpoch / 1000.0,
+          'external_id': const Uuid().v4(),
+          'source_id': 'mobile.accelerometer',
+          'provenance': {'collector': 'thoth-app'},
+        });
+      });
+    } catch (e) {
+      debugPrint('[observe] motion failed: $e');
+    }
+  }
+
+  /// Flush the pending batch to ``/v1/context/evidence`` — idempotent via
+  /// per-item ``external_id`` so retries never double-count.
+  Future<int> flush() async {
+    if (_pending.isEmpty) return 0;
+    final batch = List<Map<String, dynamic>>.from(_pending);
+    _pending.clear();
+    try {
+      await _repo.postEvidence(batch);
+      _lastFlush = DateTime.now();
+      _lastError = null;
+      _sent++;
+      return batch.length;
+    } catch (e) {
+      _pending.insertAll(0, batch);
+      if (_pending.length > 2000) {
+        _pending.removeRange(0, _pending.length - 2000); // bound memory
+      }
+      _lastError = '$e';
+      _failed++;
+      return 0;
+    }
+  }
+}
+
+final observationServiceProvider =
+    Provider<ObservationService>((_) => ObservationService.instance);
+
+/// Applies the user's privacy toggles to the producers; watches the
+/// settings provider so toggles take effect immediately.
+final observationControllerProvider =
+    Provider<void>((ref) {
+  final settings = ref.watch(appSettingsProvider).valueOrNull;
+  if (settings == null) return;
+  final watches =
+      ref.watch(_watchTargetsProvider).valueOrNull ?? const <String>{};
+  unawaited(ObservationService.instance.configure(
+    bleRssi: settings.bleRssiCollection,
+    gps: settings.gpsTrace && settings.gpsEvidence,
+    motion: settings.phoneMotion,
+    targets: watches,
+    observer: 'phone:${settings.username ?? 'this'}',
+  ));
+});
+
+/// Enrolled wearable BLE ids — the only targets the RSSI scanner tracks.
+final _watchTargetsProvider =
+    FutureProvider<Set<String>>((ref) async {
+  try {
+    final watches = await ref.watch(watchListProvider.future);
+    return watches.map((w) => w.bleId).toSet();
+  } catch (_) {
+    return <String>{};
+  }
+});

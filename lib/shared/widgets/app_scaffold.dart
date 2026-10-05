@@ -1,17 +1,42 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../routes/app_router.dart';
-import '../../core/theme/app_colors.dart';
-import '../../core/constants/app_constants.dart';
-import '../../features/auth/application/auth_provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-/// Main scaffold with bottom navigation and app drawer.
+import '../../core/constants/app_constants.dart';
+import '../../core/theme/app_colors.dart';
+import '../../features/auth/application/auth_provider.dart';
+import '../../routes/app_router.dart';
+
+/// Main scaffold — M3 NavigationBar + grouped drawer.
 class AppScaffold extends ConsumerWidget {
   const AppScaffold({required this.child, super.key});
 
   final Widget child;
+
+  static const _tabs = [
+    (icon: Icons.devices_outlined, active: Icons.devices, label: 'Devices'),
+    (
+      icon: Icons.insights_outlined,
+      active: Icons.insights,
+      label: 'Context'
+    ),
+    (
+      icon: Icons.watch_outlined,
+      active: Icons.watch,
+      label: 'Watch'
+    ),
+    (
+      icon: Icons.rss_feed_outlined,
+      active: Icons.rss_feed,
+      label: 'Events'
+    ),
+    (
+      icon: Icons.settings_outlined,
+      active: Icons.settings,
+      label: 'Settings'
+    ),
+  ];
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -22,11 +47,10 @@ class AppScaffold extends ConsumerWidget {
           children: [
             Image.asset(
               'assets/images/thoth_logo.png',
-              height: 32,
-              width: 32,
-              errorBuilder: (context, error, stackTrace) {
-                return const Icon(Icons.science, size: 32);
-              },
+              height: 30,
+              width: 30,
+              errorBuilder: (_, __, ___) =>
+                  const Icon(Icons.science, size: 30),
             ),
             const SizedBox(width: 8),
             const Text(AppConstants.appName),
@@ -36,143 +60,124 @@ class AppScaffold extends ConsumerWidget {
           Padding(
             padding: const EdgeInsets.only(right: 12),
             child: Center(
-              child: Text(
-                auth.plan.toUpperCase(),
-                style: const TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.primaryBlue,
-                ),
-              ),
+              child: _PlanBadge(plan: auth.plan),
             ),
           ),
         ],
       ),
-      drawer: _buildDrawer(context, ref),
+      drawer: _buildDrawer(context, ref, auth),
       body: child,
-      bottomNavigationBar: _buildBottomNav(context),
+      bottomNavigationBar: _buildNavBar(context),
     );
   }
 
-  Widget _buildBottomNav(BuildContext context) {
-    final String location = GoRouterState.of(context).uri.path;
-    final int selectedIndex = _getSelectedIndex(location);
-
-    return BottomNavigationBar(
-      currentIndex: selectedIndex,
-      onTap: (index) => _onItemTapped(index, context),
-      type: BottomNavigationBarType.fixed,
-      items: const [
-        BottomNavigationBarItem(
-          icon: Icon(Icons.devices),
-          label: 'Devices',
-        ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.science),
-          label: 'Research',
-        ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.home),
-          label: 'Home',
-        ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.settings),
-          label: 'Settings',
-        ),
+  Widget _buildNavBar(BuildContext context) {
+    final location = GoRouterState.of(context).uri.path;
+    final selected = _getSelectedIndex(location);
+    return NavigationBar(
+      selectedIndex: selected,
+      onDestinationSelected: (i) => _onItemTapped(i, context),
+      destinations: [
+        for (final t in _tabs)
+          NavigationDestination(
+            icon: Icon(t.icon),
+            selectedIcon: Icon(t.active),
+            label: t.label,
+          ),
       ],
     );
   }
 
-  Widget _buildDrawer(BuildContext context, WidgetRef ref) {
+  Widget _buildDrawer(
+      BuildContext context, WidgetRef ref, AuthState auth) {
     return Drawer(
       child: ListView(
         padding: EdgeInsets.zero,
         children: [
-          DrawerHeader(
-            decoration: const BoxDecoration(
-              color: AppColors.primaryBlue,
+          // Header — identity block.
+          Container(
+            color: AppColors.primaryBlue,
+            padding: EdgeInsets.only(
+              top: MediaQuery.of(context).padding.top + 16,
+              left: 16, right: 16, bottom: 16,
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.end,
               children: [
                 Image.asset(
                   'assets/images/thoth_logo.png',
-                  height: 48,
-                  width: 48,
-                  errorBuilder: (context, error, stackTrace) {
-                    return const Icon(Icons.science,
-                        size: 48, color: Colors.white,);
-                  },
+                  height: 44,
+                  width: 44,
+                  errorBuilder: (_, __, ___) =>
+                      const Icon(Icons.science, size: 44, color: Colors.white),
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 10),
                 Text(
-                  AppConstants.appName,
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                        color: Colors.white,
-                      ),
+                  auth.username ?? AppConstants.appName,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
+                const SizedBox(height: 4),
+                Row(children: [
+                  _PlanBadge(plan: auth.plan, onDark: true),
+                ]),
               ],
             ),
           ),
-          ListTile(
-            leading: const Icon(Icons.add_link),
-            title: const Text('Pair a device'),
-            onTap: () {
-              Navigator.pop(context);
-              context.push(AppRoutes.pair);
-            },
-          ),
-          const Divider(),
-          ListTile(
-            leading: const Icon(Icons.shopping_cart),
-            title: const Text('Shop Kits'),
-            onTap: () {
-              Navigator.pop(context);
-              context.push(AppRoutes.shop);
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.payment),
-            title: const Text('Plans & Pricing'),
-            onTap: () {
-              Navigator.pop(context);
-              context.push(AppRoutes.plans);
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.people),
-            title: const Text('Community'),
-            onTap: () {
-              Navigator.pop(context);
-              context.push(AppRoutes.community);
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.email),
-            title: const Text('Contact & Join'),
-            onTap: () {
-              Navigator.pop(context);
-              context.push(AppRoutes.contact);
-            },
-          ),
-          const Divider(),
-          ListTile(
-            leading: const Icon(Icons.policy),
-            title: const Text('Privacy & Terms'),
-            onTap: () {
-              Navigator.pop(context);
-              context.push(AppRoutes.legal);
-            },
-          ),
+
+          const _DrawerLabel('System'),
+          _item(context, Icons.home_outlined, 'Home',
+              () => context.go(AppRoutes.home)),
+          _item(context, Icons.devices_outlined, 'Devices',
+              () => context.go(AppRoutes.devices)),
+          _item(context, Icons.watch_outlined, 'Watch (PineTime)',
+              () => context.go(AppRoutes.watch)),
+          _item(context, Icons.bolt_outlined, 'Automations',
+              () => context.go(AppRoutes.actuators)),
+          _item(context, Icons.rss_feed_outlined, 'Events',
+              () => context.go(AppRoutes.events)),
+
+          const _DrawerLabel('Research'),
+          _item(context, Icons.science_outlined, 'Research & models',
+              () => context.go(AppRoutes.research)),
+          _item(context, Icons.add_link, 'Pair a device',
+              () => context.push(AppRoutes.pair)),
+          _item(context, Icons.qr_code_scanner, 'Set up a node',
+              () => context.push(AppRoutes.setup)),
+          _item(context, Icons.my_location, 'Calibrate a space',
+              () => context.push(AppRoutes.calibrate)),
+          _item(context, Icons.watch_outlined, 'Enroll a wearable',
+              () => context.push('/watch/enroll')),
+          _item(context, Icons.bluetooth_connected, 'BLE relations',
+              () => context.push('/context/relations')),
+
+          const _DrawerLabel('Store'),
+          _item(context, Icons.shopping_cart_outlined, 'Shop kits',
+              () => context.push(AppRoutes.shop)),
+          _item(context, Icons.workspace_premium_outlined, 'Plans & pricing',
+              () => context.push(AppRoutes.plans)),
+
+          const _DrawerLabel('Community'),
+          _item(context, Icons.people_outline, 'Community',
+              () => context.push(AppRoutes.community)),
+          _item(context, Icons.mail_outline, 'Contact & join',
+              () => context.push(AppRoutes.contact)),
+
+          const Divider(height: 24),
+          _item(context, Icons.policy_outlined, 'Privacy & terms',
+              () => context.push(AppRoutes.legal)),
           ListTile(
             leading: const Icon(Icons.open_in_new),
-            title: const Text('Open Portal'),
+            title: const Text('Open portal'),
             onTap: () => _launchUrl(AppConstants.portalUrl),
           ),
           ListTile(
-            leading: const Icon(Icons.logout),
-            title: const Text('Sign out'),
+            leading: const Icon(Icons.logout, color: Colors.redAccent),
+            title:
+                const Text('Sign out', style: TextStyle(color: Colors.redAccent)),
             onTap: () async {
               Navigator.pop(context);
               await ref.read(authProvider.notifier).logout();
@@ -180,10 +185,10 @@ class AppScaffold extends ConsumerWidget {
             },
           ),
           const Padding(
-            padding: EdgeInsets.all(16.0),
+            padding: EdgeInsets.symmetric(vertical: 16),
             child: Text(
               'v${AppConstants.appVersion}',
-              style: TextStyle(color: AppColors.textTertiaryLight),
+              style: TextStyle(color: AppColors.textTertiaryLight, fontSize: 12),
               textAlign: TextAlign.center,
             ),
           ),
@@ -192,28 +197,39 @@ class AppScaffold extends ConsumerWidget {
     );
   }
 
+  Widget _item(
+      BuildContext context, IconData icon, String label, void Function() go) {
+    return ListTile(
+      dense: true,
+      leading: Icon(icon, size: 22),
+      title: Text(label),
+      onTap: () {
+        Navigator.pop(context);
+        go();
+      },
+    );
+  }
+
   int _getSelectedIndex(String location) {
-    if (location.startsWith(AppRoutes.devices)) return 0;
-    if (location.startsWith(AppRoutes.research)) return 1;
-    if (location == AppRoutes.home) return 2;
-    if (location.startsWith(AppRoutes.settings)) return 3;
-    return 0;
+    if (location.startsWith(AppRoutes.context)) return 1;
+    if (location.startsWith(AppRoutes.watch)) return 2;
+    if (location.startsWith(AppRoutes.events)) return 3;
+    if (location.startsWith(AppRoutes.settings)) return 4;
+    return 0; // devices/home
   }
 
   void _onItemTapped(int index, BuildContext context) {
     switch (index) {
       case 0:
         context.go(AppRoutes.devices);
-        break;
       case 1:
-        context.go(AppRoutes.research);
-        break;
+        context.go(AppRoutes.context);
       case 2:
-        context.go(AppRoutes.home);
-        break;
+        context.go(AppRoutes.watch);
       case 3:
+        context.go(AppRoutes.events);
+      case 4:
         context.go(AppRoutes.settings);
-        break;
     }
   }
 
@@ -223,4 +239,54 @@ class AppScaffold extends ConsumerWidget {
       await launchUrl(uri, mode: LaunchMode.externalApplication);
     }
   }
+}
+
+class _PlanBadge extends StatelessWidget {
+  const _PlanBadge({required this.plan, this.onDark = false});
+  final String plan;
+  final bool onDark;
+
+  @override
+  Widget build(BuildContext context) {
+    final isFree = plan.toLowerCase() == 'free';
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: onDark
+            ? Colors.white.withValues(alpha: 0.2)
+            : (isFree
+                ? Theme.of(context).colorScheme.surfaceContainerHighest
+                : AppColors.primaryBlue.withValues(alpha: 0.12)),
+        borderRadius: BorderRadius.circular(20),
+        border: onDark ? null : Border.all(color: AppColors.primaryBlue.withValues(alpha: 0.4)),
+      ),
+      child: Text(
+        plan.toUpperCase(),
+        style: TextStyle(
+          fontSize: 11,
+          fontWeight: FontWeight.w700,
+          letterSpacing: 0.8,
+          color: onDark ? Colors.white : AppColors.primaryBlue,
+        ),
+      ),
+    );
+  }
+}
+
+class _DrawerLabel extends StatelessWidget {
+  const _DrawerLabel(this.text);
+  final String text;
+  @override
+  Widget build(BuildContext context) => Padding(
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 2),
+        child: Text(
+          text.toUpperCase(),
+          style: TextStyle(
+            fontSize: 10.5,
+            letterSpacing: 1.2,
+            fontWeight: FontWeight.w700,
+            color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.8),
+          ),
+        ),
+      );
 }
