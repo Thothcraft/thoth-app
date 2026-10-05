@@ -21,7 +21,7 @@ import '../../devices/application/devices_provider.dart';
 /// Every node carries a 3D descriptor: device type, floor tag,
 /// left/right ordering inside its space, and moving/stationary inferred
 /// from RSSI variance and activity context.
-class BleMapView extends StatelessWidget {
+class BleMapView extends StatefulWidget {
   const BleMapView({
     super.key,
     required this.edges,
@@ -38,16 +38,98 @@ class BleMapView extends StatelessWidget {
   final Map<String, String> watchNames;
 
   @override
+  State<BleMapView> createState() => _BleMapViewState();
+}
+
+class _BleMapViewState extends State<BleMapView> {
+  String? _selected;
+
+  /// Invert the painter transform, hit-test node centers in canvas px.
+  void _onTap(Offset local, Size size, _Scene scene) {
+    final world = scene.worldRect();
+    final scale = math.min(size.width / (world.width + 0.8),
+        size.height / (world.height + 0.8));
+    Offset map(Offset w) => Offset(
+        (w.dx - world.left - 0.4) * scale +
+            (size.width - (world.width + 0.8) * scale) / 2,
+        (w.dy - world.top - 0.4) * scale +
+            (size.height - (world.height + 0.8) * scale) / 2);
+    String? hit;
+    var best = 28.0; // tap radius in px
+    for (final n in scene.nodes.values) {
+      final d = (map(n.pos) - local).distance;
+      if (d < best) {
+        best = d;
+        hit = n.id;
+      }
+    }
+    setState(() => _selected = hit == _selected ? null : hit);
+  }
+
+  @override
   Widget build(BuildContext context) {
     final scene = _Scene.build(
-        edges: edges,
-        devices: devices,
-        spaces: spaces,
-        watchNames: watchNames);
-    return CustomPaint(
-      painter: _BleMapPainter(scene),
-      child: const SizedBox.expand(),
-    );
+        edges: widget.edges,
+        devices: widget.devices,
+        spaces: widget.spaces,
+        watchNames: widget.watchNames);
+    final sel = _selected != null ? scene.nodes[_selected] : null;
+    final selEdges = sel == null
+        ? const <BleRelation>[]
+        : widget.edges
+            .where((e) => e.observer == sel.id || e.target == sel.id)
+            .toList()
+          ..sort((a, b) => b.rssiDbm.compareTo(a.rssiDbm));
+
+    return Column(children: [
+      Expanded(
+        child: LayoutBuilder(builder: (context, constraints) {
+          final size = Size(constraints.maxWidth, constraints.maxHeight);
+          return GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTapDown: (d) => _onTap(d.localPosition, size, scene),
+            child: CustomPaint(
+              painter: _BleMapPainter(scene, selectedId: _selected),
+              child: const SizedBox.expand(),
+            ),
+          );
+        }),
+      ),
+      // Selection strip — the tapped node's links to everything else.
+      if (sel != null)
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          color: Colors.blueGrey.withValues(alpha: 0.08),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+            Text(
+              '${sel.label}${sel.known ? '' : '  (unknown)'}'
+              '${sel.floor.isEmpty ? '' : ' · ${sel.floor}'}',
+              style: const TextStyle(
+                  fontSize: 12, fontWeight: FontWeight.w600),
+            ),
+            const SizedBox(height: 2),
+            if (selEdges.isEmpty)
+              const Text('no live links',
+                  style: TextStyle(fontSize: 11, color: Colors.black54))
+            else
+              for (final e in selEdges.take(6))
+                Text(
+                  '${_peerName(sel.id, e, scene)}  ${e.rssiDbm.round()} dBm'
+                  '${e.count > 1 ? ' ×${e.count}' : ''}',
+                  style: const TextStyle(
+                      fontSize: 11, color: Colors.black54),
+                ),
+          ]),
+        ),
+    ]);
+  }
+
+  String _peerName(String selId, BleRelation e, _Scene scene) {
+    final other = e.observer == selId ? e.target : e.observer;
+    final n = scene.nodes[other];
+    return '${e.observer == selId ? '→' : '←'} ${n?.label ?? other}';
   }
 }
 
@@ -88,6 +170,29 @@ class _Scene {
   final Map<String, _Node> nodes;
   final List<BleRelation> edges;
   final List<_SpaceBox> spaceBoxes;
+
+  /// World-space bounds of everything drawn — shared by the painter
+  /// and the tap hit-test so both agree on the transform.
+  Rect worldRect() {
+    var l = double.infinity, t = double.infinity;
+    var r = -double.infinity, b = -double.infinity;
+    void grow(Offset p) {
+      l = math.min(l, p.dx);
+      t = math.min(t, p.dy);
+      r = math.max(r, p.dx);
+      b = math.max(b, p.dy);
+    }
+
+    for (final n in nodes.values) {
+      grow(n.pos);
+    }
+    for (final s in spaceBoxes) {
+      grow(s.rect.topLeft);
+      grow(s.rect.bottomRight);
+    }
+    if (!l.isFinite) return const Rect.fromLTWH(0, 0, 3, 2);
+    return Rect.fromLTRB(l, t, r, b);
+  }
 
   static String _kind(String? deviceType, String rawId) {
     if (rawId.startsWith('phone:')) return 'phone';
@@ -207,12 +312,14 @@ class _Scene {
         final k = raw;
         if (nodes.containsKey(k)) continue;
         final d = byUuid[k];
-        final isWatch = RegExp(r'^([0-9A-Fa-f]{2}:){5}').hasMatch(raw) ||
-            watchNames.containsKey(raw);
+        // ble:<MAC> keys normalize lookups back to the raw id.
+        final rawId = raw.startsWith('ble:') ? raw.substring(4) : raw;
+        final isWatch = watchNames.containsKey(rawId) ||
+            RegExp(r'^([0-9A-Fa-f]{2}:){5}').hasMatch(rawId);
         nodes[k] = _Node(
           id: k,
           label: d?.name ??
-              watchNames[raw] ??
+              watchNames[rawId] ??
               e.advName ??
               raw.split(':').last,
           kind: isWatch ? 'watch' : _kind(d?.deviceType, k),
@@ -273,9 +380,13 @@ class _Scene {
       if (n.pos == Offset.zero) n.pos = center;
     }
 
-    // Unknown-flag pass: node rows also mark subjects anonymous.
+    // Unknown-flag pass: anonymous subjects render hollow — but a
+    // ble:<MAC> that matches a paired watch is enrolled, not unknown.
     for (final n in nodes.values) {
-      if (n.id.startsWith('ble:') || n.id.startsWith('device:ble:')) {
+      if (n.id.startsWith('ble:')) {
+        final raw = n.id.substring(4);
+        n.known = watchNames.containsKey(raw);
+      } else if (n.id.startsWith('device:ble:')) {
         n.known = false;
       }
     }
@@ -326,8 +437,9 @@ class _Scene {
 // ── painter ─────────────────────────────────────────────────────────────────
 
 class _BleMapPainter extends CustomPainter {
-  _BleMapPainter(this.scene);
+  _BleMapPainter(this.scene, {this.selectedId});
   final _Scene scene;
+  final String? selectedId;
 
   static const _kindIcons = {
     'phone': '📱',
@@ -340,7 +452,7 @@ class _BleMapPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final world = _worldRect();
+    final world = scene.worldRect();
     final scale = math.min(size.width / (world.width + 0.8),
         size.height / (world.height + 0.8));
     Offset map(Offset w) => Offset(
@@ -369,28 +481,45 @@ class _BleMapPainter extends CustomPainter {
           Colors.blueGrey.shade700, 11, bold: true);
     }
 
-    // Edges.
+    // Edges — selection highlights the tapped node's links.
     for (final e in scene.edges) {
       final a = scene.nodes[e.observer], b = scene.nodes[e.target];
       if (a == null || b == null) continue;
+      final touched = selectedId != null &&
+          (e.observer == selectedId || e.target == selectedId);
+      final dimmed = selectedId != null && !touched;
       final pa = map(a.pos), pb = map(b.pos);
       final fresh = (1 - (e.ageSeconds / 90).clamp(0, 1)).toDouble();
       final strength = ((e.rssiDbm + 95) / 60).clamp(0.0, 1.0);
       final paint = Paint()
         ..color = Color.lerp(Colors.red, Colors.blue, strength)!
-            .withValues(alpha: 0.2 + 0.55 * fresh)
-        ..strokeWidth = 1 + 4 * strength
+            .withValues(alpha: dimmed
+                ? 0.08
+                : touched
+                    ? 0.45 + 0.45 * fresh
+                    : 0.2 + 0.55 * fresh)
+        ..strokeWidth = (touched ? 1.6 : 1) + 4 * strength
         ..strokeCap = StrokeCap.round;
       canvas.drawLine(pa, pb, paint);
       final mid = Offset((pa.dx + pb.dx) / 2, (pa.dy + pb.dy) / 2);
-      _text(canvas, '${e.rssiDbm.round()} dBm', mid,
-          Colors.black45, 9);
+      if (!dimmed) {
+        _text(canvas, '${e.rssiDbm.round()} dBm', mid,
+            Colors.black45, 9);
+      }
     }
 
-    // Nodes.
+    // Nodes — selected gets a highlight ring.
     for (final n in scene.nodes.values) {
       final p = map(n.pos);
       final color = _nodeColor(n);
+      if (n.id == selectedId) {
+        canvas.drawCircle(
+            p,
+            17,
+            Paint()
+              ..color = Colors.amber.withValues(alpha: 0.35)
+              ..style = PaintingStyle.fill);
+      }
       // motion halo
       if (n.moving) {
         canvas.drawCircle(
@@ -450,26 +579,6 @@ class _BleMapPainter extends CustomPainter {
       default:
         return AppBlue.value;
     }
-  }
-
-  Rect _worldRect() {
-    var l = double.infinity, t = double.infinity, r = -double.infinity, b = -double.infinity;
-    void grow(Offset p) {
-      l = math.min(l, p.dx);
-      t = math.min(t, p.dy);
-      r = math.max(r, p.dx);
-      b = math.max(b, p.dy);
-    }
-
-    for (final n in scene.nodes.values) {
-      grow(n.pos);
-    }
-    for (final s in scene.spaceBoxes) {
-      grow(s.rect.topLeft);
-      grow(s.rect.bottomRight);
-    }
-    if (!l.isFinite) return const Rect.fromLTWH(0, 0, 3, 2);
-    return Rect.fromLTRB(l, t, r, b);
   }
 
   void _text(Canvas canvas, String text, Offset at, Color color,

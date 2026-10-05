@@ -1445,8 +1445,20 @@ class _FirmwareUpdateCardState extends ConsumerState<_FirmwareUpdateCard> {
       _percent = 0;
       _status = 'Disconnecting app link…';
     });
-    // The DFU service needs exclusive BLE access.
+    // The DFU service needs exclusive BLE access — the app's link is
+    // dropped for the transfer and automatically restored afterwards.
     await ref.read(watchManagerProvider.notifier).disconnect(widget.record.bleId);
+    void reconnectApp() {
+      // Bootloader exit + first advertise takes a few seconds — delay
+      // the re-pair so it lands on the rebooted application, not DFU.
+      Future<void>.delayed(const Duration(seconds: 8), () {
+        if (mounted) {
+          unawaited(ref
+              .read(watchManagerProvider.notifier)
+              .connect(widget.record));
+        }
+      });
+    }
 
     try {
       await NordicDfu().startDfu(
@@ -1482,11 +1494,15 @@ class _FirmwareUpdateCardState extends ConsumerState<_FirmwareUpdateCard> {
                 _running = false;
               });
             }
+            reconnectApp();
           },
-          onDfuAborted: (_) => setState(() {
-            _status = 'Aborted';
-            _running = false;
-          }),
+          onDfuAborted: (_) {
+            setState(() {
+              _status = 'Aborted';
+              _running = false;
+            });
+            reconnectApp();
+          },
           onError: (address, error, errorType, message) {
             if (mounted) {
               setState(() {
@@ -1494,6 +1510,7 @@ class _FirmwareUpdateCardState extends ConsumerState<_FirmwareUpdateCard> {
                 _running = false;
               });
             }
+            reconnectApp();
           },
         ),
       );
@@ -1504,6 +1521,7 @@ class _FirmwareUpdateCardState extends ConsumerState<_FirmwareUpdateCard> {
           _running = false;
         });
       }
+      reconnectApp();
     }
   }
 

@@ -98,11 +98,15 @@ class WatchManager extends Notifier<Map<String, WatchRelay>> {
     return relay;
   }
 
-  /// Pair + connect a newly scanned watch in one shot.
-  Future<WatchRecord> pairAndConnect(String bleId, {String? name}) async {
+  /// Pair + connect a newly scanned watch in one shot. [onStage]
+  /// reports progress ('pairing' → 'connecting') for the dialog.
+  Future<WatchRecord> pairAndConnect(String bleId,
+      {String? name, void Function(String stage)? onStage}) async {
+    onStage?.call('pairing');
     final record = await WatchRelay.pair(bleId, name: name);
     await WatchStore.instance.upsert(record);
     await ref.read(watchListProvider.notifier).refresh();
+    onStage?.call('connecting');
     await connect(record);
     return record;
   }

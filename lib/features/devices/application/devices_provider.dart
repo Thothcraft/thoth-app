@@ -32,7 +32,15 @@ class ThothDevice {
 
 final devicesProvider = FutureProvider<List<ThothDevice>>((ref) async {
   final client = BrainClient.instance;
-  final payload = await client.getJson('/device/list');
+  Map<String, dynamic> payload;
+  try {
+    payload = await client.getJson('/device/list');
+  } catch (_) {
+    // Brain cold-starts can 500/timeout on the first hit — retry once
+    // before surfacing an error so the page doesn't flash a failure.
+    await Future<void>.delayed(const Duration(milliseconds: 1200));
+    payload = await client.getJson('/device/list');
+  }
   final items = (payload['devices'] ?? payload['data'] ?? []) as List;
   return items
       .map((e) => ThothDevice.fromJson(Map<String, dynamic>.from(e as Map)))

@@ -41,10 +41,13 @@ class BrainClient {
     _baseUrl = prefs.getString(_baseUrlKey) ?? defaultBaseUrl;
   }
 
-  Future<void> setToken(String? token) async {
+  /// [persist] — false keeps the token in memory only (login without
+  /// "remember this device"): the next cold start sees no stored
+  /// credential and returns to the login screen.
+  Future<void> setToken(String? token, {bool persist = true}) async {
     _token = token;
     final prefs = await SharedPreferences.getInstance();
-    if (token == null) {
+    if (token == null || !persist) {
       await prefs.remove(_tokenKey);
     } else {
       await prefs.setString(_tokenKey, token);
@@ -254,7 +257,8 @@ class BrainClient {
   }
 
   /// Login with username/password; stores the returned token.
-  Future<Map<String, dynamic>> login(String username, String password) async {
+  Future<Map<String, dynamic>> login(String username, String password,
+      {bool persist = true,}) async {
     final res = await _dio.post('$_baseUrl/api/token',
         data: {'username': username, 'password': password},
         options: Options(headers: {'Accept': 'application/json'}),);
@@ -265,7 +269,7 @@ class BrainClient {
           requestOptions: res.requestOptions,
           error: 'No access_token in response',);
     }
-    await setToken(token);
+    await setToken(token, persist: persist);
     return data;
   }
 

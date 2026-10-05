@@ -172,16 +172,29 @@ final bleRelationsProvider =
         (v['rssi'] as num?)?.toDouble();
     if (subject.isEmpty || rssi == null) return null;
     final observer = e.deviceId ?? e.sourceId ?? 'node';
+    // MAC is the cross-observer join key: the same physical device is
+    // one map node whether the node (device:ble:<hmac>) or the phone
+    // (ble:<MAC>) saw it. Falls back to the subject when mac is absent
+    // (older node builds).
+    final mac = v['mac']?.toString();
+    final target = (mac != null && mac.isNotEmpty) ? 'ble:$mac' : subject;
     final known = !subject.startsWith('device:ble:');
-    return (observer, subject, rssi, known, null);
+    return (observer, target, rssi, known,
+        v['name']?.toString());
   }
 
   // ble.proximity.v1 / ble.discovery.v1 — flat value.
   final observer = '${outer['observer'] ?? e.sourceId ?? 'unknown'}';
-  final target = '${outer['target'] ?? ''}';
+  var target = '${outer['target'] ?? ''}';
   final rssi = (outer['rssi_dbm'] as num?)?.toDouble() ??
       (outer['rssi'] as num?)?.toDouble();
   if (target.isEmpty || rssi == null) return null;
+  // Enrolled edges carry bare MACs; discovery carries ble:<MAC>. Unify
+  // under ble:<MAC> so node+phone sightings of one radio share a node.
+  if (!target.startsWith('ble:') &&
+      RegExp(r'^([0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}$').hasMatch(target)) {
+    target = 'ble:$target';
+  }
   final known = e.key != ContextKeys.bleDiscovery;
   final advName = outer['adv_name']?.toString();
   return (observer, target, rssi, known, advName);

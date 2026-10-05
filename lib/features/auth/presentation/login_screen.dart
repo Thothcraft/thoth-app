@@ -15,6 +15,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _username = TextEditingController();
   final _password = TextEditingController();
   bool _busy = false;
+  bool _rememberDevice = true;
 
   @override
   void dispose() {
@@ -26,9 +27,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _busy = true);
-    final ok = await ref
-        .read(authProvider.notifier)
-        .login(_username.text, _password.text);
+    final ok = await ref.read(authProvider.notifier).login(
+        _username.text, _password.text,
+        rememberDevice: _rememberDevice);
     if (!mounted) return;
     setState(() => _busy = false);
     if (ok) context.go('/devices');
@@ -76,6 +77,18 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       validator: (v) =>
                           (v == null || v.isEmpty) ? 'Required' : null,
                       onFieldSubmitted: (_) => _submit(),
+                    ),
+                    CheckboxListTile(
+                      value: _rememberDevice,
+                      onChanged: (v) =>
+                          setState(() => _rememberDevice = v ?? true),
+                      title: const Text('Remember this device'),
+                      subtitle: const Text(
+                          'Stay signed in across app restarts',
+                          style: TextStyle(fontSize: 11)),
+                      controlAffinity: ListTileControlAffinity.leading,
+                      contentPadding: EdgeInsets.zero,
+                      dense: true,
                     ),
                     if (error != null) ...[
                       const SizedBox(height: 16),

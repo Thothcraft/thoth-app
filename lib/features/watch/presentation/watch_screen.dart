@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -263,23 +265,40 @@ class WatchScanSheet extends ConsumerWidget {
 
   Future<void> _pair(
       BuildContext context, WidgetRef ref, ScanResult r) async {
-    // Show progress while pairing claims the code and fetches the JWT.
+    // Stage-aware progress + hard cap so the dialog can never spin
+    // forever; Cancel dismisses the dialog (the BLE connect continues
+    // in the background — pairing is idempotent server-side).
+    final stage = ValueNotifier<String>('Pairing with Brain…');
+    var cancelled = false;
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (_) => const AlertDialog(
+      builder: (dctx) => AlertDialog(
         content: Row(children: [
-          CircularProgressIndicator(),
-          SizedBox(width: 16),
-          Text('Pairing with Brain…'),
+          const CircularProgressIndicator(),
+          const SizedBox(width: 16),
+          Expanded(
+            child: ValueListenableBuilder<String>(
+              valueListenable: stage,
+              builder: (_, s, __) => Text(s),
+            ),
+          ),
         ]),
+        actions: [
+          TextButton(
+            onPressed: () {
+              cancelled = true;
+              Navigator.of(dctx).pop();
+            },
+            child: const Text('Cancel'),
+          ),
+        ],
       ),
     );
     void popLocked() {
       // pairAndConnect can resolve while the dialog's route transition is
       // still animating — a synchronous pop then hits NavigatorState's
       // _debugLocked assertion and leaves a dead route (black screen).
-      // Post-frame pops are safe, and canPop guards double dismissal.
       WidgetsBinding.instance.addPostFrameCallback((_) {
         final nav = Navigator.of(context, rootNavigator: false);
         if (nav.canPop()) nav.pop(); // dialog
@@ -288,12 +307,17 @@ class WatchScanSheet extends ConsumerWidget {
 
     try {
       await ref.read(watchManagerProvider.notifier).pairAndConnect(
-            r.device.remoteId.str,
-            name: r.advertisementData.advName.isNotEmpty
-                ? r.advertisementData.advName
-                : 'PineTime',
-          );
-      if (context.mounted) {
+        r.device.remoteId.str,
+        name: r.advertisementData.advName.isNotEmpty
+            ? r.advertisementData.advName
+            : 'PineTime',
+        onStage: (s) => stage.value =
+            s == 'connecting' ? 'Connecting to watch…' : 'Pairing with Brain…',
+      ).timeout(const Duration(seconds: 90), onTimeout: () {
+        throw TimeoutException('still no answer — watch asleep or Brain '
+            'unreachable; pairing is idempotent, try again');
+      });
+      if (context.mounted && !cancelled) {
         popLocked();
         WidgetsBinding.instance.addPostFrameCallback((_) {
           final nav = Navigator.of(context, rootNavigator: false);
@@ -303,7 +327,7 @@ class WatchScanSheet extends ConsumerWidget {
             const SnackBar(content: Text('Watch paired — relay active')));
       }
     } catch (e) {
-      if (context.mounted) {
+      if (context.mounted && !cancelled) {
         popLocked();
         ScaffoldMessenger.of(context)
             .showSnackBar(SnackBar(content: Text('Pairing failed: $e')));
