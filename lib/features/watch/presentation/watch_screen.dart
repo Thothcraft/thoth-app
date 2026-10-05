@@ -275,6 +275,17 @@ class WatchScanSheet extends ConsumerWidget {
         ]),
       ),
     );
+    void popLocked() {
+      // pairAndConnect can resolve while the dialog's route transition is
+      // still animating — a synchronous pop then hits NavigatorState's
+      // _debugLocked assertion and leaves a dead route (black screen).
+      // Post-frame pops are safe, and canPop guards double dismissal.
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        final nav = Navigator.of(context, rootNavigator: false);
+        if (nav.canPop()) nav.pop(); // dialog
+      });
+    }
+
     try {
       await ref.read(watchManagerProvider.notifier).pairAndConnect(
             r.device.remoteId.str,
@@ -283,14 +294,17 @@ class WatchScanSheet extends ConsumerWidget {
                 : 'PineTime',
           );
       if (context.mounted) {
-        Navigator.of(context).pop(); // dialog
-        Navigator.of(context).pop(); // sheet
+        popLocked();
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          final nav = Navigator.of(context, rootNavigator: false);
+          if (nav.canPop()) nav.pop(); // sheet
+        });
         ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Watch paired — relay active')));
       }
     } catch (e) {
       if (context.mounted) {
-        Navigator.of(context).pop();
+        popLocked();
         ScaffoldMessenger.of(context)
             .showSnackBar(SnackBar(content: Text('Pairing failed: $e')));
       }

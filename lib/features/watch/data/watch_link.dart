@@ -176,6 +176,9 @@ class WatchLink {
           PinetimeGatt.charMotionStamped,
           (v) {
             _motionRx++;
+            if (_motionRx % 50 == 0) {
+              debugPrint('[watch] motionRx=$_motionRx (stamped)');
+            }
             return WatchTelemetry(
                 motion: PinetimeCodec.decodeMotionStamped(v));
           });
@@ -252,6 +255,9 @@ class WatchLink {
       final v = await _chars[PinetimeGatt.charMotion]?.read();
       if (v != null && v.isNotEmpty) {
         _motionRx++;
+        if (_motionRx % 50 == 0) {
+          debugPrint('[watch] motionRx=$_motionRx (poll)');
+        }
         _telemetry.add(
             WatchTelemetry(motion: PinetimeCodec.decodeMotion(v)));
       }

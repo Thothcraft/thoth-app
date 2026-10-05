@@ -9,6 +9,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nordic_dfu/nordic_dfu.dart';
 
 import '../../../core/api/brain_client.dart';
+import '../../context/application/context_providers.dart';
 import '../../settings/application/app_settings.dart';
 import '../application/watch_providers.dart';
 import '../data/watch_store.dart';
@@ -38,6 +39,7 @@ class _PinetimeDetailScreenState
 
   int _droppedSeq = 0;
   int? _lastSeq;
+  DateTime _lastChartRepaint = DateTime.fromMillisecondsSinceEpoch(0);
 
   @override
   void initState() {
@@ -76,6 +78,16 @@ class _PinetimeDetailScreenState
       if (_motionWindow.length > _windowCap) {
         _motionWindow.removeRange(
             0, _motionWindow.length - _windowCap);
+      }
+      // Repaint throttled to ~4 Hz — without setState the chart only
+      // redrew on unrelated state changes, so a returning-from-sleep
+      // phone looked like the IMU stream had stopped.
+      final now = DateTime.now();
+      if (mounted &&
+          now.difference(_lastChartRepaint) >
+              const Duration(milliseconds: 250)) {
+        _lastChartRepaint = now;
+        setState(() {});
       }
     });
 
@@ -820,6 +832,27 @@ class _TraceTabState extends ConsumerState<_TraceTab>
     setState(() => _follow = false);
   }
 
+  /// Resolve a BLE-relation endpoint to a map position: the phone is
+  /// the live GPS fix, a watch bleId resolves through its device_uuid
+  /// to the fleet fix, and device uuids resolve via the fleet map.
+  (LatLng, LatLng)? _edgeEndpoints(BleRelation e, TraceService svc,
+      Map<String, String> bleToUuid) {
+    LatLng? posOf(String id) {
+      if (id.startsWith('phone:')) {
+        final f = svc.lastFix;
+        return f == null ? null : LatLng(f.latitude, f.longitude);
+      }
+      final uuid = bleToUuid[id] ?? id;
+      final fx = _fleet[uuid];
+      return fx == null ? null : LatLng(fx.lat, fx.lon);
+    }
+
+    final a = posOf(e.observer);
+    final b = posOf(e.target);
+    if (a == null || b == null || a == b) return null;
+    return (a, b);
+  }
+
   @override
   Widget build(BuildContext context) {
     super.build(context);
@@ -831,6 +864,14 @@ class _TraceTabState extends ConsumerState<_TraceTab>
     final fixAge = fix == null
         ? null
         : DateTime.now().difference(fix.timestamp).inSeconds;
+    // BLE overlay data: all live relations, and the watch bleId→uuid map
+    // so a wearable target can anchor to its fleet position.
+    final bleEdges =
+        ref.watch(bleRelationsProvider).valueOrNull ?? const <BleRelation>[];
+    final bleToUuid = <String, String>{
+      for (final w in ref.watch(watchListProvider).valueOrNull ?? const [])
+        w.bleId: w.deviceUuid,
+    };
 
     return Column(
       children: [
@@ -944,6 +985,25 @@ class _TraceTabState extends ConsumerState<_TraceTab>
                           borderStrokeWidth: 3.5,
                         ),
                     ]),
+                    // BLE relation overlay — every live proximity edge
+                    // drawn on the absolute map. Width = RSSI strength,
+                    // alpha = freshness. Signal, not distance.
+                    PolylineLayer(polylines: [
+                      for (final e in bleEdges)
+                        if (_edgeEndpoints(e, svc, bleToUuid)
+                            case (final a, final b))
+                          Polyline(
+                            points: [a, b],
+                            strokeWidth:
+                                1.5 + 3 * ((e.rssiDbm + 95) / 60).clamp(0, 1),
+                            color: _rssiColor(e.rssiDbm.round()).withValues(
+                                alpha: 0.25 +
+                                    0.6 *
+                                        (1 -
+                                            (e.ageSeconds / 90)
+                                                .clamp(0, 1))),
+                          ),
+                    ]),
                     // Fleet — every account device with a recent GPS fix.
                     MarkerLayer(markers: [
                       for (final e in _fleet.entries)
@@ -953,6 +1013,33 @@ class _TraceTabState extends ConsumerState<_TraceTab>
                           height: 50,
                           child: _FleetMarker(
                               fix: e.value, self: _isSelf(e.key)),
+                        ),
+                    ]),
+                    // Endpoint labels — first and latest trace dots.
+                    MarkerLayer(markers: [
+                      if (_points.isNotEmpty)
+                        Marker(
+                          point: LatLng(
+                              _points.first.lat, _points.first.lon),
+                          width: 90,
+                          height: 18,
+                          child: Transform.translate(
+                            offset: const Offset(0, -14),
+                            child: _TraceTag(
+                                'start ${_hhmm(_points.first.at)}'),
+                          ),
+                        ),
+                      if (_points.length > 1)
+                        Marker(
+                          point: LatLng(latest!.lat, latest.lon),
+                          width: 110,
+                          height: 18,
+                          child: Transform.translate(
+                            offset: const Offset(0, -14),
+                            child: _TraceTag(
+                                'now · ${_hhmm(latest.at)}'
+                                '${latest.rssi != null ? ' · ${latest.rssi} dBm' : ''}'),
+                          ),
                         ),
                     ]),
                   ],
@@ -1112,6 +1199,34 @@ class _DotLegend extends StatelessWidget {
           Text(label, style: const TextStyle(fontSize: 11)),
         ],
       );
+}
+
+/// Tiny pill label over a trace endpoint dot.
+class _TraceTag extends StatelessWidget {
+  const _TraceTag(this.text);
+  final String text;
+  @override
+  Widget build(BuildContext context) => Align(
+        alignment: Alignment.topCenter,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.92),
+            borderRadius: BorderRadius.circular(4),
+            border: Border.all(color: Colors.black12),
+          ),
+          child: Text(text,
+              style:
+                  const TextStyle(fontSize: 9, color: Colors.black87),
+              overflow: TextOverflow.ellipsis),
+        ),
+      );
+}
+
+String _hhmm(DateTime t) {
+  final l = t.toLocal();
+  return '${l.hour.toString().padLeft(2, '0')}:'
+      '${l.minute.toString().padLeft(2, '0')}';
 }
 
 // ── Captures tab — v1 capture control for the watch device ──────────────────

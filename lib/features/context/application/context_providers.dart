@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -125,6 +126,10 @@ final bleRelationsProvider =
           timestamp: ts,
           count: (existing?.count ?? 0) + 1,
           confidence: e.confidence,
+          rssiWindow: [
+            ...?existing?.rssiWindow,
+            rssi,
+          ].reversed.take(12).toList().reversed.toList(),
         );
       } else {
         byKey[key] = existing.copyWith(count: existing.count + 1);
@@ -143,6 +148,7 @@ class BleRelation {
     required this.timestamp,
     this.count = 1,
     this.confidence,
+    this.rssiWindow = const [],
   });
 
   final String observer;
@@ -152,9 +158,26 @@ class BleRelation {
   final int count;
   final double? confidence;
 
+  /// Recent RSSI samples for this edge (oldest→newest, ≤12).
+  final List<double> rssiWindow;
+
   /// Age in seconds — freshness coloring on the graph edge.
   double get ageSeconds =>
       DateTime.now().millisecondsSinceEpoch / 1000 - timestamp;
+
+  /// RSSI spread across the window — > 4 dB means the radio link is
+  /// physically changing (someone/something moved). Honest label: it's
+  /// signal variance, not a motion classifier.
+  bool get moving {
+    if (rssiWindow.length < 3) return false;
+    final lo = rssiWindow.reduce(math.min);
+    final hi = rssiWindow.reduce(math.max);
+    return hi - lo > 4;
+  }
+
+  double get rssiSpreadDb => rssiWindow.length < 2
+      ? 0
+      : rssiWindow.reduce(math.max) - rssiWindow.reduce(math.min);
 
   BleRelation copyWith({int? count}) => BleRelation(
       observer: observer,
@@ -162,7 +185,8 @@ class BleRelation {
       rssiDbm: rssiDbm,
       timestamp: timestamp,
       count: count ?? this.count,
-      confidence: confidence);
+      confidence: confidence,
+      rssiWindow: rssiWindow);
 }
 
 /// Owned devices (for claim/space pickers in setup).

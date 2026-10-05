@@ -27,7 +27,15 @@ class BrainClient {
   /// Bearer token for streaming endpoints (SSE headers).
   String? get token => _token;
 
-  Future<void> init() async {
+  Future<void>? _initFuture;
+
+  /// Loads the persisted token/base URL exactly once. Request helpers
+  /// await this so cold-start calls never race the SharedPreferences
+  /// read (the first-frame providers otherwise send unauthenticated
+  /// requests → transient DioException before the UI recovers).
+  Future<void> init() => _initFuture ??= _initImpl();
+
+  Future<void> _initImpl() async {
     final prefs = await SharedPreferences.getInstance();
     _token = prefs.getString(_tokenKey);
     _baseUrl = prefs.getString(_baseUrlKey) ?? defaultBaseUrl;
@@ -71,6 +79,7 @@ class BrainClient {
       {Map<String, dynamic>? params,
       String? bearerToken,
       Map<String, dynamic>? headers,}) async {
+    await init();
     final res = await _dio.get(_api(path),
         queryParameters: params,
         options: _options(bearerToken: bearerToken, headers: headers),);
@@ -80,6 +89,7 @@ class BrainClient {
   /// GET a versioned v1 endpoint.
   Future<Map<String, dynamic>> getV1(String path,
       {Map<String, dynamic>? params,}) async {
+    await init();
     final res = await _dio.get(_v1(path),
         queryParameters: params, options: _opts,);
     return Map<String, dynamic>.from(res.data as Map);
@@ -88,6 +98,7 @@ class BrainClient {
   /// POST a versioned v1 endpoint.
   Future<Map<String, dynamic>> postV1(String path,
       {Map<String, dynamic>? body,}) async {
+    await init();
     final res = await _dio.post(_v1(path),
         data: body ?? {}, options: _opts,);
     return Map<String, dynamic>.from(res.data as Map);
@@ -96,6 +107,7 @@ class BrainClient {
   /// PUT a legacy ``/api`` endpoint.
   Future<Map<String, dynamic>> putJson(String path,
       {Map<String, dynamic>? body,}) async {
+    await init();
     final res = await _dio.put(_api(path),
         data: body ?? {}, options: _opts,);
     return Map<String, dynamic>.from(res.data as Map);
@@ -103,6 +115,7 @@ class BrainClient {
 
   /// DELETE a versioned v1 endpoint.
   Future<Map<String, dynamic>> deleteV1(String path) async {
+    await init();
     final res = await _dio.delete(_v1(path), options: _opts);
     return res.data is Map
         ? Map<String, dynamic>.from(res.data as Map)

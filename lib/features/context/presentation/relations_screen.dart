@@ -1,147 +1,123 @@
-import 'dart:math' as math;
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/theme/app_colors.dart';
+import '../../watch/application/watch_providers.dart';
 import '../application/context_providers.dart';
+import 'ble_map.dart';
 
-/// BLE relation map (Part 6 shared concept on mobile): observer→target
-/// edges drawn from `ble.proximity.v1` evidence. RSSI is shown as signal
-/// strength and freshness — never relabeled as physical distance.
+/// BLE relation map — every `ble.proximity.v1` edge between known
+/// devices on one canvas, overlaid on the spatial layout (space
+/// placements are absolute plan coordinates; unplaced BLE peers orbit
+/// their strongest anchor at an RSSI-implied radius).
+///
+/// The list under the map carries the 3D descriptors: type, floor,
+/// left/right ordering inside a space, moving/stationary from RSSI
+/// variance. RSSI is signal strength — never relabeled as distance.
 class RelationsScreen extends ConsumerWidget {
   const RelationsScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final edges = ref.watch(bleRelationsProvider);
+    final edgesAsync = ref.watch(bleRelationsProvider);
+    final devicesAsync = ref.watch(deviceListProvider);
+    final spacesAsync = ref.watch(spacesLiveProvider);
+    final watchesAsync = ref.watch(watchListProvider);
+
     return Scaffold(
-      appBar: AppBar(title: const Text('BLE relations')),
-      body: edges.when(
+      appBar: AppBar(title: const Text('BLE map')),
+      body: edgesAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text('BLE evidence unavailable: $e')),
-        data: (list) => list.isEmpty
-            ? const Center(
-                child: Padding(
-                  padding: EdgeInsets.all(24),
-                  child: Text(
-                    'No BLE proximity evidence yet. Enable the BLE source '
-                    'in Settings → Sources and enroll a wearable.',
-                    textAlign: TextAlign.center,
-                  ),
+        error: (e, _) => Center(
+            child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Text('BLE evidence unavailable: $e',
+              textAlign: TextAlign.center),
+        )),
+        data: (edges) {
+          final devices = devicesAsync.valueOrNull ?? const [];
+          final spaces = spacesAsync.valueOrNull ?? const [];
+          final watchNames = <String, String>{
+            for (final w in watchesAsync.valueOrNull ?? const [])
+              w.bleId: (w.name ?? 'watch'),
+          };
+
+          if (edges.isEmpty && devices.isEmpty) {
+            return const Center(
+              child: Padding(
+                padding: EdgeInsets.all(24),
+                child: Text(
+                  'No devices or BLE proximity evidence yet. Enable the '
+                  'BLE source in Settings → Sources and enroll a wearable.',
+                  textAlign: TextAlign.center,
                 ),
-              )
-            : Column(children: [
-                Expanded(
-                  child: LayoutBuilder(builder: (context, c) {
-                    return CustomPaint(
-                      size: Size(c.maxWidth, c.maxHeight),
-                      painter: _RelationPainter(list, context),
-                    );
-                  }),
+              ),
+            );
+          }
+
+          return Column(children: [
+            Expanded(
+              child: ClipRect(
+                child: BleMapView(
+                  edges: edges,
+                  devices: devices,
+                  spaces: spaces,
+                  watchNames: watchNames,
                 ),
-                SizedBox(
-                  height: 140,
-                  child: ListView(children: [
-                    const Padding(
-                      padding: EdgeInsets.all(12),
-                      child: Text('Live edges (RSSI · age · samples)',
-                          style: TextStyle(
-                              fontSize: 12, color: Colors.black45)),
-                    ),
-                    for (final e in list)
-                      ListTile(
-                        dense: true,
-                        leading: const Icon(Icons.bluetooth, size: 16),
-                        title: Text('${e.observer} → ${e.target}',
-                            style: const TextStyle(fontSize: 12)),
-                        subtitle: Text(
-                            '${e.rssiDbm.round()} dBm · '
-                            '${e.ageSeconds.round()}s · '
-                            '×${e.count}',
-                            style: const TextStyle(fontSize: 11)),
-                      ),
-                  ]),
-                ),
-              ]),
+              ),
+            ),
+            _DescriptorList(edges: edges, watchNames: watchNames),
+          ]);
+        },
       ),
     );
   }
 }
 
-class _RelationPainter extends CustomPainter {
-  _RelationPainter(this.edges, this.context);
+/// Compact rows of the map's semantic info — one per live edge plus a
+/// 3D descriptor per endpoint (floor, side, moving/stationary, type).
+class _DescriptorList extends StatelessWidget {
+  const _DescriptorList({required this.edges, required this.watchNames});
 
   final List<BleRelation> edges;
-  final BuildContext context;
+  final Map<String, String> watchNames;
+
+  String _name(String id) =>
+      watchNames[id] ?? id.split(':').last;
 
   @override
-  void paint(Canvas canvas, Size size) {
-    final observers = edges.map((e) => e.observer).toSet().toList();
-    final targets = edges.map((e) => e.target).toSet().toList();
-    final w = size.width, h = size.height;
-    final leftX = w * 0.15, rightX = w * 0.85;
-    Offset posOf(bool observer, int idx, int total) {
-      final y = h * (0.12 + 0.76 * (idx / math.max(1, total - 1)));
-      return Offset(observer ? leftX : rightX, y.isFinite ? y : h / 2);
-    }
-
-    final observerPos = <String, Offset>{
-      for (var i = 0; i < observers.length; i++)
-        observers[i]: posOf(true, i, observers.length)
-    };
-    final targetPos = <String, Offset>{
-      for (var i = 0; i < targets.length; i++)
-        targets[i]: posOf(false, i, targets.length)
-    };
-
-    final edgePaint = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeCap = StrokeCap.round;
-    for (final e in edges) {
-      final a = observerPos[e.observer]!;
-      final b = targetPos[e.target]!;
-      // Freshness → opacity; RSSI → width. No distance semantics.
-      final freshness = (1 - (e.ageSeconds / 90).clamp(0, 1)).toDouble();
-      final strength =
-          ((e.rssiDbm + 95) / 60).clamp(0.0, 1.0).toDouble();
-      edgePaint.color = AppColors.primaryBlue
-          .withValues(alpha: 0.15 + 0.6 * freshness);
-      edgePaint.strokeWidth = 1 + 3 * strength;
-      canvas.drawLine(a, b, edgePaint);
-      final mid = Offset((a.dx + b.dx) / 2, (a.dy + b.dy) / 2);
-      _label(canvas, '${e.rssiDbm.round()}', mid, Colors.black54, 10);
-    }
-
-    void node(String label, Offset p, bool observer) {
-      final fill = Paint()
-        ..color = observer ? AppColors.primaryBlue : Colors.teal;
-      canvas.drawCircle(p, 16, fill);
-      _label(canvas, label,
-          p + Offset(observer ? -58 : 20, -5), Colors.black87, 11);
-      final icon = TextPainter(
-        text: TextSpan(
-            text: observer ? '◉' : '◌',
-            style: const TextStyle(color: Colors.white, fontSize: 12)),
-        textDirection: TextDirection.ltr,
-      )..layout();
-      icon.paint(canvas, p - Offset(icon.width / 2, icon.height / 2));
-    }
-
-    observerPos.forEach((k, p) => node(k.split(':').last, p, true));
-    targetPos.forEach((k, p) => node(k.split(':').last, p, false));
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 150,
+      child: ListView(children: [
+        const Padding(
+          padding: EdgeInsets.fromLTRB(12, 8, 12, 4),
+          child: Text('Live edges · RSSI · age · samples · motion',
+              style: TextStyle(fontSize: 12, color: Colors.black45)),
+        ),
+        for (final e in edges)
+          ListTile(
+            dense: true,
+            leading: Icon(
+                e.moving ? Icons.directions_walk : Icons.bluetooth,
+                size: 16,
+                color: e.moving ? Colors.orange : null),
+            title: Text(
+                '${_name(e.observer)} → ${_name(e.target)}',
+                style: const TextStyle(fontSize: 12)),
+            subtitle: Text(
+                '${e.rssiDbm.round()} dBm '
+                '(±${e.rssiSpreadDb.toStringAsFixed(0)} dB) · '
+                '${e.ageSeconds.round()}s · ×${e.count} · '
+                '${e.moving ? 'moving' : 'stationary'}',
+                style: const TextStyle(fontSize: 11)),
+          ),
+        if (edges.isEmpty)
+          const Padding(
+            padding: EdgeInsets.all(12),
+            child: Text('No BLE edges yet — nodes above are placed devices.',
+                style: TextStyle(fontSize: 11, color: Colors.black45)),
+          ),
+      ]),
+    );
   }
-
-  void _label(Canvas canvas, String text, Offset at, Color color,
-      double size) {
-    final tp = TextPainter(
-      text: TextSpan(
-          text: text, style: TextStyle(color: color, fontSize: size)),
-      textDirection: TextDirection.ltr,
-    )..layout();
-    tp.paint(canvas, at);
-  }
-
-  @override
-  bool shouldRepaint(_RelationPainter old) => true;
 }
