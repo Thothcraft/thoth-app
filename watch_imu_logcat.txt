@@ -1363,3 +1363,5 @@
 10-05 01:54:33.055 16299 16299 I flutter : [watch] motionRx=10600 (poll) xyz=-0.233,0.712,0.470
 10-05 01:54:38.048 16299 16299 I flutter : [watch] motionRx=10650 (poll) xyz=-0.233,0.712,0.470
 10-05 01:54:38.131 16299 16299 I flutter : [trace] fgs=true rssi=-70 motionRx=10650 sent=107 failed=0 buf=0 pts=0
+10-05 01:54:43.043 16299 16299 I flutter : [watch] motionRx=10700 (poll) xyz=-0.233,0.712,0.470
+10-05 01:54:48.054 16299 16299 I flutter : [watch] motionRx=10750 (poll) xyz=-0.233,0.712,0.470
