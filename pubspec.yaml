@@ -68,6 +68,7 @@ dependencies:
   shimmer: ^3.0.0
   carousel_slider: ^5.0.0
   smooth_page_indicator: ^1.2.0+3
+  archive: ^4.3.0
 
 # flutter_plugin_android_lifecycle ≥2.0.26 ships AAR metadata compiled
 # against API 36, failing file_picker's checkAarMetadata at compileSdk <36.

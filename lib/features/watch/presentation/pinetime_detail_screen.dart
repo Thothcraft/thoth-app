@@ -6,12 +6,12 @@ import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart' show LatLng;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:nordic_dfu/nordic_dfu.dart';
 
 import '../../../core/api/brain_client.dart';
 import '../../context/application/context_providers.dart';
 import '../../settings/application/app_settings.dart';
 import '../application/watch_providers.dart';
+import '../data/legacy_dfu.dart';
 import '../data/watch_store.dart';
 import '../data/trace_service.dart';
 import '../data/watch_relay.dart';
@@ -1443,86 +1443,50 @@ class _FirmwareUpdateCardState extends ConsumerState<_FirmwareUpdateCard> {
     setState(() {
       _running = true;
       _percent = 0;
-      _status = 'Disconnecting app link…';
+      _status = 'Reading package…';
     });
-    // The DFU service needs exclusive BLE access — the app's link is
-    // dropped for the transfer and automatically restored afterwards.
-    await ref.read(watchManagerProvider.notifier).disconnect(widget.record.bleId);
-    void reconnectApp() {
-      // Bootloader exit + first advertise takes a few seconds — delay
-      // the re-pair so it lands on the rebooted application, not DFU.
-      Future<void>.delayed(const Duration(seconds: 8), () {
-        if (mounted) {
-          unawaited(ref
-              .read(watchManagerProvider.notifier)
-              .connect(widget.record));
-        }
-      });
-    }
-
     try {
-      await NordicDfu().startDfu(
-        widget.record.bleId,
-        path,
-        name: widget.record.name ?? 'PineTime',
-        forceDfu: true, // mcuboot init packet omits the device-type check
-        enableUnsafeExperimentalButtonlessServiceInSecureDfu: true,
-        dfuEventHandler: DfuEventHandler(
-          onProgressChanged:
-              (address, percent, speed, avgSpeed, part, parts) {
-            if (mounted) {
-              setState(() {
-                _percent = percent;
-                _status =
-                    'Part $part/$parts • ${speed.toStringAsFixed(1)} kB/s';
-              });
-            }
-          },
-          onDfuProcessStarting: (_) =>
-              setState(() => _status = 'Entering DFU mode…'),
-          onEnablingDfuMode: (_) =>
-              setState(() => _status = 'Switching to bootloader…'),
-          onDfuProcessStarted: (_) =>
-              setState(() => _status = 'Uploading firmware…'),
-          onFirmwareValidating: (_) =>
-              setState(() => _status = 'Validating…'),
-          onDfuCompleted: (_) {
-            if (mounted) {
-              setState(() {
-                _status = 'Done — watch rebooted with new firmware';
-                _percent = 100;
-                _running = false;
-              });
-            }
-            reconnectApp();
-          },
-          onDfuAborted: (_) {
+      final (bin, dat) = LegacyDfu.unpackZip(path);
+      // The InfiniTime app-side DfuService receives the image over the
+      // live link (writes it to external flash, then reboots into
+      // mcuboot) — no disconnect, no separate DFU advertiser needed.
+      final manager = ref.read(watchManagerProvider.notifier);
+      var relay = manager.relayFor(widget.record.bleId);
+      if (relay?.connected != true) {
+        setState(() => _status = 'Connecting…');
+        relay = await manager.connect(widget.record);
+      }
+      final device = relay!.link!.device;
+      if (mounted) {
+        setState(() => _status = 'Uploading ${bin.length >> 10} kB…');
+      }
+      final dfu = LegacyDfu(device)
+        ..onProgress = (pct, stage) {
+          if (mounted) {
             setState(() {
-              _status = 'Aborted';
-              _running = false;
+              _percent = pct;
+              _status = stage;
             });
-            reconnectApp();
-          },
-          onError: (address, error, errorType, message) {
-            if (mounted) {
-              setState(() {
-                _status = 'Error $errorType: $message';
-                _running = false;
-              });
-            }
-            reconnectApp();
-          },
-        ),
-      );
-    } catch (e) {
+          }
+        };
+      await dfu.run(bin, dat);
       if (mounted) {
         setState(() {
-          _status = 'Failed to start: $e';
+          _status = 'Done — watch rebooted into new firmware';
+          _percent = 100;
           _running = false;
         });
       }
-      reconnectApp();
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _status = 'DFU failed: $e';
+          _running = false;
+        });
+      }
     }
+    // WatchLink's auto-reconnect loop picks the link back up once the
+    // watch reboots — nothing to restore on the app side.
   }
 
   @override

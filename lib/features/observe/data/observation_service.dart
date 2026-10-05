@@ -12,6 +12,7 @@ import '../../context/data/context_repository.dart';
 import '../../context/domain/models.dart';
 import '../../settings/application/app_settings.dart';
 import '../../watch/application/watch_providers.dart';
+import '../../watch/domain/pinetime_gatt.dart';
 
 /// Mobile-device observation producers (Part 4).
 ///
@@ -37,6 +38,9 @@ class ObservationService {
   int _failed = 0;
   String? _lastError;
   bool _running = false;
+  /// Whether BLE RSSI evidence is enabled — also gates watch-relayed
+  /// sightings (same privacy semantics as the phone's own scan).
+  bool _bleEnabled = false;
 
   /// Enrolled targets the BLE scanner reports on — Thoth devices the user
   /// owns (watch BLE ids, node ids).
@@ -85,6 +89,7 @@ class ObservationService {
     if (geoZones != null) _geoZones = geoZones;
     await stop();
     _running = bleRssi || gps || motion;
+    _bleEnabled = bleRssi;
     _flushTimer ??= Timer.periodic(
         const Duration(seconds: 60), (_) => unawaited(flush()));
 
@@ -194,6 +199,33 @@ class ObservationService {
       _unknownName.clear();
       await flush();
       await Future<void>.delayed(bleCycle);
+    }
+  }
+
+  /// Watch-side BLE sightings — the paired watch reports neighbors it
+  /// hears; they land as ``ble.proximity.v1`` with the *watch's device
+  /// uuid* as observer, giving the fleet map a wrist-level viewpoint
+  /// (a second anchor for triangulating unknown advertisers).
+  void submitWatchSightings({
+    required String observer,
+    required List<BleSighting> sightings,
+  }) {
+    if (!_bleEnabled || sightings.isEmpty) return;
+    final ts = DateTime.now().millisecondsSinceEpoch / 1000.0;
+    for (final s in sightings.take(8)) {
+      _pending.add({
+        'key': ContextKeys.bleProximityEvidence,
+        'value': {
+          'observer': observer,
+          'target': 'ble:${s.mac}',
+          'rssi_dbm': s.rssiDbm.toDouble(),
+          'adv_name': s.name,
+        },
+        'timestamp': ts,
+        'external_id': const Uuid().v4(),
+        'source_id': 'watch.ble_scan',
+        'provenance': {'collector': 'pinetime', 'policy': 'duty_cycled'},
+      });
     }
   }
 

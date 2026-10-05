@@ -35,6 +35,15 @@ abstract final class PinetimeGatt {
   static final charMotionStamped =
       _g('00030003-78fc-48fe-8e23-433b3a1942d0');
 
+  // ── thoth-fork: neighbor scan (service id 0004) ────────────────────────
+  static final serviceScan = _g('00040000-78fc-48fe-8e23-433b3a1942d0');
+  /// NOTIFY — seq | n | entries {mac[6] rssi(i8) nameLen(u8) name[8]}.
+  static final charScanResult =
+      _g('00040001-78fc-48fe-8e23-433b3a1942d0');
+  /// WRITE — 0x01 enable duty-cycled scan, 0x00 disable.
+  static final charScanControl =
+      _g('00040002-78fc-48fe-8e23-433b3a1942d0');
+
   // ── Alert Notification Service (0x1811) — watch shows notifications ──────
   static final serviceAns = _g('00001811-0000-1000-8000-00805f9b34fb');
   /// WRITE: ``<category><count>\x00<utf8 data...>``.
@@ -93,12 +102,16 @@ class WatchTelemetry {
     this.lon,
     this.accuracyM,
     this.speedMps,
+    this.bleScan,
   });
   final MotionSample? motion;
   final int? steps;
   final int? heartRate;
   final int? battery;
   final String? event; // 'music:*', 'call:*' button events
+
+  /// thoth-fork: BLE neighbors the watch itself heard (one scan window).
+  final List<BleSighting>? bleScan;
 
   /// BLE link RSSI in dBm — phone-side proximity to the watch.
   final int? rssi;
@@ -108,6 +121,16 @@ class WatchTelemetry {
   final double? lon;
   final double? accuracyM;
   final double? speedMps;
+}
+
+/// One advertiser the watch heard in a scan window (thoth-fork 00040001).
+class BleSighting {
+  const BleSighting(this.mac, this.rssiDbm, {this.name});
+
+  /// Six-byte BLE address rendered as ``AA:BB:CC:DD:EE:FF``.
+  final String mac;
+  final int rssiDbm;
+  final String? name;
 }
 
 /// Packet codecs for InfiniTime characteristics (all little-endian).
@@ -159,6 +182,33 @@ abstract final class PinetimeCodec {
   /// ``0x2A19`` → uint8 battery percent.
   static int? decodeBattery(List<int> bytes) =>
       bytes.isEmpty ? null : bytes.first.clamp(0, 100);
+
+  /// ``00040001`` → seq + packed neighbor entries. Layout:
+  /// ``[0]=seq [1]=n | per entry: mac[6] rssi(i8) nameLen(u8) name[8]``.
+  static List<BleSighting>? decodeScanResults(List<int> bytes) {
+    if (bytes.length < 2) return null;
+    final n = bytes[1];
+    const stride = 6 + 1 + 1 + 8;
+    final out = <BleSighting>[];
+    for (var i = 0; i < n; i++) {
+      final off = 2 + i * stride;
+      if (off + stride > bytes.length) break;
+      final mac = bytes
+          .sublist(off, off + 6)
+          .map((b) => b.toRadixString(16).padLeft(2, '0'))
+          .join(':')
+          .toUpperCase();
+      final rssi = ByteData.sublistView(Uint8List.fromList(bytes))
+          .getInt8(off + 6);
+      final nameLen = bytes[off + 7];
+      final name = nameLen == 0
+          ? null
+          : utf8.decode(bytes.sublist(off + 8, off + 8 + nameLen),
+              allowMalformed: true);
+      out.add(BleSighting(mac, rssi, name: name));
+    }
+    return out;
+  }
 
   /// ANS "New Alert" frame: ``<category><count>\x00<utf8 fields>``.
   /// category: 0 simple, 3 call, 5 sms… see doc/ble.md.

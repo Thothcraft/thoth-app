@@ -238,6 +238,16 @@ class WatchLink {
         (v) => WatchTelemetry(
             event: v.isEmpty ? null : PinetimeCodec.decodeCallEvent(v.first)));
 
+    // thoth-fork: watch-side neighbor scan — the watch reports what IT
+    // hears so the fleet map has a wrist-level observer (triangulation).
+    if (_chars.containsKey(PinetimeGatt.charScanResult)) {
+      await notify(
+          PinetimeGatt.charScanResult,
+          (v) => WatchTelemetry(bleScan: PinetimeCodec.decodeScanResults(v)));
+      await _safeWrite(PinetimeGatt.charScanControl, [0x01],
+          withoutResponse: true);
+    }
+
     debugPrint('[watch] subscribed'
         ' stamped=$_stampedMotion');
 

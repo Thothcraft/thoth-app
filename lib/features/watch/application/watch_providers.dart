@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../observe/data/observation_service.dart';
 import '../../settings/application/app_settings.dart';
 import '../data/trace_service.dart';
 import '../data/watch_link.dart';
@@ -34,11 +35,17 @@ final watchManagerProvider =
     NotifierProvider<WatchManager, Map<String, WatchRelay>>(WatchManager.new);
 
 class WatchManager extends Notifier<Map<String, WatchRelay>> {
+  /// Watch-scan telemetry forwarding — one sub per connected link.
+  final Map<String, StreamSubscription<WatchTelemetry>> _scanSubs = {};
+
   @override
   Map<String, WatchRelay> build() {
     ref.onDispose(() {
       for (final relay in state.values) {
         relay.dispose();
+      }
+      for (final sub in _scanSubs.values) {
+        sub.cancel();
       }
     });
     ref.listen(watchListProvider, (_, next) {
@@ -46,6 +53,7 @@ class WatchManager extends Notifier<Map<String, WatchRelay>> {
       // Dispose relays for watches that were unpaired.
       for (final key in state.keys.toList()) {
         if (!watches.any((w) => w.bleId == key)) {
+          _scanSubs.remove(key)?.cancel();
           state[key]?.dispose();
           state = {...state}..remove(key);
         }
@@ -81,6 +89,17 @@ class WatchManager extends Notifier<Map<String, WatchRelay>> {
     final relay = WatchRelay(record);
     await relay.start(link);
     state = {...state, record.bleId: relay};
+    // Watch-side neighbor scan → Brain proximity evidence with the
+    // watch as observer — the wrist-level viewpoint the map needs to
+    // triangulate devices the phone itself can't hear.
+    _scanSubs[record.bleId]?.cancel();
+    _scanSubs[record.bleId] = link.telemetry.listen((t) {
+      final scan = t.bleScan;
+      if (scan != null && scan.isNotEmpty) {
+        ObservationService.instance.submitWatchSightings(
+            observer: record.deviceUuid, sightings: scan);
+      }
+    });
     // Foreground service + GPS/RSSI trace — keeps IMU streaming with the
     // screen off and feeds pinetime-prox / pinetime-gps into Brain.
     final s = ref.read(appSettingsProvider).valueOrNull ??
@@ -112,6 +131,7 @@ class WatchManager extends Notifier<Map<String, WatchRelay>> {
   }
 
   Future<void> disconnect(String bleId) async {
+    await _scanSubs.remove(bleId)?.cancel();
     await state[bleId]?.dispose();
     state = {...state}..remove(bleId);
     if (state.isEmpty) await TraceService.instance.detach();

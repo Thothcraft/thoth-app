@@ -1,6 +1,8 @@
+import 'dart:convert';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../context/application/context_providers.dart';
 import '../../context/domain/models.dart';
@@ -44,6 +46,61 @@ class BleMapView extends StatefulWidget {
 class _BleMapViewState extends State<BleMapView> {
   String? _selected;
 
+  /// User-renamed node labels — persisted locally; keyed by node id
+  /// (device uuid, ``ble:<MAC>``, entity id…).
+  Map<String, String> _overrides = const {};
+
+  @override
+  void initState() {
+    super.initState();
+    SharedPreferences.getInstance().then((p) {
+      final raw = p.getString('ble_map_labels');
+      if (raw != null && mounted) {
+        setState(() => _overrides =
+            Map<String, String>.from(jsonDecode(raw) as Map));
+      }
+    });
+  }
+
+  Future<void> _rename(_Node n) async {
+    final ctrl = TextEditingController(
+        text: _overrides[n.id] ?? n.label);
+    final name = await showDialog<String>(
+      context: context,
+      builder: (c) => AlertDialog(
+        title: Text('Label for ${n.id.length > 24
+            ? '${n.id.substring(0, 24)}…'
+            : n.id}'),
+        content: TextField(
+          controller: ctrl,
+          autofocus: true,
+          decoration: const InputDecoration(
+              hintText: 'e.g. hallway beacon'),
+          onSubmitted: (v) => Navigator.pop(c, v),
+        ),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(c),
+              child: const Text('Cancel')),
+          TextButton(
+              onPressed: () => Navigator.pop(c, ''),
+              child: const Text('Reset')),
+          FilledButton(
+              onPressed: () =>
+                  Navigator.pop(c, ctrl.text.trim()),
+              child: const Text('Save')),
+        ],
+      ),
+    );
+    if (name == null || !mounted) return;
+    setState(() {
+      _overrides = {..._overrides}..remove(n.id);
+      if (name.isNotEmpty) _overrides[n.id] = name;
+    });
+    final p = await SharedPreferences.getInstance();
+    await p.setString('ble_map_labels', jsonEncode(_overrides));
+  }
+
   /// Invert the painter transform, hit-test node centers in canvas px.
   void _onTap(Offset local, Size size, _Scene scene) {
     final world = scene.worldRect();
@@ -72,14 +129,15 @@ class _BleMapViewState extends State<BleMapView> {
         edges: widget.edges,
         devices: widget.devices,
         spaces: widget.spaces,
-        watchNames: widget.watchNames);
+        watchNames: widget.watchNames,
+        labelOverrides: _overrides);
     final sel = _selected != null ? scene.nodes[_selected] : null;
     final selEdges = sel == null
         ? const <BleRelation>[]
-        : widget.edges
-            .where((e) => e.observer == sel.id || e.target == sel.id)
-            .toList()
-          ..sort((a, b) => b.rssiDbm.compareTo(a.rssiDbm));
+        : (widget.edges
+                .where((e) => e.observer == sel.id || e.target == sel.id)
+                .toList()
+              ..sort((a, b) => b.rssiDbm.compareTo(a.rssiDbm)));
 
     return Column(children: [
       Expanded(
@@ -103,12 +161,25 @@ class _BleMapViewState extends State<BleMapView> {
           color: Colors.blueGrey.withValues(alpha: 0.08),
           child: Column(crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-            Text(
-              '${sel.label}${sel.known ? '' : '  (unknown)'}'
-              '${sel.floor.isEmpty ? '' : ' · ${sel.floor}'}',
-              style: const TextStyle(
-                  fontSize: 12, fontWeight: FontWeight.w600),
-            ),
+            Row(children: [
+              Expanded(
+                child: Text(
+                  '${sel.label}${sel.known ? '' : '  (unknown)'}'
+                  '${sel.floor.isEmpty ? '' : ' · ${sel.floor}'}'
+                  '${sel.estimated ? ' · ~est' : ''}',
+                  style: const TextStyle(
+                      fontSize: 12, fontWeight: FontWeight.w600),
+                ),
+              ),
+              InkWell(
+                onTap: () => _rename(sel),
+                child: const Padding(
+                  padding: EdgeInsets.all(4),
+                  child: Icon(Icons.edit_outlined, size: 14,
+                      color: Colors.black45),
+                ),
+              ),
+            ]),
             const SizedBox(height: 2),
             if (selEdges.isEmpty)
               const Text('no live links',
@@ -146,12 +217,15 @@ class _Node {
   });
 
   final String id;
-  final String label;
+  String label; // user-overridable via the selection strip
   final String kind; // phone | watch | thoth | tv | speaker | unknown
   Offset pos;
   String floor;
   bool moving = false;
   bool placed;
+  /// Position solved from ≥2 RSSI anchors (multilateration) — drawn
+  /// with an uncertainty ring, not as ground truth.
+  bool estimated = false;
   String side = ''; // left | center | right within its space row
   /// False for unenrolled advertisers — drawn as hollow unknowns.
   bool known = true;
@@ -217,6 +291,7 @@ class _Scene {
     required List<ThothDevice> devices,
     required List<SpaceInfo> spaces,
     required Map<String, String> watchNames,
+    Map<String, String> labelOverrides = const {},
   }) {
     final nodes = <String, _Node>{};
     final byUuid = {for (final d in devices) d.uuid: d};
@@ -339,11 +414,58 @@ class _Scene {
       }
     }
 
+    // Pass A0: multilateration — an unplaced node seen by ≥2 *placed*
+    // observers gets a weighted least-squares position from RSSI
+    // path-loss distances. Better than the orbit because it fuses
+    // every sighting (watch + phone + node) instead of the single
+    // strongest. Solved positions are estimates — flagged so the
+    // painter can show an uncertainty ring.
+    for (final n in nodes.values) {
+      if (n.placed) continue;
+      final anchors = <({Offset pos, double d, double w})>[];
+      for (final e in edges) {
+        if (e.observer != n.id && e.target != n.id) continue;
+        final other = e.observer == n.id ? e.target : e.observer;
+        final a = nodes[other];
+        if (a?.placed != true) continue;
+        final d = _rssiRadiusM(e.rssiDbm);
+        // Nearby observers dominate — classic WLS weighting.
+        anchors.add((pos: a!.pos, d: d, w: 1 / (d * d)));
+      }
+      if (anchors.length < 2) continue;
+      // Weighted-centroid seed, then a few relax iterations pulling the
+      // point toward each anchor until radius ≈ path-loss distance.
+      var wsum = 0.0;
+      var p = Offset.zero;
+      for (final a in anchors) {
+        p += a.pos * a.w;
+        wsum += a.w;
+      }
+      p /= wsum;
+      for (var it = 0; it < 12; it++) {
+        var dx = 0.0, dy = 0.0, ws = 0.0;
+        for (final a in anchors) {
+          final r = (p - a.pos).distance;
+          if (r < 0.02) continue;
+          final f = a.w * (1 - a.d / r);
+          dx += f * (a.pos.dx - p.dx);
+          dy += f * (a.pos.dy - p.dy);
+          ws += a.w;
+        }
+        if (ws == 0) break;
+        final np = Offset(p.dx + dx / ws, p.dy + dy / ws);
+        if ((np - p).distance < 0.001) break;
+        p = np;
+      }
+      n.pos = p;
+      n.estimated = true;
+    }
+
     // Position free nodes near their strongest edge's anchor.
     // Pass A: anchored orbit for nodes that touch an anchored device.
     var i = 0;
     for (final n in nodes.values) {
-      if (n.placed) continue;
+      if (n.placed || n.estimated) continue;
       // strongest edge involving n whose other end is placed
       BleRelation? best;
       for (final e in edges) {
@@ -378,6 +500,13 @@ class _Scene {
     // Fallback for a solitary unplaced node.
     for (final n in nodes.values) {
       if (n.pos == Offset.zero) n.pos = center;
+    }
+
+    // User label overrides — applied last so they win over every
+    // heuristic (advName, device name, id tail).
+    for (final n in nodes.values) {
+      final o = labelOverrides[n.id];
+      if (o != null && o.isNotEmpty) n.label = o;
     }
 
     // Unknown-flag pass: anonymous subjects render hollow — but a
@@ -550,12 +679,28 @@ class _BleMapPainter extends CustomPainter {
             ..color = Colors.white
             ..strokeWidth = 1.5
             ..style = PaintingStyle.stroke);
+      // Multilaterated positions get a dashed uncertainty ring — the
+      // estimate is a hint from RSSI, not a floorplan coordinate.
+      if (n.estimated) {
+        final rp = Paint()
+          ..color = color.withValues(alpha: 0.45)
+          ..strokeWidth = 1
+          ..style = PaintingStyle.stroke;
+        const segs = 10;
+        for (var s = 0; s < segs; s += 2) {
+          canvas.drawArc(Rect.fromCircle(center: p, radius: 15),
+              s * math.pi / segs * 2 / 2,
+              math.pi / segs,
+              false, rp);
+        }
+      }
       _text(canvas, _kindIcons[n.kind] ?? '•',
           p - const Offset(6, 8), Colors.white, 12);
       _text(canvas, n.label, p + const Offset(-14, 13),
           Colors.black87, 10, bold: true);
       final tag = [
         if (!n.known) 'unknown${n.advName != null ? ' · ${n.advName}' : ''}',
+        if (n.estimated) '~located',
         if (n.floor.isNotEmpty) n.floor,
         if (n.side.isNotEmpty) n.side,
         if (n.moving) 'moving' else 'stationary',
