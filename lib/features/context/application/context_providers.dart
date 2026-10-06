@@ -70,15 +70,13 @@ final contextEventsProvider =
 });
 
 /// All current states for one entity — the person page's context card.
-final entityStatesProvider =
-    FutureProvider.autoDispose.family<List<ContextState>, String>(
-        (ref, entityId) =>
-            ref.watch(contextRepoProvider).states(entityId: entityId));
+final entityStatesProvider = FutureProvider.autoDispose
+    .family<List<ContextState>, String>((ref, entityId) =>
+        ref.watch(contextRepoProvider).states(entityId: entityId));
 
 /// Recent evidence touching an entity (via provenance) or a key.
-final entityEvidenceProvider =
-    FutureProvider.autoDispose.family<List<ContextEvidence>, String>(
-        (ref, entityId) async {
+final entityEvidenceProvider = FutureProvider.autoDispose
+    .family<List<ContextEvidence>, String>((ref, entityId) async {
   final repo = ref.watch(contextRepoProvider);
   final all = await repo.evidence(limit: 300);
   return all
@@ -91,9 +89,8 @@ final entityEvidenceProvider =
 });
 
 /// Events for one entity — the person page's history.
-final entityEventsProvider =
-    FutureProvider.autoDispose.family<List<ContextEvent>, String>(
-        (ref, entityId) async {
+final entityEventsProvider = FutureProvider.autoDispose
+    .family<List<ContextEvent>, String>((ref, entityId) async {
   final all = await ref.watch(contextRepoProvider).events(limit: 300);
   return all.where((e) => e.entityId == entityId).toList();
 });
@@ -110,31 +107,42 @@ final entityEventsProvider =
 final bleRelationsProvider =
     StreamProvider.autoDispose<List<BleRelation>>((ref) async* {
   final repo = ref.watch(contextRepoProvider);
-  final since =
-      (DateTime.now().millisecondsSinceEpoch - 10 * 60 * 1000) / 1000.0;
   for (;;) {
+    final since = (DateTime.now().millisecondsSinceEpoch - 60 * 1000) / 1000.0;
     final rows = <ContextEvidence>[];
     for (final key in [
       ContextKeys.bleProximityEvidence,
       ContextKeys.bleRssi,
       ContextKeys.bleDiscovery,
+      'radio.ble.v1',
+      'radio.wifi.v1',
+      'radio.csi.v1',
     ]) {
       try {
         rows.addAll(await repo.evidence(key: key, since: since, limit: 400));
       } catch (_) {/* key may have no rows yet */}
     }
 
+    rows.sort((a, b) => (a.timestamp ?? 0).compareTo(b.timestamp ?? 0));
     // Keep the freshest edge per (observer, target).
     final byKey = <String, BleRelation>{};
     for (final e in rows) {
       final parsed = _edgeFrom(e);
       if (parsed == null) continue;
       final (observer, target, rssi, known, advName) = parsed;
-      final key = '$observer→$target';
+      final modality = e.key == 'radio.csi.v1'
+          ? 'CSI'
+          : e.key == 'radio.wifi.v1'
+              ? 'Wi-Fi'
+              : 'BLE';
+      final component = e.sourceId ?? '';
+      final key = '$observer/$component/$modality→$target';
       final existing = byKey[key];
       final ts = e.timestamp ?? 0;
       if (existing == null || ts > existing.timestamp) {
         byKey[key] = BleRelation(
+          modality: modality,
+          componentId: component,
           observer: observer,
           target: target,
           rssiDbm: rssi,
@@ -163,24 +171,33 @@ final bleRelationsProvider =
   final outer = e.value is Map ? Map<String, dynamic>.from(e.value) : null;
   if (outer == null) return null;
 
+  if (e.key.startsWith('radio.')) {
+    final inner = outer['value'];
+    final v = inner is Map ? Map<String, dynamic>.from(inner) : outer;
+    final rssi = (v['rssi_dbm'] as num?)?.toDouble();
+    final observer = e.deviceId ?? v['observer']?.toString() ?? '';
+    final target = v['target']?.toString().toLowerCase() ?? '';
+    if (observer.isEmpty || target.isEmpty || rssi == null || !rssi.isFinite)
+      return null;
+    return (observer, target, rssi, false, v['name']?.toString());
+  }
   if (e.key == ContextKeys.bleRssi) {
     // Node observation envelope: value nests {value, subject, sequence}.
     final inner = outer['value'];
     final v = inner is Map ? Map<String, dynamic>.from(inner) : outer;
     final subject = '${outer['subject'] ?? v['subject'] ?? ''}';
-    final rssi = (v['rssi_dbm'] as num?)?.toDouble() ??
-        (v['rssi'] as num?)?.toDouble();
+    final rssi =
+        (v['rssi_dbm'] as num?)?.toDouble() ?? (v['rssi'] as num?)?.toDouble();
     if (subject.isEmpty || rssi == null) return null;
     final observer = e.deviceId ?? e.sourceId ?? 'node';
     // MAC is the cross-observer join key: the same physical device is
     // one map node whether the node (device:ble:<hmac>) or the phone
     // (ble:<MAC>) saw it. Falls back to the subject when mac is absent
     // (older node builds).
-    final mac = v['mac']?.toString();
+    final mac = v['mac']?.toString().toLowerCase();
     final target = (mac != null && mac.isNotEmpty) ? 'ble:$mac' : subject;
     final known = !subject.startsWith('device:ble:');
-    return (observer, target, rssi, known,
-        v['name']?.toString());
+    return (observer, target, rssi, known, v['name']?.toString());
   }
 
   // ble.proximity.v1 / ble.discovery.v1 — flat value.
@@ -195,6 +212,7 @@ final bleRelationsProvider =
       RegExp(r'^([0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}$').hasMatch(target)) {
     target = 'ble:$target';
   }
+  if (target.startsWith('ble:')) target = target.toLowerCase();
   final known = e.key != ContextKeys.bleDiscovery;
   final advName = outer['adv_name']?.toString();
   return (observer, target, rssi, known, advName);
@@ -211,6 +229,8 @@ class BleRelation {
     this.rssiWindow = const [],
     this.known = true,
     this.advName,
+    this.modality = 'BLE',
+    this.componentId = '',
   });
 
   final String observer;
@@ -227,6 +247,8 @@ class BleRelation {
   /// node subjects) — the map renders them as unknowns.
   final bool known;
   final String? advName;
+  final String modality;
+  final String componentId;
 
   /// Age in seconds — freshness coloring on the graph edge.
   double get ageSeconds =>
@@ -255,7 +277,9 @@ class BleRelation {
       confidence: confidence,
       rssiWindow: rssiWindow,
       known: known,
-      advName: advName);
+      advName: advName,
+      modality: modality,
+      componentId: componentId);
 }
 
 /// Owned devices (for claim/space pickers in setup).

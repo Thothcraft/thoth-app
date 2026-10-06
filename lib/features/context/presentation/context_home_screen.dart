@@ -61,7 +61,7 @@ class ContextHomeScreen extends ConsumerWidget {
           // ── Entities ──────────────────────────────────────────────────
           _SectionTitle('Entities', action: TextButton.icon(
             icon: const Icon(Icons.hub_outlined, size: 16),
-            label: const Text('BLE graph'),
+            label: const Text('Radio map'),
             onPressed: () => context.push('/context/relations'),
           )),
           snapshot.when(

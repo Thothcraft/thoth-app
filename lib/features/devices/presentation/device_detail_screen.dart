@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'room_settings_screen.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -74,6 +75,9 @@ class _DeviceDetailScreenState extends ConsumerState<DeviceDetailScreen> {
             ],
           ),
           actions: [
+            IconButton(icon: const Icon(Icons.home_work_outlined), tooltip: 'House and room layout',
+              onPressed: () => Navigator.of(context).push(MaterialPageRoute<void>(
+                builder: (_) => RoomSettingsScreen(deviceId: deviceId)))),
             Padding(
               padding: const EdgeInsets.only(right: 12),
               child: Icon(

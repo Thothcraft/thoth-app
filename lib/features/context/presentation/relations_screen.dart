@@ -4,15 +4,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../watch/application/watch_providers.dart';
 import '../application/context_providers.dart';
 import 'ble_map.dart';
+import 'spatial_map.dart';
 
-/// BLE relation map — every `ble.proximity.v1` edge between known
-/// devices on one canvas, overlaid on the spatial layout (space
-/// placements are absolute plan coordinates; unplaced BLE peers orbit
-/// their strongest anchor at an RSSI-implied radius).
-///
-/// The list under the map carries the 3D descriptors: type, floor,
-/// left/right ordering inside a space, moving/stationary from RSSI
-/// variance. RSSI is signal strength — never relabeled as distance.
+/// Shared radio evidence graph; unknown positions remain unlocated.
 class RelationsScreen extends ConsumerWidget {
   const RelationsScreen({super.key});
 
@@ -24,49 +18,56 @@ class RelationsScreen extends ConsumerWidget {
     final watchesAsync = ref.watch(watchListProvider);
 
     return edgesAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (e, _) => Center(
+          child: Padding(
+        padding: const EdgeInsets.all(24),
+        child:
+            Text('Radio evidence unavailable: $e', textAlign: TextAlign.center),
+      )),
+      data: (edges) {
+        final devices = devicesAsync.valueOrNull ?? const [];
+        final spaces = spacesAsync.valueOrNull ?? const [];
+        final watchNames = <String, String>{
+          for (final w in watchesAsync.valueOrNull ?? const [])
+            w.bleId: (w.name ?? 'watch'),
+        };
+
+        if (edges.isEmpty && devices.isEmpty) {
+          return const Center(
             child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Text('BLE evidence unavailable: $e',
-              textAlign: TextAlign.center),
-        )),
-        data: (edges) {
-          final devices = devicesAsync.valueOrNull ?? const [];
-          final spaces = spacesAsync.valueOrNull ?? const [];
-          final watchNames = <String, String>{
-            for (final w in watchesAsync.valueOrNull ?? const [])
-              w.bleId: (w.name ?? 'watch'),
-          };
-
-          if (edges.isEmpty && devices.isEmpty) {
-            return const Center(
-              child: Padding(
-                padding: EdgeInsets.all(24),
-                child: Text(
-                  'No devices or BLE proximity evidence yet. Enable the '
-                  'BLE source in Settings → Sources and enroll a wearable.',
-                  textAlign: TextAlign.center,
-                ),
-              ),
-            );
-          }
-
-          return Column(children: [
-            Expanded(
-              child: ClipRect(
-                child: BleMapView(
-                  edges: edges,
-                  devices: devices,
-                  spaces: spaces,
-                  watchNames: watchNames,
-                ),
+              padding: EdgeInsets.all(24),
+              child: Text(
+                'No devices or BLE proximity evidence yet. Enable the '
+                'BLE source in Settings → Sources and enroll a wearable.',
+                textAlign: TextAlign.center,
               ),
             ),
-            _DescriptorList(edges: edges, watchNames: watchNames),
-          ]);
-        },
-      );
+          );
+        }
+
+        return DefaultTabController(
+            length: 2,
+            child: Column(children: [
+              const TabBar(
+                  tabs: [Tab(text: 'House · 3D'), Tab(text: 'Radio links')]),
+              Expanded(
+                  child: TabBarView(children: [
+                SpatialMapView(devices: devices, edges: edges),
+                Column(children: [
+                  Expanded(
+                      child: ClipRect(
+                          child: BleMapView(
+                              edges: edges,
+                              devices: devices,
+                              spaces: spaces,
+                              watchNames: watchNames))),
+                  _DescriptorList(edges: edges, watchNames: watchNames),
+                ]),
+              ])),
+            ]));
+      },
+    );
   }
 }
 
@@ -78,8 +79,7 @@ class _DescriptorList extends StatelessWidget {
   final List<BleRelation> edges;
   final Map<String, String> watchNames;
 
-  String _name(String id) =>
-      watchNames[id] ?? id.split(':').last;
+  String _name(String id) => watchNames[id] ?? id.split(':').last;
 
   @override
   Widget build(BuildContext context) {
@@ -88,30 +88,27 @@ class _DescriptorList extends StatelessWidget {
       child: ListView(children: [
         const Padding(
           padding: EdgeInsets.fromLTRB(12, 8, 12, 4),
-          child: Text('Live edges · RSSI · age · samples · motion',
+          child: Text('Live links · radio · signal strength · freshness',
               style: TextStyle(fontSize: 12, color: Colors.black45)),
         ),
         for (final e in edges)
           ListTile(
             dense: true,
-            leading: Icon(
-                e.moving ? Icons.directions_walk : Icons.bluetooth,
-                size: 16,
-                color: e.moving ? Colors.orange : null),
-            title: Text(
-                '${_name(e.observer)} → ${_name(e.target)}',
+            leading: Icon(e.moving ? Icons.directions_walk : Icons.bluetooth,
+                size: 16, color: e.moving ? Colors.orange : null),
+            title: Text('${_name(e.observer)} → ${_name(e.target)}',
                 style: const TextStyle(fontSize: 12)),
             subtitle: Text(
                 '${e.rssiDbm.round()} dBm '
                 '(±${e.rssiSpreadDb.toStringAsFixed(0)} dB) · '
                 '${e.ageSeconds.round()}s · ×${e.count} · '
-                '${e.moving ? 'moving' : 'stationary'}',
+                '${e.modality} · ${e.moving ? 'signal varying' : 'signal steady'}',
                 style: const TextStyle(fontSize: 11)),
           ),
         if (edges.isEmpty)
           const Padding(
             padding: EdgeInsets.all(12),
-            child: Text('No BLE edges yet — nodes above are placed devices.',
+            child: Text('No radio links yet — nodes above are placed devices.',
                 style: TextStyle(fontSize: 11, color: Colors.black45)),
           ),
       ]),
