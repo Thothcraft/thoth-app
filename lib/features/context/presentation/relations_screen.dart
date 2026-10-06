@@ -24,7 +24,7 @@ class RelationsScreen extends ConsumerWidget {
         padding: const EdgeInsets.all(24),
         child:
             Text('Radio evidence unavailable: $e', textAlign: TextAlign.center),
-      )),
+      ),),
       data: (edges) {
         final devices = devicesAsync.valueOrNull ?? const [];
         final spaces = spacesAsync.valueOrNull ?? const [];
@@ -50,10 +50,11 @@ class RelationsScreen extends ConsumerWidget {
             length: 2,
             child: Column(children: [
               const TabBar(
-                  tabs: [Tab(text: 'House · 3D'), Tab(text: 'Radio links')]),
+                  tabs: [Tab(text: 'House · 3D'), Tab(text: 'Radio links')],),
               Expanded(
                   child: TabBarView(children: [
-                SpatialMapView(devices: devices, edges: edges),
+                SpatialMapView(
+                    devices: devices, edges: edges, watchNames: watchNames,),
                 Column(children: [
                   Expanded(
                       child: ClipRect(
@@ -61,11 +62,11 @@ class RelationsScreen extends ConsumerWidget {
                               edges: edges,
                               devices: devices,
                               spaces: spaces,
-                              watchNames: watchNames))),
+                              watchNames: watchNames,),),),
                   _DescriptorList(edges: edges, watchNames: watchNames),
-                ]),
-              ])),
-            ]));
+                ],),
+              ],),),
+            ],),);
       },
     );
   }
@@ -89,29 +90,29 @@ class _DescriptorList extends StatelessWidget {
         const Padding(
           padding: EdgeInsets.fromLTRB(12, 8, 12, 4),
           child: Text('Live links · radio · signal strength · freshness',
-              style: TextStyle(fontSize: 12, color: Colors.black45)),
+              style: TextStyle(fontSize: 12, color: Colors.black45),),
         ),
         for (final e in edges)
           ListTile(
             dense: true,
             leading: Icon(e.moving ? Icons.directions_walk : Icons.bluetooth,
-                size: 16, color: e.moving ? Colors.orange : null),
+                size: 16, color: e.moving ? Colors.orange : null,),
             title: Text('${_name(e.observer)} → ${_name(e.target)}',
-                style: const TextStyle(fontSize: 12)),
+                style: const TextStyle(fontSize: 12),),
             subtitle: Text(
                 '${e.rssiDbm.round()} dBm '
                 '(±${e.rssiSpreadDb.toStringAsFixed(0)} dB) · '
                 '${e.ageSeconds.round()}s · ×${e.count} · '
                 '${e.modality} · ${e.moving ? 'signal varying' : 'signal steady'}',
-                style: const TextStyle(fontSize: 11)),
+                style: const TextStyle(fontSize: 11),),
           ),
         if (edges.isEmpty)
           const Padding(
             padding: EdgeInsets.all(12),
             child: Text('No radio links yet — nodes above are placed devices.',
-                style: TextStyle(fontSize: 11, color: Colors.black45)),
+                style: TextStyle(fontSize: 11, color: Colors.black45),),
           ),
-      ]),
+      ],),
     );
   }
 }
