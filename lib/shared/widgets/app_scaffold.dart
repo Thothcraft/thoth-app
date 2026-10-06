@@ -15,21 +15,21 @@ class AppScaffold extends ConsumerWidget {
   final Widget child;
 
   static const _tabs = [
-    (icon: Icons.devices_outlined, active: Icons.devices, label: 'Devices'),
+    (icon: Icons.home_outlined, active: Icons.home, label: 'Home'),
     (
-      icon: Icons.insights_outlined,
-      active: Icons.insights,
-      label: 'Context'
+      icon: Icons.map_outlined,
+      active: Icons.map,
+      label: 'Map'
     ),
     (
-      icon: Icons.watch_outlined,
-      active: Icons.watch,
-      label: 'Watch'
+      icon: Icons.bolt_outlined,
+      active: Icons.bolt,
+      label: 'Activity'
     ),
     (
-      icon: Icons.rss_feed_outlined,
-      active: Icons.rss_feed,
-      label: 'Events'
+      icon: Icons.devices_outlined,
+      active: Icons.devices,
+      label: 'Devices'
     ),
     (
       icon: Icons.settings_outlined,
@@ -129,20 +129,16 @@ class AppScaffold extends ConsumerWidget {
           ),
 
           const _DrawerLabel('System'),
-          _item(context, Icons.home_outlined, 'Home',
-              () => context.go(AppRoutes.home)),
-          _item(context, Icons.devices_outlined, 'Devices',
-              () => context.go(AppRoutes.devices)),
           _item(context, Icons.watch_outlined, 'Watch (PineTime)',
               () => context.go(AppRoutes.watch)),
-          _item(context, Icons.bolt_outlined, 'Automations',
+          _item(context, Icons.toggle_on_outlined, 'Automation & actuators',
               () => context.go(AppRoutes.actuators)),
-          _item(context, Icons.rss_feed_outlined, 'Events',
-              () => context.go(AppRoutes.events)),
-
-          const _DrawerLabel('Research'),
           _item(context, Icons.science_outlined, 'Research & models',
               () => context.go(AppRoutes.research)),
+          _item(context, Icons.insights_outlined, 'Context & entities',
+              () => context.push('/context/home')),
+
+          const _DrawerLabel('Setup & tools'),
           _item(context, Icons.add_link, 'Pair a device',
               () => context.push(AppRoutes.pair)),
           _item(context, Icons.qr_code_scanner, 'Set up a node',
@@ -151,20 +147,6 @@ class AppScaffold extends ConsumerWidget {
               () => context.push(AppRoutes.calibrate)),
           _item(context, Icons.watch_outlined, 'Enroll a wearable',
               () => context.push('/watch/enroll')),
-          _item(context, Icons.bluetooth_connected, 'BLE relations',
-              () => context.push('/context/relations')),
-
-          const _DrawerLabel('Store'),
-          _item(context, Icons.shopping_cart_outlined, 'Shop kits',
-              () => context.push(AppRoutes.shop)),
-          _item(context, Icons.workspace_premium_outlined, 'Plans & pricing',
-              () => context.push(AppRoutes.plans)),
-
-          const _DrawerLabel('Community'),
-          _item(context, Icons.people_outline, 'Community',
-              () => context.push(AppRoutes.community)),
-          _item(context, Icons.mail_outline, 'Contact & join',
-              () => context.push(AppRoutes.contact)),
 
           const Divider(height: 24),
           _item(context, Icons.policy_outlined, 'Privacy & terms',
@@ -211,23 +193,23 @@ class AppScaffold extends ConsumerWidget {
   }
 
   int _getSelectedIndex(String location) {
-    if (location.startsWith(AppRoutes.context)) return 1;
-    if (location.startsWith(AppRoutes.watch)) return 2;
-    if (location.startsWith(AppRoutes.events)) return 3;
+    if (location.startsWith(AppRoutes.context)) return 1; // map
+    if (location.startsWith(AppRoutes.events)) return 2;
+    if (location.startsWith(AppRoutes.devices)) return 3;
     if (location.startsWith(AppRoutes.settings)) return 4;
-    return 0; // devices/home
+    return 0; // home, watch, research, actuators
   }
 
   void _onItemTapped(int index, BuildContext context) {
     switch (index) {
       case 0:
-        context.go(AppRoutes.devices);
+        context.go(AppRoutes.home);
       case 1:
         context.go(AppRoutes.context);
       case 2:
-        context.go(AppRoutes.watch);
-      case 3:
         context.go(AppRoutes.events);
+      case 3:
+        context.go(AppRoutes.devices);
       case 4:
         context.go(AppRoutes.settings);
     }

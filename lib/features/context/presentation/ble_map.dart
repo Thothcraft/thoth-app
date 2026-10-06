@@ -46,6 +46,16 @@ class BleMapView extends StatefulWidget {
 class _BleMapViewState extends State<BleMapView> {
   String? _selected;
 
+  /// Drives InteractiveViewer programmatically (zoom buttons, reset).
+  final TransformationController _viewCtl = TransformationController();
+
+  /// Anonymous advertisers can flood the canvas — user can hide them.
+  bool _showUnknowns = false;
+
+  /// EMA of solved positions - multilaterated nodes glide between
+  /// sighting bursts instead of jumping each rebuild.
+  final Map<String, Offset> _smoothed = {};
+
   /// User-renamed node labels — persisted locally; keyed by node id
   /// (device uuid, ``ble:<MAC>``, entity id…).
   Map<String, String> _overrides = const {};
@@ -57,14 +67,20 @@ class _BleMapViewState extends State<BleMapView> {
       final raw = p.getString('ble_map_labels');
       if (raw != null && mounted) {
         setState(() => _overrides =
-            Map<String, String>.from(jsonDecode(raw) as Map));
+            Map<String, String>.from(jsonDecode(raw) as Map),);
       }
     });
   }
 
+  @override
+  void dispose() {
+    _viewCtl.dispose();
+    super.dispose();
+  }
+
   Future<void> _rename(_Node n) async {
     final ctrl = TextEditingController(
-        text: _overrides[n.id] ?? n.label);
+        text: _overrides[n.id] ?? n.label,);
     final name = await showDialog<String>(
       context: context,
       builder: (c) => AlertDialog(
@@ -75,20 +91,20 @@ class _BleMapViewState extends State<BleMapView> {
           controller: ctrl,
           autofocus: true,
           decoration: const InputDecoration(
-              hintText: 'e.g. hallway beacon'),
+              hintText: 'e.g. hallway beacon',),
           onSubmitted: (v) => Navigator.pop(c, v),
         ),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(c),
-              child: const Text('Cancel')),
+              child: const Text('Cancel'),),
           TextButton(
               onPressed: () => Navigator.pop(c, ''),
-              child: const Text('Reset')),
+              child: const Text('Reset'),),
           FilledButton(
               onPressed: () =>
                   Navigator.pop(c, ctrl.text.trim()),
-              child: const Text('Save')),
+              child: const Text('Save'),),
         ],
       ),
     );
@@ -101,20 +117,14 @@ class _BleMapViewState extends State<BleMapView> {
     await p.setString('ble_map_labels', jsonEncode(_overrides));
   }
 
-  /// Invert the painter transform, hit-test node centers in canvas px.
-  void _onTap(Offset local, Size size, _Scene scene) {
-    final world = scene.worldRect();
-    final scale = math.min(size.width / (world.width + 0.8),
-        size.height / (world.height + 0.8));
-    Offset map(Offset w) => Offset(
-        (w.dx - world.left - 0.4) * scale +
-            (size.width - (world.width + 0.8) * scale) / 2,
-        (w.dy - world.top - 0.4) * scale +
-            (size.height - (world.height + 0.8) * scale) / 2);
+  /// Hit-test node centers in canvas px — the painter and this share
+  /// [_Scene.toCanvas], so taps stay exact under any zoom.
+  void _onTap(Offset local, _Scene scene) {
     String? hit;
-    var best = 28.0; // tap radius in px
+    var best = 30.0; // tap radius in px
     for (final n in scene.nodes.values) {
-      final d = (map(n.pos) - local).distance;
+      if (!_showUnknowns && !n.known) continue;
+      final d = (scene.toCanvas(n.pos) - local).distance;
       if (d < best) {
         best = d;
         hit = n.id;
@@ -130,7 +140,15 @@ class _BleMapViewState extends State<BleMapView> {
         devices: widget.devices,
         spaces: widget.spaces,
         watchNames: widget.watchNames,
-        labelOverrides: _overrides);
+        labelOverrides: _overrides,);
+    // Temporal smoothing: RSSI is bursty, so a solved position moves
+    // toward its new estimate (35%) rather than snapping to it.
+    for (final n in scene.nodes.values) {
+      if (!n.estimated) continue;
+      final prev = _smoothed[n.id];
+      n.pos = prev == null ? n.pos : prev + (n.pos - prev) * 0.35;
+      _smoothed[n.id] = n.pos;
+    }
     final sel = _selected != null ? scene.nodes[_selected] : null;
     final selEdges = sel == null
         ? const <BleRelation>[]
@@ -139,68 +157,231 @@ class _BleMapViewState extends State<BleMapView> {
                 .toList()
               ..sort((a, b) => b.rssiDbm.compareTo(a.rssiDbm)));
 
+    final worldSize = scene.canvasSize();
     return Column(children: [
       Expanded(
-        child: LayoutBuilder(builder: (context, constraints) {
-          final size = Size(constraints.maxWidth, constraints.maxHeight);
-          return GestureDetector(
-            behavior: HitTestBehavior.opaque,
-            onTapDown: (d) => _onTap(d.localPosition, size, scene),
-            child: CustomPaint(
-              painter: _BleMapPainter(scene, selectedId: _selected),
-              child: const SizedBox.expand(),
+        child: Stack(children: [
+          Positioned.fill(
+            child: InteractiveViewer(
+              transformationController: _viewCtl,
+              // Unconstrained + generous boundary: the world is small
+              // (a floor plan) but zoom lets dense clusters resolve.
+              constrained: false,
+              boundaryMargin: const EdgeInsets.all(600),
+              minScale: 0.25,
+              maxScale: 6,
+              child: SizedBox.fromSize(
+                size: worldSize,
+                child: GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTapDown: (d) => _onTap(d.localPosition, scene),
+                  child: CustomPaint(
+                    size: worldSize,
+                    painter: _BleMapPainter(scene,
+                        selectedId: _selected,
+                        showUnknowns: _showUnknowns,),
+                  ),
+                ),
+              ),
             ),
-          );
-        }),
+          ),
+          // Legend — compact decoding of node/edge encodings.
+          Positioned(
+            left: 8,
+            top: 8,
+            child: _LegendCard(
+          counts: scene.kindCounts(_showUnknowns),
+          hidden: _showUnknowns
+              ? 0
+              : scene.nodes.values.where((n) => !n.known).length,),
+          ),
+          // Map controls.
+          Positioned(
+            right: 8,
+            top: 8,
+            child: _MapControls(
+              viewCtl: _viewCtl,
+              showUnknowns: _showUnknowns,
+              onToggleUnknowns: () =>
+                  setState(() => _showUnknowns = !_showUnknowns),
+            ),
+          ),
+        ],),
       ),
-      // Selection strip — the tapped node's links to everything else.
+      // Selection card — the tapped node's links to everything else.
       if (sel != null)
         Container(
           width: double.infinity,
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          color: Colors.blueGrey.withValues(alpha: 0.08),
+          padding: const EdgeInsets.fromLTRB(12, 8, 12, 10),
+          decoration: BoxDecoration(
+            color: Colors.blueGrey.withValues(alpha: 0.08),
+            border: Border(
+                top: BorderSide(
+                    color: Colors.blueGrey.withValues(alpha: 0.25),),),
+          ),
           child: Column(crossAxisAlignment: CrossAxisAlignment.start,
               children: [
             Row(children: [
+              _NodeDot(node: sel),
+              const SizedBox(width: 8),
               Expanded(
-                child: Text(
-                  '${sel.label}${sel.known ? '' : '  (unknown)'}'
-                  '${sel.floor.isEmpty ? '' : ' · ${sel.floor}'}'
-                  '${sel.estimated ? ' · ~est' : ''}',
-                  style: const TextStyle(
-                      fontSize: 12, fontWeight: FontWeight.w600),
-                ),
+                child: Column(crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                  Text(sel.label,
+                      style: const TextStyle(
+                          fontSize: 13, fontWeight: FontWeight.w600,),),
+                  Text(
+                    [
+                      sel.kind,
+                      if (!sel.known) 'unknown',
+                      if (sel.placed) 'anchored'
+                      else if (sel.estimated)
+                        'est ±${sel.uncertaintyM.toStringAsFixed(1)} m'
+                      else
+                        'free',
+                      if (sel.floor.isNotEmpty) sel.floor,
+                      sel.moving ? 'signal drifting' : 'signal stable',
+                    ].join(' · '),
+                    style: const TextStyle(
+                        fontSize: 10, color: Colors.black54,),
+                  ),
+                ],),
               ),
               InkWell(
                 onTap: () => _rename(sel),
                 child: const Padding(
                   padding: EdgeInsets.all(4),
-                  child: Icon(Icons.edit_outlined, size: 14,
-                      color: Colors.black45),
+                  child: Icon(Icons.edit_outlined, size: 16,
+                      color: Colors.black45,),
                 ),
               ),
-            ]),
-            const SizedBox(height: 2),
+            ],),
+            const SizedBox(height: 4),
             if (selEdges.isEmpty)
               const Text('no live links',
-                  style: TextStyle(fontSize: 11, color: Colors.black54))
+                  style: TextStyle(fontSize: 11, color: Colors.black54),)
             else
-              for (final e in selEdges.take(6))
-                Text(
-                  '${_peerName(sel.id, e, scene)}  ${e.rssiDbm.round()} dBm'
-                  '${e.count > 1 ? ' ×${e.count}' : ''}',
-                  style: const TextStyle(
-                      fontSize: 11, color: Colors.black54),
+              ConstrainedBox(
+                constraints: const BoxConstraints(maxHeight: 132),
+                child: ListView(
+                  shrinkWrap: true,
+                  children: [
+                    for (final e in selEdges.take(8))
+                      _EdgeRow(edge: e, selId: sel.id, scene: scene),
+                  ],
                 ),
-          ]),
+              ),
+          ],),
         ),
-    ]);
+    ],);
+  }
+}
+
+/// Colored dot + kind glyph for the selection card header.
+class _NodeDot extends StatelessWidget {
+  const _NodeDot({required this.node});
+  final _Node node;
+
+  static const _icons = {
+    'phone': Icons.smartphone,
+    'watch': Icons.watch,
+    'thoth': Icons.router,
+    'ble': Icons.bluetooth,
+    'tv': Icons.tv,
+    'speaker': Icons.speaker,
+  };
+
+  Color get _color {
+    if (!node.known) return Colors.grey;
+    switch (node.kind) {
+      case 'phone':
+        return Colors.deepPurple;
+      case 'watch':
+        return Colors.teal;
+      case 'ble':
+        return Colors.blueGrey;
+      case 'tv':
+        return Colors.indigo;
+      case 'speaker':
+        return Colors.brown;
+      default:
+        return AppBlue.value;
+    }
   }
 
-  String _peerName(String selId, BleRelation e, _Scene scene) {
-    final other = e.observer == selId ? e.target : e.observer;
-    final n = scene.nodes[other];
-    return '${e.observer == selId ? '→' : '←'} ${n?.label ?? other}';
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 26,
+      height: 26,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: node.known ? _color : _color.withValues(alpha: 0.2),
+        border: Border.all(color: _color, width: 1.4),
+      ),
+      child: Icon(_icons[node.kind] ?? Icons.bluetooth,
+          size: 14, color: node.known ? Colors.white : _color,),
+    );
+  }
+}
+
+/// One row in the selection card: a single live link with direction,
+/// peer name, signal stats, and a recent-RSSI sparkline.
+class _EdgeRow extends StatelessWidget {
+  const _EdgeRow(
+      {required this.edge, required this.selId, required this.scene,});
+
+  final BleRelation edge;
+  final String selId;
+  final _Scene scene;
+
+  @override
+  Widget build(BuildContext context) {
+    final outgoing = edge.observer == selId;
+    final peerId = outgoing ? edge.target : edge.observer;
+    final peer = scene.nodes[peerId];
+    final peerLabel = peer?.label ??
+        (peerId.length > 18 ? '${peerId.substring(0, 18)}…' : peerId);
+    final dist = _Scene.distFor(edge);
+    final age = edge.ageSeconds;
+    final freshStr = age < 5
+        ? 'now'
+        : age < 90
+            ? '${age.round()}s ago'
+            : '${(age / 60).round()}m ago';
+    final spark = [...edge.rssiWindow, edge.rssiDbm];
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 3),
+      child: Row(children: [
+        Icon(outgoing ? Icons.arrow_forward : Icons.arrow_back,
+            size: 12, color: Colors.black45,),
+        const SizedBox(width: 4),
+        SizedBox(
+          width: 96,
+          child: Text(peerLabel,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(fontSize: 11),),
+        ),
+        Text('${edge.rssiDbm.round()} dBm',
+            style: const TextStyle(
+                fontSize: 11, fontWeight: FontWeight.w600,),),
+        const SizedBox(width: 6),
+        Text('~${dist.toStringAsFixed(1)} m',
+            style: const TextStyle(fontSize: 10, color: Colors.black54),),
+        const SizedBox(width: 6),
+        Text('$freshStr · ×${edge.count}',
+            style: const TextStyle(fontSize: 9, color: Colors.black45),),
+        const Spacer(),
+        if (edge.moving)
+          const Padding(
+            padding: EdgeInsets.only(right: 4),
+            child: Icon(Icons.directions_walk,
+                size: 12, color: Colors.orange,),
+          ),
+        _RssiSpark(spark.map((v) => v.toDouble()).toList()),
+      ],),
+    );
   }
 }
 
@@ -218,7 +399,7 @@ class _Node {
 
   final String id;
   String label; // user-overridable via the selection strip
-  final String kind; // phone | watch | thoth | tv | speaker | unknown
+  final String kind; // phone | watch | thoth | ble | tv | speaker | unknown
   Offset pos;
   String floor;
   bool moving = false;
@@ -226,6 +407,8 @@ class _Node {
   /// Position solved from ≥2 RSSI anchors (multilateration) — drawn
   /// with an uncertainty ring, not as ground truth.
   bool estimated = false;
+  /// Solver residual in meters — the dashed ring radius.
+  double uncertaintyM = 0;
   String side = ''; // left | center | right within its space row
   /// False for unenrolled advertisers — drawn as hollow unknowns.
   bool known = true;
@@ -245,9 +428,54 @@ class _Scene {
   final List<BleRelation> edges;
   final List<_SpaceBox> spaceBoxes;
 
-  /// World-space bounds of everything drawn — shared by the painter
-  /// and the tap hit-test so both agree on the transform.
-  Rect worldRect() {
+  /// Fixed px-per-meter render density. Everything — painter, labels,
+  /// hit-test — lives in this space so InteractiveViewer is the only
+  /// transform in play.
+  static const pxPerM = 90.0;
+  static const _padPx = 64.0;
+
+  Rect? _world;
+
+  /// World-space bounds of everything drawn (cached — nodes don't move
+  /// between paints within a scene instance).
+  Rect worldRect() => _world ??= _computeWorld();
+
+  Offset toCanvas(Offset w) => Offset(
+      (w.dx - worldRect().left) * pxPerM + _padPx,
+      (w.dy - worldRect().top) * pxPerM + _padPx,);
+
+  /// Full canvas size for the unconstrained InteractiveViewer child.
+  Size canvasSize() {
+    final w = worldRect();
+    return Size(w.width * pxPerM + _padPx * 2,
+        w.height * pxPerM + _padPx * 2,);
+  }
+
+  /// Node-count per kind for the legend chip (respects the unknowns
+  /// filter so the legend matches what's drawn).
+  Map<String, int> kindCounts(bool showUnknowns) {
+    final m = <String, int>{};
+    for (final n in nodes.values) {
+      if (!showUnknowns && !n.known) continue;
+      final k = n.known ? n.kind : 'unknown';
+      m[k] = (m[k] ?? 0) + 1;
+    }
+    return m;
+  }
+
+  /// Median of an edge's recent window — one fading sample shouldn't
+  /// swing a position, so distance math uses the median, not the last.
+  static double medianRssi(BleRelation e) {
+    if (e.rssiWindow.isEmpty) return e.rssiDbm;
+    final w = [...e.rssiWindow, e.rssiDbm]..sort();
+    return w[w.length ~/ 2];
+  }
+
+  /// Path-loss distance hint for an edge — median-smoothed.
+  static double distFor(BleRelation e) =>
+      _rssiRadiusM(medianRssi(e));
+
+  Rect _computeWorld() {
     var l = double.infinity, t = double.infinity;
     var r = -double.infinity, b = -double.infinity;
     void grow(Offset p) {
@@ -259,6 +487,10 @@ class _Scene {
 
     for (final n in nodes.values) {
       grow(n.pos);
+      if (n.estimated) {
+        grow(n.pos - Offset(n.uncertaintyM, n.uncertaintyM));
+        grow(n.pos + Offset(n.uncertaintyM, n.uncertaintyM));
+      }
     }
     for (final s in spaceBoxes) {
       grow(s.rect.topLeft);
@@ -271,15 +503,21 @@ class _Scene {
   static String _kind(String? deviceType, String rawId) {
     if (rawId.startsWith('phone:')) return 'phone';
     final t = (deviceType ?? '').toLowerCase();
-    if (rawId.contains(':')) {
-      // MAC-ish ble ids are wearables in this system.
-      if (RegExp(r'^([0-9A-Fa-f]{2}:){5}').hasMatch(rawId)) return 'watch';
+    if (t.contains('watch') || t.contains('wearable') ||
+        t.contains('pinetime')) {
+      return 'watch';
     }
-    if (t.contains('watch') || t.contains('wearable')) return 'watch';
     if (t.contains('tv') || t.contains('television')) return 'tv';
     if (t.contains('phone')) return 'phone';
     if (t.contains('speaker') || t.contains('audio')) return 'speaker';
-    if (t.contains('thoth') || t.isEmpty) return 'thoth';
+    if (t.contains('thoth') || t.contains('node')) return 'thoth';
+    // A bare MAC / ble:<MAC> is a generic Bluetooth device - NOT a
+    // watch. Only enrolled wearables (watchNames) earn that kind.
+    if (rawId.startsWith('ble:') || rawId.startsWith('device:ble:') ||
+        RegExp(r'^([0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}$').hasMatch(rawId)) {
+      return 'ble';
+    }
+    if (t.isEmpty) return 'thoth';
     return t;
   }
 
@@ -333,12 +571,12 @@ class _Scene {
       }
       plan[s.id] = Rect.fromLTWH(cursor.dx, cursor.dy, spaceW, spaceH);
       spaceBoxes.add(_SpaceBox(
-          name: s.name, depth: depth, rect: plan[s.id]!));
+          name: s.name, depth: depth, rect: plan[s.id]!,),);
       cursor = Offset(cursor.dx + spaceW + gapX, cursor.dy);
     }
 
     void placeIn(int spaceId, String uuid, double x, double y,
-        String name, String kind) {
+        String name, String kind,) {
       final r = plan[spaceId];
       if (r == null) return;
       final space = byId[spaceId];
@@ -365,7 +603,7 @@ class _Scene {
         final d = byUuid[uuid];
         placeIn(s.id, uuid, x, y,
             '${p['device_name'] ?? d?.name ?? 'device'}',
-            _kind(d?.deviceType, uuid));
+            _kind(d?.deviceType, uuid),);
       }
     }
 
@@ -389,8 +627,10 @@ class _Scene {
         final d = byUuid[k];
         // ble:<MAC> keys normalize lookups back to the raw id.
         final rawId = raw.startsWith('ble:') ? raw.substring(4) : raw;
+        // Enrolled wearable or an explicitly watch-typed device -
+        // never "it's a MAC so it must be a watch".
         final isWatch = watchNames.containsKey(rawId) ||
-            RegExp(r'^([0-9A-Fa-f]{2}:){5}').hasMatch(rawId);
+            (d?.deviceType ?? '').toLowerCase().contains('watch');
         nodes[k] = _Node(
           id: k,
           label: d?.name ??
@@ -414,51 +654,68 @@ class _Scene {
       }
     }
 
-    // Pass A0: multilateration — an unplaced node seen by ≥2 *placed*
-    // observers gets a weighted least-squares position from RSSI
-    // path-loss distances. Better than the orbit because it fuses
-    // every sighting (watch + phone + node) instead of the single
-    // strongest. Solved positions are estimates — flagged so the
-    // painter can show an uncertainty ring.
-    for (final n in nodes.values) {
-      if (n.placed) continue;
-      final anchors = <({Offset pos, double d, double w})>[];
-      for (final e in edges) {
-        if (e.observer != n.id && e.target != n.id) continue;
-        final other = e.observer == n.id ? e.target : e.observer;
-        final a = nodes[other];
-        if (a?.placed != true) continue;
-        final d = _rssiRadiusM(e.rssiDbm);
-        // Nearby observers dominate — classic WLS weighting.
-        anchors.add((pos: a!.pos, d: d, w: 1 / (d * d)));
+    // Pass A0: multilateration in two rounds. Round 1 solves against
+    // *placed* anchors only. Round 2 re-solves the leftovers using the
+    // freshly-estimated observers as half-weight anchors — this is the
+    // multi-view fusion the map exists for: watch + phone + node
+    // sightings combine instead of each node orbiting one peer.
+    for (var round = 0; round < 2; round++) {
+      for (final n in nodes.values) {
+        if (n.placed || n.estimated) continue;
+        final anchors = <({Offset pos, double d, double w})>[];
+        for (final e in edges) {
+          if (e.observer != n.id && e.target != n.id) continue;
+          final other = e.observer == n.id ? e.target : e.observer;
+          final a = nodes[other];
+          if (a == null || a.id == n.id) continue;
+          if (!(a.placed || (round == 1 && a.estimated))) continue;
+        // Median of the RSSI window resists single-sample spikes; the
+        // freshness term keeps a stale sighting from dragging the fix.
+          final d = _rssiRadiusM(medianRssi(e));
+          final fresh = 1 / (1 + e.ageSeconds / 30);
+          // Estimated anchors carry their own error — halve their say.
+          final w = (a.placed ? 1.0 : 0.5) * fresh / (d * d);
+          anchors.add((pos: a.pos, d: d, w: w));
       }
       if (anchors.length < 2) continue;
       // Weighted-centroid seed, then a few relax iterations pulling the
       // point toward each anchor until radius ≈ path-loss distance.
-      var wsum = 0.0;
-      var p = Offset.zero;
-      for (final a in anchors) {
-        p += a.pos * a.w;
-        wsum += a.w;
-      }
-      p /= wsum;
-      for (var it = 0; it < 12; it++) {
-        var dx = 0.0, dy = 0.0, ws = 0.0;
+        var wsum = 0.0;
+        var p = Offset.zero;
         for (final a in anchors) {
-          final r = (p - a.pos).distance;
-          if (r < 0.02) continue;
-          final f = a.w * (1 - a.d / r);
-          dx += f * (a.pos.dx - p.dx);
-          dy += f * (a.pos.dy - p.dy);
-          ws += a.w;
+          p += a.pos * a.w;
+          wsum += a.w;
         }
-        if (ws == 0) break;
-        final np = Offset(p.dx + dx / ws, p.dy + dy / ws);
-        if ((np - p).distance < 0.001) break;
-        p = np;
+        p /= wsum;
+        for (var it = 0; it < 24; it++) {
+          var dx = 0.0, dy = 0.0, ws = 0.0;
+          for (final a in anchors) {
+            final r = (p - a.pos).distance;
+            if (r < 0.02) continue;
+            final f = a.w * (1 - a.d / r);
+            dx += f * (a.pos.dx - p.dx);
+            dy += f * (a.pos.dy - p.dy);
+            ws += a.w;
+          }
+          if (ws == 0) break;
+          final np = Offset(p.dx + dx / ws, p.dy + dy / ws);
+          if ((np - p).distance < 0.001) break;
+          p = np;
+        }
+        // Residual spread = honest uncertainty: how far the solved
+        // point still is from each anchor's claimed ring, weighted RMS.
+        var res = 0.0, rw = 0.0;
+        for (final a in anchors) {
+          final err = (p - a.pos).distance - a.d;
+          res += a.w * err * err;
+          rw += a.w;
+        }
+        n.pos = p;
+        n.estimated = true;
+        n.uncertaintyM = rw > 0
+            ? (math.sqrt(res / rw) + 0.5).clamp(0.5, 8.0)
+            : 2.0;
       }
-      n.pos = p;
-      n.estimated = true;
     }
 
     // Position free nodes near their strongest edge's anchor.
@@ -479,23 +736,33 @@ class _Scene {
       if (best != null) {
         final other = best.observer == n.id ? best.target : best.observer;
         final a = nodes[other]!.pos;
-        final r = _rssiRadiusM(best.rssiDbm) / 6; // visual scale
+        // Real path-loss radius (meters) — positions stay true to
+        // physics so the map reads like the room, not a diagram.
+        final r = _rssiRadiusM(medianRssi(best));
         final ang = (i * 137.5) * math.pi / 180; // golden-angle spread
         n.pos = a + Offset(math.cos(ang) * r, math.sin(ang) * r);
       }
       i++;
     }
-    // Pass B: anything still at origin → loose ring around scene center.
+    // Pass B: edgeless leftovers park in a tidy dock column right of
+    // the mapped area — a holding pen, not a fake spatial claim.
     final placed = nodes.values.where((n) => n.placed).toList();
     final center = placed.isEmpty
         ? const Offset(1.5, 1.0)
-        : placed.fold(Offset.zero, (s, n) => s + n.pos) / placed.length.toDouble();
-    var j = 0;
-    for (final n in nodes.values) {
-      if (n.placed || n.pos != Offset.zero) continue;
-      final ang = j * 2 * math.pi / math.max(1, nodes.length - placed.length);
-      n.pos = center + Offset(2.2 * math.cos(ang), 1.4 * math.sin(ang));
-      j++;
+        : placed.fold(Offset.zero, (s, n) => s + n.pos) /
+            placed.length.toDouble();
+    final dock = nodes.values.where((n) => n.pos == Offset.zero).toList();
+    if (dock.isNotEmpty) {
+      var maxX = center.dx;
+      for (final n in nodes.values) {
+        if (n.pos.dx > maxX) maxX = n.pos.dx;
+      }
+      for (final s in spaceBoxes) {
+        if (s.rect.right > maxX) maxX = s.rect.right;
+      }
+      for (var j = 0; j < dock.length; j++) {
+        dock[j].pos = Offset(maxX + 1.4, j * 0.5);
+      }
     }
     // Fallback for a solitary unplaced node.
     for (final n in nodes.values) {
@@ -524,7 +791,7 @@ class _Scene {
     for (final s in spaces) {
       final inSpace = nodes.values
           .where((n) => n.placed &&
-              s.placements.any((p) => '${p['device_id']}' == n.id))
+              s.placements.any((p) => '${p['device_id']}' == n.id),)
           .toList()
         ..sort((a, b) => a.pos.dx.compareTo(b.pos.dx));
       for (var k = 0; k < inSpace.length; k++) {
@@ -566,54 +833,74 @@ class _Scene {
 // ── painter ─────────────────────────────────────────────────────────────────
 
 class _BleMapPainter extends CustomPainter {
-  _BleMapPainter(this.scene, {this.selectedId});
+  _BleMapPainter(this.scene,
+      {this.selectedId, this.showUnknowns = true,});
   final _Scene scene;
   final String? selectedId;
+  final bool showUnknowns;
 
   static const _kindIcons = {
     'phone': '📱',
     'watch': '⌚',
+    'ble': '🔷',
     'tv': '📺',
     'speaker': '🔊',
     'thoth': '📡',
     'unknown': '•',
   };
 
+  bool _drawable(_Node n) => showUnknowns || n.known;
+
   @override
   void paint(Canvas canvas, Size size) {
     final world = scene.worldRect();
-    final scale = math.min(size.width / (world.width + 0.8),
-        size.height / (world.height + 0.8));
-    Offset map(Offset w) => Offset(
-        (w.dx - world.left - 0.4) * scale +
-            (size.width - (world.width + 0.8) * scale) / 2,
-        (w.dy - world.top - 0.4) * scale +
-            (size.height - (world.height + 0.8) * scale) / 2);
+    Offset map(Offset w) => scene.toCanvas(w);
+    const scale = _Scene.pxPerM;
+
+    // Meter grid — faint 1 m lines anchor the eye to real distances.
+    final gridPaint = Paint()
+      ..color = Colors.blueGrey.withValues(alpha: 0.10)
+      ..strokeWidth = 0.6;
+    for (var gx = world.left.floorToDouble();
+        gx <= world.right + 1;
+        gx += 1.0) {
+      final x = map(Offset(gx, 0)).dx;
+      canvas.drawLine(Offset(x, 0), Offset(x, size.height), gridPaint);
+    }
+    for (var gy = world.top.floorToDouble();
+        gy <= world.bottom + 1;
+        gy += 1.0) {
+      final y = map(Offset(0, gy)).dy;
+      canvas.drawLine(Offset(0, y), Offset(size.width, y), gridPaint);
+    }
 
     // Space boxes.
     for (final b in scene.spaceBoxes) {
-      final r = Rect.fromLTWH(map(b.rect.topLeft).dx, map(b.rect.topLeft).dy,
-          b.rect.width * scale, b.rect.height * scale);
+      final tl = map(b.rect.topLeft);
+      final r = Rect.fromLTWH(tl.dx, tl.dy,
+          b.rect.width * scale, b.rect.height * scale,);
       canvas.drawRect(
           r,
           Paint()
-            ..color = Colors.blueGrey.withValues(alpha: 0.06)
-            ..style = PaintingStyle.fill);
+            ..color = Colors.blueGrey.withValues(alpha: 0.07)
+            ..style = PaintingStyle.fill,);
       canvas.drawRect(
           r,
           Paint()
-            ..color = Colors.blueGrey.withValues(alpha: 0.35)
-            ..strokeWidth = 1
-            ..style = PaintingStyle.stroke);
+            ..color = Colors.blueGrey.withValues(alpha: 0.4)
+            ..strokeWidth = 1.2
+            ..style = PaintingStyle.stroke,);
       _text(canvas, b.depth == 0 ? b.name : '${b.name} (floor +${b.depth})',
           r.topLeft + const Offset(6, 4),
-          Colors.blueGrey.shade700, 11, bold: true);
+          Colors.blueGrey.shade700, 12, bold: true,);
     }
 
     // Edges — selection highlights the tapped node's links.
     for (final e in scene.edges) {
       final a = scene.nodes[e.observer], b = scene.nodes[e.target];
-      if (a == null || b == null) continue;
+      if (a == null || b == null || !_drawable(a) || !_drawable(b)) {
+        continue;
+      }
       final touched = selectedId != null &&
           (e.observer == selectedId || e.target == selectedId);
       final dimmed = selectedId != null && !touched;
@@ -623,40 +910,79 @@ class _BleMapPainter extends CustomPainter {
       final paint = Paint()
         ..color = Color.lerp(Colors.red, Colors.blue, strength)!
             .withValues(alpha: dimmed
-                ? 0.08
+                ? 0.07
                 : touched
-                    ? 0.45 + 0.45 * fresh
-                    : 0.2 + 0.55 * fresh)
-        ..strokeWidth = (touched ? 1.6 : 1) + 4 * strength
+                    ? 0.5 + 0.4 * fresh
+                    : 0.18 + 0.5 * fresh,)
+        ..strokeWidth = (touched ? 2.0 : 1) + 4 * strength
         ..strokeCap = StrokeCap.round;
       canvas.drawLine(pa, pb, paint);
+      // Observer → target direction tick at 60% along the edge.
+      if (!dimmed && (pa - pb).distance > 60) {
+        final dir = (pb - pa) / (pb - pa).distance;
+        final at = pa + dir * (pb - pa).distance * 0.6;
+        final n = Offset(-dir.dy, dir.dx) * 3.5;
+        final arrow = Path()
+          ..moveTo(at.dx, at.dy)
+          ..lineTo((at - dir * 7 + n).dx, (at - dir * 7 + n).dy)
+          ..moveTo(at.dx, at.dy)
+          ..lineTo((at - dir * 7 - n).dx, (at - dir * 7 - n).dy);
+        canvas.drawPath(arrow, paint..strokeWidth = 1.2);
+      }
       final mid = Offset((pa.dx + pb.dx) / 2, (pa.dy + pb.dy) / 2);
-      if (!dimmed) {
+      if (touched) {
+        _textChip(canvas,
+            '${e.rssiDbm.round()} dBm · '
+            '~${_Scene.distFor(e).toStringAsFixed(1)} m',
+            mid,);
+      } else if (!dimmed) {
         _text(canvas, '${e.rssiDbm.round()} dBm', mid,
-            Colors.black45, 9);
+            Colors.black45, 9,);
       }
     }
 
     // Nodes — selected gets a highlight ring.
     for (final n in scene.nodes.values) {
+      if (!_drawable(n)) continue;
       final p = map(n.pos);
       final color = _nodeColor(n);
+      // Multilaterated positions get a residual-sized uncertainty disc
+      // + dashed ring — the estimate is a hint from RSSI, not a
+      // floorplan coordinate.
+      if (n.estimated) {
+        final rpx = n.uncertaintyM * scale;
+        canvas.drawCircle(
+            p,
+            rpx,
+            Paint()
+              ..color = color.withValues(alpha: 0.07)
+              ..style = PaintingStyle.fill,);
+        final rp = Paint()
+          ..color = color.withValues(alpha: 0.5)
+          ..strokeWidth = 1
+          ..style = PaintingStyle.stroke;
+        const segs = 24;
+        for (var s = 0; s < segs; s += 2) {
+          canvas.drawArc(Rect.fromCircle(center: p, radius: rpx),
+              s * 2 * math.pi / segs, math.pi / segs, false, rp,);
+        }
+      }
       if (n.id == selectedId) {
         canvas.drawCircle(
             p,
             17,
             Paint()
-              ..color = Colors.amber.withValues(alpha: 0.35)
-              ..style = PaintingStyle.fill);
+              ..color = Colors.amber.withValues(alpha: 0.4)
+              ..style = PaintingStyle.fill,);
       }
-      // motion halo
+      // motion halo — RSSI variance flagged this link as unstable.
       if (n.moving) {
         canvas.drawCircle(
             p,
             16,
             Paint()
               ..color = Colors.orange.withValues(alpha: 0.25)
-              ..style = PaintingStyle.fill);
+              ..style = PaintingStyle.fill,);
       }
       // Unknown advertisers render hollow.
       canvas.drawCircle(
@@ -664,7 +990,7 @@ class _BleMapPainter extends CustomPainter {
           11,
           Paint()
             ..color = n.known ? color : color.withValues(alpha: 0.18)
-            ..style = PaintingStyle.fill);
+            ..style = PaintingStyle.fill,);
       if (!n.known) {
         final dash = Paint()
           ..color = color
@@ -678,36 +1004,73 @@ class _BleMapPainter extends CustomPainter {
           Paint()
             ..color = Colors.white
             ..strokeWidth = 1.5
-            ..style = PaintingStyle.stroke);
-      // Multilaterated positions get a dashed uncertainty ring — the
-      // estimate is a hint from RSSI, not a floorplan coordinate.
-      if (n.estimated) {
-        final rp = Paint()
-          ..color = color.withValues(alpha: 0.45)
-          ..strokeWidth = 1
-          ..style = PaintingStyle.stroke;
-        const segs = 10;
-        for (var s = 0; s < segs; s += 2) {
-          canvas.drawArc(Rect.fromCircle(center: p, radius: 15),
-              s * math.pi / segs * 2 / 2,
-              math.pi / segs,
-              false, rp);
-        }
-      }
+            ..style = PaintingStyle.stroke,);
       _text(canvas, _kindIcons[n.kind] ?? '•',
-          p - const Offset(6, 8), Colors.white, 12);
-      _text(canvas, n.label, p + const Offset(-14, 13),
-          Colors.black87, 10, bold: true);
+          p - const Offset(6, 8), Colors.white, 12,);
+      _textHalo(canvas, n.label, p + const Offset(-14, 13), bold: true);
       final tag = [
         if (!n.known) 'unknown${n.advName != null ? ' · ${n.advName}' : ''}',
-        if (n.estimated) '~located',
+        if (n.estimated) '~±${n.uncertaintyM.toStringAsFixed(1)} m',
         if (n.floor.isNotEmpty) n.floor,
         if (n.side.isNotEmpty) n.side,
-        if (n.moving) 'moving' else 'stationary',
+        if (n.moving) 'drifting',
       ].join(' · ');
-      _text(canvas, tag, p + const Offset(-14, 25),
-          Colors.black54, 8);
+      if (tag.isNotEmpty) {
+        _textHalo(canvas, tag, p + const Offset(-14, 24), size: 8);
+      }
     }
+
+    // Scale bar — bottom-left of the canvas, 1 m.
+    const barM = 1.0;
+    final barW = barM * scale;
+    const barY = 30.0;
+    const barX = 14.0;
+    final bp = Paint()
+      ..color = Colors.black54
+      ..strokeWidth = 2;
+    canvas.drawLine(const Offset(barX, barY),
+        Offset(barX + barW, barY), bp,);
+    canvas.drawLine(const Offset(barX, barY - 4),
+        const Offset(barX, barY + 4), bp,);
+    canvas.drawLine(Offset(barX + barW, barY - 4),
+        Offset(barX + barW, barY + 4), bp,);
+    _text(canvas, '${barM.round()} m',
+        const Offset(barX + 4, barY + 6), Colors.black54, 10,);
+  }
+
+  /// Edge-distance chip drawn over the line midpoint when selected.
+  void _textChip(Canvas canvas, String text, Offset center) {
+    final tp = TextPainter(
+      text: TextSpan(
+          text: text,
+          style: const TextStyle(
+              color: Colors.black87,
+              fontSize: 10,
+              fontWeight: FontWeight.w600,),),
+      textDirection: TextDirection.ltr,
+    )..layout();
+    final r = Rect.fromCenter(center: center - const Offset(0, 10),
+        width: tp.width + 10, height: tp.height + 6,);
+    canvas.drawRRect(
+        RRect.fromRectAndRadius(r, const Radius.circular(6)),
+        Paint()..color = Colors.white.withValues(alpha: 0.9),);
+    canvas.drawRRect(
+        RRect.fromRectAndRadius(r, const Radius.circular(6)),
+        Paint()
+          ..color = Colors.blueGrey.withValues(alpha: 0.4)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 0.8,);
+    tp.paint(canvas,
+        r.topLeft + const Offset(5, 3),);
+  }
+
+  /// Text with a soft white halo — stays readable over edges/grid.
+  void _textHalo(Canvas canvas, String text, Offset at,
+      {bool bold = false, double size = 10,}) {
+    _text(canvas, text, at + const Offset(0.7, 0.7),
+        Colors.white.withValues(alpha: 0.85), size, bold: bold,);
+    _text(canvas, text, at, bold ? Colors.black87 : Colors.black54,
+        size, bold: bold,);
   }
 
   Color _nodeColor(_Node n) {
@@ -717,6 +1080,8 @@ class _BleMapPainter extends CustomPainter {
         return Colors.deepPurple;
       case 'watch':
         return Colors.teal;
+      case 'ble':
+        return Colors.blueGrey;
       case 'tv':
         return Colors.indigo;
       case 'speaker':
@@ -728,14 +1093,14 @@ class _BleMapPainter extends CustomPainter {
 
   void _text(Canvas canvas, String text, Offset at, Color color,
       double size,
-      {bool bold = false}) {
+      {bool bold = false,}) {
     final tp = TextPainter(
       text: TextSpan(
           text: text,
           style: TextStyle(
               color: color,
               fontSize: size,
-              fontWeight: bold ? FontWeight.w600 : FontWeight.w400)),
+              fontWeight: bold ? FontWeight.w600 : FontWeight.w400,),),
       textDirection: TextDirection.ltr,
     )..layout();
     tp.paint(canvas, at);
@@ -748,4 +1113,232 @@ class _BleMapPainter extends CustomPainter {
 /// Small color constant to avoid importing the app theme here.
 class AppBlue {
   static const value = Color(0xFF1E88E5);
+}
+
+// ── overlays ────────────────────────────────────────────────────────────────
+
+/// Bottom-left legend: kind swatches with counts + link-strength key.
+class _LegendCard extends StatelessWidget {
+  const _LegendCard({required this.counts, this.hidden = 0});
+
+  final Map<String, int> counts;
+  final int hidden;
+
+  static const _order =
+      ['phone', 'watch', 'thoth', 'ble', 'tv', 'speaker', 'unknown'];
+  static const _icons = {
+    'phone': Icons.smartphone,
+    'watch': Icons.watch,
+    'thoth': Icons.router,
+    'ble': Icons.bluetooth,
+    'tv': Icons.tv,
+    'speaker': Icons.speaker,
+    'unknown': Icons.help_outline,
+  };
+  static const _colors = {
+    'phone': Colors.deepPurple,
+    'watch': Colors.teal,
+    'thoth': AppBlue.value,
+    'ble': Colors.blueGrey,
+    'tv': Colors.indigo,
+    'speaker': Colors.brown,
+    'unknown': Colors.grey,
+  };
+
+  @override
+  Widget build(BuildContext context) {
+    final keys = _order.where((k) => (counts[k] ?? 0) > 0).toList();
+    if (keys.isEmpty && hidden == 0) return const SizedBox.shrink();
+    return Card(
+      color: Colors.white.withValues(alpha: 0.92),
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            for (final k in keys)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 1.5),
+                child: Row(mainAxisSize: MainAxisSize.min, children: [
+                  Icon(_icons[k], size: 13, color: _colors[k]),
+                  const SizedBox(width: 6),
+                  Text('$k ×${counts[k]}',
+                      style: const TextStyle(fontSize: 11),),
+                ],),
+              ),
+            if (hidden > 0)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 1.5),
+                child: Row(mainAxisSize: MainAxisSize.min, children: [
+                  const Icon(Icons.visibility_off,
+                      size: 13, color: Colors.grey,),
+                  const SizedBox(width: 6),
+                  Text('+$hidden ambient hidden',
+                      style: const TextStyle(
+                          fontSize: 10, color: Colors.grey,),),
+                ],),
+              ),
+            const Divider(height: 10, thickness: 0.6),
+            // Link key: blue = strong (near), red = weak (far).
+            Row(mainAxisSize: MainAxisSize.min, children: [
+              Container(
+                  width: 10, height: 3,
+                  color: Colors.blue.withValues(alpha: 0.7),),
+              const SizedBox(width: 4),
+              const Text('near', style: TextStyle(fontSize: 9)),
+              const SizedBox(width: 8),
+              Container(
+                  width: 10, height: 3,
+                  color: Colors.red.withValues(alpha: 0.7),),
+              const SizedBox(width: 4),
+              const Text('far', style: TextStyle(fontSize: 9)),
+            ],),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Top-right controls: zoom in/out/reset + unknown-device filter toggle.
+class _MapControls extends StatelessWidget {
+  const _MapControls({
+    required this.viewCtl,
+    required this.showUnknowns,
+    required this.onToggleUnknowns,
+  }) : homeRect = null;
+
+  final TransformationController viewCtl;
+  final bool showUnknowns;
+  final VoidCallback onToggleUnknowns;
+
+  /// World rect the map is reset to (fit-to-content) on home tap.
+  final Rect? homeRect;
+
+  void _zoom(double factor) {
+    final m = viewCtl.value.clone();
+    final scale = m.getMaxScaleOnAxis();
+    // Zoom around the viewport center.
+    m.translate(-160.0, -160.0);
+    m.scale(factor, factor);
+    m.translate(160.0, 160.0);
+    if ((scale * factor).clamp(0.4, 6.0) == scale * factor) {
+      viewCtl.value = m;
+    }
+  }
+
+  void _reset() {
+    if (homeRect == null) {
+      viewCtl.value = Matrix4.identity();
+      return;
+    }
+    viewCtl.value = Matrix4.identity(); // InteractiveViewer recentered on layout
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    Widget btn(IconData icon, String tip, VoidCallback onTap) => Padding(
+          padding: const EdgeInsets.only(bottom: 6),
+          child: Material(
+            color: Colors.white.withValues(alpha: 0.92),
+            elevation: 2,
+            borderRadius: BorderRadius.circular(8),
+            child: InkWell(
+              borderRadius: BorderRadius.circular(8),
+              onTap: onTap,
+              child: Tooltip(
+                message: tip,
+                child: SizedBox(
+                    width: 34, height: 34,
+                    child: Icon(icon, size: 18, color: Colors.black87),),
+              ),
+            ),
+          ),
+        );
+    return Column(mainAxisSize: MainAxisSize.min, children: [
+      btn(Icons.add, 'Zoom in', () => _zoom(1.4)),
+      btn(Icons.remove, 'Zoom out', () => _zoom(1 / 1.4)),
+      btn(Icons.fit_screen, 'Reset view', _reset),
+      btn(
+        showUnknowns ? Icons.visibility : Icons.visibility_off,
+        showUnknowns ? 'Hide unknown devices' : 'Show unknown devices',
+        onToggleUnknowns,
+      ),
+    ],);
+  }
+}
+
+/// Tiny RSSI history sparkline for the selection card edge list.
+class _RssiSpark extends StatelessWidget {
+  const _RssiSpark(this.samples) : height = 20, width = 72;
+
+  final List<double> samples;
+  final double width;
+  final double height;
+
+  @override
+  Widget build(BuildContext context) {
+    if (samples.isEmpty) {
+      return SizedBox(width: width, height: height);
+    }
+    return CustomPaint(
+      size: Size(width, height),
+      painter: _SparkPainter(samples),
+    );
+  }
+}
+
+class _SparkPainter extends CustomPainter {
+  _SparkPainter(this.samples);
+  final List<double> samples;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (samples.length < 2) {
+      if (samples.isNotEmpty) {
+        canvas.drawCircle(
+            Offset(size.width / 2, size.height / 2), 1.6,
+            Paint()..color = Colors.blueGrey,);
+      }
+      return;
+    }
+    // RSSI range fixed to a sane window so different edges are comparable.
+    const lo = -95.0, hi = -35.0;
+    double yOf(double v) =>
+        size.height - ((v.clamp(lo, hi) - lo) / (hi - lo)) * size.height;
+    final dx = size.width / (samples.length - 1);
+    final path = Path();
+    for (var i = 0; i < samples.length; i++) {
+      final x = i * dx;
+      final y = yOf(samples[i]);
+      if (i == 0) {
+        path.moveTo(x, y);
+      } else {
+        path.lineTo(x, y);
+      }
+    }
+    canvas.drawPath(
+        path,
+        Paint()
+          ..color = Colors.blueGrey.shade400
+          ..strokeWidth = 1.4
+          ..style = PaintingStyle.stroke
+          ..strokeCap = StrokeCap.round,);
+    // Last-sample dot.
+    canvas.drawCircle(
+        Offset(size.width, yOf(samples.last)), 2,
+        Paint()..color = Colors.blueGrey.shade700,);
+    // -60/-80 dBm guide lines.
+    final guide = Paint()
+      ..color = Colors.blueGrey.withValues(alpha: 0.18)
+      ..strokeWidth = 0.6;
+    canvas.drawLine(Offset(0, yOf(-60)), Offset(size.width, yOf(-60)), guide);
+    canvas.drawLine(Offset(0, yOf(-80)), Offset(size.width, yOf(-80)), guide);
+  }
+
+  @override
+  bool shouldRepaint(_SparkPainter old) => old.samples != samples;
 }

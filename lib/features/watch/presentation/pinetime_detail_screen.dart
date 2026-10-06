@@ -484,6 +484,11 @@ class _ControlsTabState extends ConsumerState<_ControlsTab>
               runSpacing: 8,
               children: [
                 FilledButton.tonalIcon(
+                  icon: const Icon(Icons.schedule),
+                  label: const Text('Sync time'),
+                  onPressed: () => act(() => link!.syncTime(), 'Time sync'),
+                ),
+                FilledButton.tonalIcon(
                   icon: const Icon(Icons.vibration),
                   label: const Text('Buzz'),
                   onPressed: () => act(() => link!.buzz(), 'Buzz'),
@@ -1456,7 +1461,8 @@ class _FirmwareUpdateCardState extends ConsumerState<_FirmwareUpdateCard> {
         setState(() => _status = 'Connecting…');
         relay = await manager.connect(widget.record);
       }
-      final device = relay!.link!.device;
+      final link = relay!.link!;
+      final device = link.device;
       if (mounted) {
         setState(() => _status = 'Uploading ${bin.length >> 10} kB…');
       }
@@ -1469,7 +1475,34 @@ class _FirmwareUpdateCardState extends ConsumerState<_FirmwareUpdateCard> {
             });
           }
         };
-      await dfu.run(bin, dat);
+      // The link's 10 Hz motion poll shares this GATT connection —
+      // suspend it so packet writes don't hit 'gatt busy'.
+      link.suspendTelemetry();
+      try {
+        // One automatic retry of the whole transfer — the BLE stack
+        // occasionally drops the response to the packet-receipt control
+        // write mid-upload; run() re-sends abort+start so a retry is
+        // safe even after a partial transfer.
+        for (var attempt = 0; attempt < 2; attempt++) {
+          try {
+            await dfu.run(bin, dat);
+            break;
+          } catch (e) {
+            if (attempt == 1 || !mounted) rethrow;
+            if (mounted) {
+              setState(() => _status = 'Retrying — $e');
+            }
+            await Future<void>.delayed(const Duration(seconds: 2));
+            if (!device.isConnected) {
+              // Watch dropped mid-upload — let the link reconnect before
+              // retrying (DFU times out quickly on a dead link anyway).
+              await manager.connect(widget.record);
+            }
+          }
+        }
+      } finally {
+        link.resumeTelemetry();
+      }
       if (mounted) {
         setState(() {
           _status = 'Done — watch rebooted into new firmware';

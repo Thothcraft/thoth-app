@@ -19,6 +19,7 @@ import '../features/calibrate/presentation/calibrate_screen.dart';
 import '../features/context/presentation/context_home_screen.dart';
 import '../features/context/presentation/entity_detail_screen.dart';
 import '../features/context/presentation/relations_screen.dart';
+import '../features/context/presentation/space_detail_screen.dart';
 import '../features/watch/presentation/enroll_screen.dart';
 import '../features/watch/presentation/watch_screen.dart';
 import '../features/watch/presentation/pinetime_detail_screen.dart';
@@ -62,12 +63,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
   final auth = ref.watch(authProvider);
 
   return GoRouter(
-    initialLocation: AppRoutes.devices,
+    initialLocation: AppRoutes.home,
     redirect: (context, state) {
       if (auth.isLoading) return null;
       final onLogin = state.uri.path == AppRoutes.login;
       if (!auth.isAuthenticated && !onLogin) return AppRoutes.login;
-      if (auth.isAuthenticated && onLogin) return AppRoutes.devices;
+      if (auth.isAuthenticated && onLogin) return AppRoutes.home;
       return null;
     },
     routes: [
@@ -122,10 +123,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               child: HomeScreen(),
             ),
           ),
+          // Map tab — the BLE spatial map IS the context surface.
           GoRoute(
             path: AppRoutes.context,
             pageBuilder: (context, state) => const NoTransitionPage(
-              child: ContextHomeScreen(),
+              child: RelationsScreen(),
             ),
           ),
         ],
@@ -160,7 +162,23 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: '/context/relations',
-        builder: (context, state) => const RelationsScreen(),
+        builder: (context, state) => Scaffold(
+          appBar: AppBar(title: const Text('BLE map')),
+          body: const RelationsScreen(),
+        ),
+      ),
+      GoRoute(
+        path: '/context/spaces/:id',
+        builder: (context, state) => SpaceDetailScreen(
+          spaceId: state.pathParameters['id']!,
+        ),
+      ),
+      GoRoute(
+        path: '/context/home',
+        builder: (context, state) => Scaffold(
+          appBar: AppBar(title: const Text('Context')),
+          body: const ContextHomeScreen(),
+        ),
       ),
       GoRoute(
         path: '/watch/:bleId',
@@ -244,8 +262,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 style: Theme.of(context).textTheme.bodyMedium,),
             const SizedBox(height: 24),
             ElevatedButton(
-              onPressed: () => context.go(AppRoutes.devices),
-              child: const Text('Go to Devices'),
+              onPressed: () => context.go(AppRoutes.home),
+              child: const Text('Go Home'),
             ),
           ],
         ),

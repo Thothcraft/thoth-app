@@ -118,37 +118,55 @@ class WatchLink {
         unawaited(_connectLoop());
       }
     });
+    // Replay the current state — connectionState only emits on change,
+    // so a watch that is already linked (lingering GATT connection)
+    // would otherwise leave the UI waiting for an event that fired
+    // before we subscribed.
+    _connection.add(device.isConnected
+        ? BluetoothConnectionState.connected
+        : BluetoothConnectionState.disconnected);
     await _connectLoop();
   }
 
   /// Single flight path for connect → negotiate → subscribe, reused for the
   /// first connect and every reconnect. Guards against overlapping
   /// connect() calls when disconnect events arrive in bursts.
+  ///
+  /// The whole connect→subscribe cycle lives inside the retry loop:
+  /// `device.isConnected` can already be true (lingering GATT link after
+  /// an app restart / FBP's connectedDevices restore) — skipping
+  /// `_subscribe()` in that case leaves a "connected" link with no
+  /// telemetry, which is exactly the "loading never ends" symptom.
+  /// A failed `_subscribe()` (transient GATT busy, discovery stall)
+  /// retries the whole cycle instead of returning a half-open link.
   Future<void> _connectLoop() async {
     if (_connecting || _disposed) return;
     _connecting = true;
     try {
-      var attempt = 0;
-      while (!_disposed && !device.isConnected) {
-        attempt++;
-        if (attempt > 1) {
-          // Back off 2 s → 10 s; the watch advertises when it wants a link.
-          await Future<void>.delayed(
-              Duration(seconds: (2 + attempt).clamp(2, 10)));
-          if (_disposed || device.isConnected) break;
-        }
+      while (!_disposed) {
         try {
-          await device.connect(
-              autoConnect: false, mtu: 247, timeout: const Duration(seconds: 12));
-          // Short connection interval keeps BLE notifications from being
-          // starved by the phone's radio scheduler — the main cause of the
-          // random drops seen with the stock parameters.
-          await device.requestConnectionPriority(
-              connectionPriorityRequest: ConnectionPriority.high);
-          await _subscribe();
-          break;
-        } catch (e) {
-          debugPrint('[watch] connect attempt $attempt failed: $e');
+          if (!device.isConnected) {
+            // autoConnect:false keeps FBP from reconnecting under us —
+            // the disconnect listener owns retries.
+            await device.connect(
+                autoConnect: false,
+                mtu: 247,
+                timeout: const Duration(seconds: 12));
+            // FBP can resolve connect() before its isConnected flag
+            // flips — poll briefly instead of trusting it blindly.
+            for (var i = 0; i < 40 && !device.isConnected; i++) {
+              await Future<void>.delayed(const Duration(milliseconds: 125));
+              if (_disposed) return;
+            }
+            if (!device.isConnected) {
+              throw StateError('connect resolved but link not up');
+            }
+          }
+          await _subscribe().timeout(const Duration(seconds: 30));
+          return;
+        } catch (_) {
+          if (_disposed) return;
+          await Future<void>.delayed(const Duration(seconds: 2));
         }
       }
     } finally {
@@ -286,11 +304,34 @@ class WatchLink {
     }
   }
 
+  /// Suspend the link's periodic GATT traffic (motion poll) while a
+  /// bulk transfer like DFU owns the connection — Android refuses a
+  /// characteristic write while another op is still in flight, and the
+  /// 10 Hz poll starves a packet stream.
+  bool _suspended = false;
+  void suspendTelemetry() {
+    _suspended = true;
+    _motionPollTimer?.cancel();
+    _motionPollTimer = null;
+  }
+
+  /// Re-arm the motion poll after [suspendTelemetry] — only needed on
+  /// the legacy (un-stamped) firmware path; stamped chars notify on
+  /// their own. No-op if the poll never ran or DFU never suspended us.
+  void resumeTelemetry() {
+    _suspended = false;
+    if (!_stampedMotion && !_disposed &&
+        device.isConnected && _motionPollTimer == null) {
+      _motionPollTimer = Timer.periodic(
+          const Duration(milliseconds: 100), (_) => _pollMotion());
+    }
+  }
+
   /// Legacy-char poll — bypasses the watch's change-dedup so a still
   /// watch keeps producing samples. Overlapping reads are skipped.
   bool _motionReadInFlight = false;
   Future<void> _pollMotion() async {
-    if (_disposed || _motionReadInFlight || !device.isConnected) return;
+    if (_disposed || _suspended || _motionReadInFlight || !device.isConnected) return;
     _motionReadInFlight = true;
     try {
       final v = await _chars[PinetimeGatt.charMotion]?.read();
@@ -375,6 +416,15 @@ class WatchLink {
   /// Vibrate the watch via a high-priority empty alert (stock firmware has
   /// no dedicated motor characteristic — ANS is the actuator).
   Future<bool> buzz() => sendAlert(category: 8, title: 'Thoth', body: '');
+
+  /// Push the phone's current local time to the watch's CTS
+  /// characteristic (0x2A2B). Runs automatically on every (re)subscribe;
+  /// call from UI to force a re-sync. False when not connected.
+  Future<bool> syncTime() async {
+    if (!device.isConnected || _chars.isEmpty) return false;
+    return _safeWrite(PinetimeGatt.charCurrentTime,
+        PinetimeCodec.encodeCurrentTime(DateTime.now()));
+  }
 
   Future<void> dispose() async {
     _disposed = true;

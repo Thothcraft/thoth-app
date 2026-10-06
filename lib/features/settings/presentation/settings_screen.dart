@@ -89,6 +89,16 @@ class SettingsScreen extends ConsumerWidget {
             value: s?.phoneMotion ?? false,
             onChanged: notifier.setPhoneMotion,
           ),
+          SwitchListTile(
+            secondary: const Icon(Icons.wifi_tethering),
+            title: const Text('BLE identity beacon'),
+            subtitle: const Text(
+                'Advertise an owner-tagged beacon (thoth-p:<you>) so '
+                'home scanners — ESP32 CSI receivers, node radios — can '
+                'anchor your phone\'s RSSI to you. Non-connectable.'),
+            value: s?.bleIdentityBeacon ?? false,
+            onChanged: notifier.setBleIdentityBeacon,
+          ),
           const ListTile(
             dense: true,
             leading: Icon(Icons.shield_outlined, size: 18),

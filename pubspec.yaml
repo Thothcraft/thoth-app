@@ -36,6 +36,9 @@ dependencies:
   # BLE (PineTime / InfiniTime gateway + node commissioning)
   flutter_blue_plus: ^1.35.5
   permission_handler: ^11.3.1
+  # BLE identity beacon — lets CSI receivers/Pis see this phone as an
+  # owner-tagged advertiser for RSSI anchoring
+  flutter_ble_peripheral: 1.2.6
 
   # Setup QR scanning + phone motion source
   mobile_scanner: ^6.0.2

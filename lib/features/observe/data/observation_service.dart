@@ -13,6 +13,7 @@ import '../../context/domain/models.dart';
 import '../../settings/application/app_settings.dart';
 import '../../watch/application/watch_providers.dart';
 import '../../watch/domain/pinetime_gatt.dart';
+import 'identity_beacon.dart';
 
 /// Mobile-device observation producers (Part 4).
 ///
@@ -372,6 +373,10 @@ final observationControllerProvider =
     targets: watches,
     observer: 'phone:${settings.username ?? 'this'}',
     geoZones: settings.geoZones,
+  // Owner-tagged BLE advert — the other direction: lets the home's
+  // scanners see this phone.
+  unawaited(IdentityBeacon.instance
+      .sync(settings.bleIdentityBeacon, settings.username));
   ));
 });
 

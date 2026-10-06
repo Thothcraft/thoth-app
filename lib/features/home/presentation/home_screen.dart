@@ -1,553 +1,456 @@
 import 'package:flutter/material.dart';
-import '../../../core/theme/app_colors.dart';
-import '../../../core/theme/app_text_styles.dart';
-import '../../../core/constants/app_constants.dart';
-import '../../../shared/widgets/glass_card.dart';
-import '../../../shared/widgets/hero_section.dart';
+import 'package:flutter_blue_plus/flutter_blue_plus.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
-/// Home Screen - Landing page with hero, value props, and CTAs
-/// Merges About content from the website
-class HomeScreen extends StatelessWidget {
+import '../../context/application/context_providers.dart';
+import '../../context/domain/models.dart';
+import '../../devices/application/devices_provider.dart';
+import '../../watch/application/watch_providers.dart';
+
+/// Home — the daily driver screen. Apple-Home style: rooms first,
+/// then accessories (watch + nodes), then a taste of recent activity.
+/// No marketing copy — the portal owns that.
+class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      child: Column(
-        children: [
-          // Hero Section
-          HeroSection(
-            title: 'Thoth',
-            subtitle:
-                'Revolutionary IoT Device with Raspberry Pi, Sense HAT & PiSugar.\nLearn AI, Build Smart Systems, Join the Future.',
-            primaryButtonText: 'Get Started',
-            secondaryButtonText: 'Learn More',
-            backgroundImage: 'assets/images/hero_bg.jpg',
-            onPrimaryTap: () => _launchExternal(AppConstants.frontendUrl),
-            onSecondaryTap: () => _scrollToSection(context),
-          ),
+  Widget build(BuildContext context, WidgetRef ref) {
+    final spaces = ref.watch(spacesLiveProvider).valueOrNull ?? const [];
+    final devices = ref.watch(devicesProvider).valueOrNull ?? const [];
+    final watches = ref.watch(watchListProvider).valueOrNull ?? const [];
+    final manager = ref.watch(watchManagerProvider);
+    final events = ref.watch(contextEventsProvider).valueOrNull ?? const [];
+    final snap = ref.watch(contextSnapshotProvider).valueOrNull;
 
-          // Core Capabilities Section
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 64),
-            child: Column(
-              children: [
-                Text(
-                  'Core Capabilities',
-                  style: AppTextStyles.sectionTitle.copyWith(
-                    color: AppColors.textPrimaryLight,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 48),
-                _buildCapabilitiesGrid(),
-              ],
-            ),
-          ),
-
-          // Mission Section (About merged)
-          Container(
-            color: AppColors.backgroundSecondaryLight,
-            padding: const EdgeInsets.symmetric(vertical: 64, horizontal: 20),
-            child: Column(
-              children: [
-                Text(
-                  'Our Mission',
-                  style: AppTextStyles.sectionTitle.copyWith(
-                    color: AppColors.textPrimaryLight,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 24),
-                ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 800),
-                  child: Text(
-                    'Thoth bridges the gap between learning and innovation. We believe in democratizing access to AI and IoT technologies, empowering students, researchers, and makers to build the future with tools that are powerful yet accessible.',
-                    style: AppTextStyles.bodyLarge.copyWith(
-                      color: AppColors.textSecondaryLight,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-                const SizedBox(height: 48),
-                _buildValuesGrid(),
-              ],
-            ),
-          ),
-
-          // Product Showcase
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 64, horizontal: 20),
-            child: Column(
-              children: [
-                Text(
-                  'Powered by Raspberry Pi & Sense HAT',
-                  style: AppTextStyles.sectionTitle.copyWith(
-                    color: AppColors.textPrimaryLight,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 24),
-                ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 800),
-                  child: Text(
-                    'Experience the perfect fusion of Raspberry Pi computing power, Sense HAT environmental sensors, and PiSugar battery management. Collect real-time data, train ML models on-device, and participate in federated learning—all in one portable IoT platform.',
-                    style: AppTextStyles.bodyLarge.copyWith(
-                      color: AppColors.textSecondaryLight,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-                const SizedBox(height: 32),
-                _buildProductCarousel(),
-              ],
-            ),
-          ),
-
-          // Video Tutorials Section
-          Container(
-            color: AppColors.backgroundSecondaryLight,
-            padding: const EdgeInsets.symmetric(vertical: 64, horizontal: 20),
-            child: Column(
-              children: [
-                Text(
-                  'See It In Action',
-                  style: AppTextStyles.sectionTitle.copyWith(
-                    color: AppColors.textPrimaryLight,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'Quick tutorials to get you started',
-                  style: AppTextStyles.bodyLarge.copyWith(
-                    color: AppColors.textSecondaryLight,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 48),
-                _buildVideoTutorials(),
-              ],
-            ),
-          ),
-
-          // Pricing Teaser Section
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 64, horizontal: 20),
-            child: Column(
-              children: [
-                Text(
-                  'Simple Pricing',
-                  style: AppTextStyles.sectionTitle.copyWith(
-                    color: AppColors.textPrimaryLight,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 48),
-                _buildPricingTeaser(context),
-                const SizedBox(height: 32),
-                ElevatedButton(
-                  onPressed: () => Navigator.pushNamed(context, '/plans'),
-                  child: const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                    child: Text('Compare Plans'),
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          // CTA Section
-          Container(
-            color: AppColors.backgroundSecondaryLight,
-            padding: const EdgeInsets.symmetric(vertical: 64, horizontal: 20),
-            child: Column(
-              children: [
-                Text(
-                  'Join Our Community',
-                  style: AppTextStyles.sectionTitle.copyWith(
-                    color: AppColors.textPrimaryLight,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  'Connect with innovators worldwide. Share ideas. Build together.',
-                  style: AppTextStyles.bodyLarge.copyWith(
-                    color: AppColors.textSecondaryLight,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 32),
-                Wrap(
-                  spacing: 16,
-                  runSpacing: 16,
-                  alignment: WrapAlignment.center,
-                  children: [
-                    ElevatedButton(
-                      onPressed: () => Navigator.pushNamed(context, '/demos'),
-                      child: const Text('Explore Demos'),
-                    ),
-                    OutlinedButton(
-                      onPressed: () => _launchExternal(AppConstants.portalUrl),
-                      child: const Text('Sign In'),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildCapabilitiesGrid() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          final crossAxisCount = constraints.maxWidth > 900 ? 4 : 2;
-          return GridView.count(
-            crossAxisCount: crossAxisCount,
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            mainAxisSpacing: 24,
-            crossAxisSpacing: 24,
-            childAspectRatio: 0.9,
-            children: [
-              _buildCapabilityCard(
-                'AI Processing',
-                'On-device machine learning with TensorFlow Lite',
-                'assets/images/icons/artificial-intelligence.gif',
-              ),
-              _buildCapabilityCard(
-                'IoT Connectivity',
-                'Seamless integration with ESP32 modules',
-                'assets/images/icons/iot.gif',
-              ),
-              _buildCapabilityCard(
-                'Data Collection',
-                'Multi-sensor array for environmental data',
-                'assets/images/icons/data-collection.gif',
-              ),
-              _buildCapabilityCard(
-                'Privacy First',
-                'Differential privacy and federated learning',
-                'assets/images/icons/privacy.gif',
-              ),
-            ],
-          );
-        },
-      ),
-    );
-  }
-
-  Widget _buildCapabilityCard(String title, String description, String iconPath) {
-    return GlassCard(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Image.asset(
-            iconPath,
-            width: 80,
-            height: 80,
-            errorBuilder: (context, error, stackTrace) {
-              return const Icon(Icons.science, size: 80);
-            },
-          ),
-          const SizedBox(height: 16),
-          Text(
-            title,
-            style: AppTextStyles.h4.copyWith(
-              color: AppColors.textPrimaryLight,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 8),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Text(
-              description,
-              style: AppTextStyles.bodySmall.copyWith(
-                color: AppColors.textSecondaryLight,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildValuesGrid() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          final crossAxisCount = constraints.maxWidth > 600 ? 3 : 1;
-          return GridView.count(
-            crossAxisCount: crossAxisCount,
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            mainAxisSpacing: 32,
-            crossAxisSpacing: 32,
-            childAspectRatio: 1.2,
-            children: [
-              _buildValueCard(
-                Icons.lightbulb_outline,
-                'Innovation',
-                'Pushing boundaries in AI/IoT integration',
-              ),
-              _buildValueCard(
-                Icons.people_outline,
-                'Community',
-                'Building a global network of innovators',
-              ),
-              _buildValueCard(
-                Icons.shield_outlined,
-                'Privacy',
-                'Protecting your data with advanced technologies',
-              ),
-            ],
-          );
-        },
-      ),
-    );
-  }
-
-  Widget _buildValueCard(IconData icon, String title, String description) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Container(
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(20),
-            boxShadow: const [
-              BoxShadow(
-                color: AppColors.shadowLight,
-                blurRadius: 8,
-                offset: Offset(0, 2),
-              ),
-            ],
-          ),
-          child: Icon(icon, size: 48, color: AppColors.textPrimaryLight),
-        ),
-        const SizedBox(height: 16),
-        Text(
-          title,
-          style: AppTextStyles.h4.copyWith(
-            color: AppColors.textPrimaryLight,
-          ),
-          textAlign: TextAlign.center,
-        ),
-        const SizedBox(height: 8),
-        Text(
-          description,
-          style: AppTextStyles.bodySmall.copyWith(
-            color: AppColors.textSecondaryLight,
-          ),
-          textAlign: TextAlign.center,
-        ),
-      ],
-    );
-  }
-
-  Widget _buildProductCarousel() {
-    return SizedBox(
-      height: 300,
-      child: PageView(
-        children: [
-          Image.asset(
-            'assets/images/products/white_bg.jpg',
-            fit: BoxFit.cover,
-            errorBuilder: (context, error, stackTrace) {
-              return Container(
-                color: AppColors.backgroundSecondaryLight,
-                child: const Icon(Icons.devices, size: 100),
-              );
-            },
-          ),
-          Image.asset(
-            'assets/images/products/closeup.jpg',
-            fit: BoxFit.cover,
-            errorBuilder: (context, error, stackTrace) {
-              return Container(
-                color: AppColors.backgroundSecondaryLight,
-                child: const Icon(Icons.devices, size: 100),
-              );
-            },
-          ),
-          Image.asset(
-            'assets/images/products/lifestyle.jpg',
-            fit: BoxFit.cover,
-            errorBuilder: (context, error, stackTrace) {
-              return Container(
-                color: AppColors.backgroundSecondaryLight,
-                child: const Icon(Icons.devices, size: 100),
-              );
-            },
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildVideoTutorials() {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        if (constraints.maxWidth > 900) {
-          return Row(
-            children: [
-              Expanded(child: _buildVideoCard('Getting Started', 'Set up your Thoth device in under 60 seconds.', 'assets/videos/getting_started.mp4')),
-              const SizedBox(width: 16),
-              Expanded(child: _buildVideoCard('First Project', 'Build your first AI/IoT project step by step.', 'assets/videos/first.mp4')),
-              const SizedBox(width: 16),
-              Expanded(child: _buildVideoCard('Sensor Setup', 'Connect and configure multiple sensors.', 'assets/videos/sensors.mp4')),
-            ],
-          );
-        }
-        return Column(
-          children: [
-            _buildVideoCard('Getting Started', 'Set up your Thoth device in under 60 seconds.', 'assets/videos/getting_started.mp4'),
-            const SizedBox(height: 16),
-            _buildVideoCard('First Project', 'Build your first AI/IoT project step by step.', 'assets/videos/first.mp4'),
-            const SizedBox(height: 16),
-            _buildVideoCard('Sensor Setup', 'Connect and configure multiple sensors.', 'assets/videos/sensors.mp4'),
-          ],
-        );
+    return RefreshIndicator(
+      onRefresh: () async {
+        ref.invalidate(spacesLiveProvider);
+        ref.invalidate(devicesProvider);
+        ref.invalidate(contextSnapshotProvider);
+        ref.invalidate(contextEventsProvider);
       },
-    );
-  }
-
-  Widget _buildVideoCard(String title, String description, String videoPath) {
-    return GlassCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: ListView(
+        padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
         children: [
-          Container(
-            height: 200,
-            decoration: const BoxDecoration(
-              color: AppColors.backgroundSecondaryLight,
-              borderRadius: BorderRadius.vertical(top: Radius.circular(18)),
-            ),
-            child: const Stack(
-              alignment: Alignment.center,
+          _Greeting(now: DateTime.now()),
+          const SizedBox(height: 16),
+
+          // ── Spaces (portal-designed, shared here) ────────────────
+          _SectionTitle(
+              title: 'Spaces',
+              action: TextButton.icon(
+                icon: const Icon(Icons.add, size: 18),
+                label: const Text('New'),
+                onPressed: () => _createSpace(context, ref),
+              )),
+          if (spaces.isEmpty)
+            const _EmptyHint(
+                'No spaces yet — design spaces on the portal or tap + '
+                'to create one; they appear here and on the BLE map.')
+          else
+            GridView.count(
+              crossAxisCount: 2,
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              mainAxisSpacing: 10,
+              crossAxisSpacing: 10,
+              childAspectRatio: 1.5,
               children: [
-                Icon(Icons.play_circle_outline, size: 64, color: AppColors.primaryBlue),
-                // TODO: Replace with actual video player widget
+                for (final s in spaces) _SpaceTile(space: s),
               ],
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: AppTextStyles.h4.copyWith(color: AppColors.textPrimaryLight),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  description,
-                  style: AppTextStyles.bodySmall.copyWith(color: AppColors.textSecondaryLight),
-                ),
-              ],
-            ),
-          ),
+          const SizedBox(height: 20),
+
+          // ── Who's where ───────────────────────────────────────────
+          if (snap != null) ...[
+            _PresenceStrip(snapshot: snap),
+            const SizedBox(height: 20),
+          ],
+
+          // ── Accessories ──────────────────────────────────────────
+          const _SectionTitle(title: 'Accessories'),
+          for (final w in watches)
+            _WatchTile(
+                bleId: w.bleId,
+                name: w.name ?? 'PineTime',
+                connected: manager[w.bleId]?.connected ?? false),
+          _NodesCard(devices: devices),
+          const SizedBox(height: 20),
+
+          // ── Recent activity ───────────────────────────────────────
+          _SectionTitle(
+              title: 'Recent activity',
+              action: TextButton(
+                onPressed: () => context.go('/events'),
+                child: const Text('See all'),
+              )),
+          if (events.isEmpty)
+            const _EmptyHint(
+                'Nothing yet — transitions between spaces will show up '
+                'here as devices report movement.')
+          else
+            for (final e in events.take(5)) _EventRow(event: e),
         ],
       ),
     );
   }
 
-  Widget _buildPricingTeaser(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        if (constraints.maxWidth > 900) {
-          return Row(
+  Future<void> _createSpace(BuildContext context, WidgetRef ref) async {
+    final ctrl = TextEditingController();
+    final name = await showDialog<String>(
+      context: context,
+      builder: (c) => AlertDialog(
+        title: const Text('New space'),
+        content: TextField(
+          controller: ctrl,
+          autofocus: true,
+          decoration: const InputDecoration(
+              hintText: 'e.g. Office, Kitchen, Lab'),
+        ),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(c),
+              child: const Text('Cancel')),
+          FilledButton(
+              onPressed: () => Navigator.pop(c, ctrl.text.trim()),
+              child: const Text('Create')),
+        ],
+      ),
+    );
+    if (name == null || name.isEmpty) return;
+    try {
+      await ref.read(contextRepoProvider).createSpace(name);
+      ref.invalidate(spacesLiveProvider);
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('Create failed: $e')));
+      }
+    }
+  }
+}
+
+// ── sections ──────────────────────────────────────────────────────────────
+
+class _Greeting extends StatelessWidget {
+  const _Greeting({required this.now});
+  final DateTime now;
+
+  @override
+  Widget build(BuildContext context) {
+    final h = now.hour;
+    final hello = h < 12
+        ? 'Good morning'
+        : h < 18
+            ? 'Good afternoon'
+            : 'Good evening';
+    final date = '${_wd[now.weekday]}, ${_mo[now.month]} ${now.day}';
+    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      Text(hello, style: Theme.of(context).textTheme.headlineSmall),
+      Text(date,
+          style: TextStyle(
+              color: Theme.of(context).colorScheme.outline,
+              fontSize: 13)),
+    ]);
+  }
+
+  static const _wd = {
+    1: 'Mon', 2: 'Tue', 3: 'Wed', 4: 'Thu', 5: 'Fri', 6: 'Sat', 7: 'Sun'
+  };
+  static const _mo = {
+    1: 'Jan', 2: 'Feb', 3: 'Mar', 4: 'Apr', 5: 'May', 6: 'Jun',
+    7: 'Jul', 8: 'Aug', 9: 'Sep', 10: 'Oct', 11: 'Nov', 12: 'Dec'
+  };
+}
+
+class _SectionTitle extends StatelessWidget {
+  const _SectionTitle({required this.title, this.action});
+  final String title;
+  final Widget? action;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(children: [
+        Expanded(
+          child: Text(title,
+              style: Theme.of(context)
+                  .textTheme
+                  .titleMedium
+                  ?.copyWith(fontWeight: FontWeight.w700)),
+        ),
+        if (action != null) action!,
+      ]),
+    );
+  }
+}
+
+class _EmptyHint extends StatelessWidget {
+  const _EmptyHint(this.text);
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Text(text,
+          style: TextStyle(
+              fontSize: 12.5,
+              color: Theme.of(context).colorScheme.outline)),
+    );
+  }
+}
+
+/// Room-style tile — occupancy dot + headline stats, tap → detail.
+class _SpaceTile extends StatelessWidget {
+  const _SpaceTile({required this.space});
+  final SpaceInfo space;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    return Card(
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: () => context.push('/context/spaces/${space.id}'),
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Expanded(child: _buildPricingCard('Free', null, 'Get started with basic features and community support.', false)),
-              const SizedBox(width: 16),
-              Expanded(child: _buildPricingCard('Pro', '\$9.99/mo', 'Unlimited computing power and premium features.', true)),
-              const SizedBox(width: 16),
-              Expanded(child: _buildPricingCard('Enterprise', 'Custom', 'Tailored solutions for organizations.', false)),
-            ],
-          );
-        }
-        return Column(
-          children: [
-            _buildPricingCard('Free', null, 'Get started with basic features and community support.', false),
-            const SizedBox(height: 16),
-            _buildPricingCard('Pro', '\$9.99/mo', 'Unlimited computing power and premium features.', true),
-            const SizedBox(height: 16),
-            _buildPricingCard('Enterprise', 'Custom', 'Tailored solutions for organizations.', false),
-          ],
-        );
-      },
-    );
-  }
-
-  Widget _buildPricingCard(String title, String? price, String description, bool featured) {
-    return GlassCard(
-      child: Container(
-        padding: const EdgeInsets.all(32),
-        decoration: featured
-            ? BoxDecoration(
-                borderRadius: BorderRadius.circular(18),
-                border: Border.all(color: AppColors.primaryBlue, width: 2),
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    Colors.white,
-                    AppColors.primaryBlue.withValues(alpha: 0.02),
-                  ],
+              Row(children: [
+                Icon(
+                  space.occupied
+                      ? Icons.sensor_door
+                      : Icons.sensor_door_outlined,
+                  size: 20,
+                  color: space.occupied ? Colors.green : cs.outline,
                 ),
-              )
-            : null,
-        child: Column(
-          children: [
-            Text(
-              title,
-              style: AppTextStyles.h3.copyWith(
-                color: featured ? AppColors.primaryBlue : AppColors.textPrimaryLight,
-              ),
-            ),
-            const SizedBox(height: 8),
-            if (price != null)
+                const Spacer(),
+                if (space.occupied)
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 6, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: Colors.green.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Text('Occupied',
+                        style:
+                            TextStyle(fontSize: 10, color: Colors.green)),
+                  ),
+              ]),
+              const Spacer(),
+              Text(space.name,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                      fontWeight: FontWeight.w600, fontSize: 14)),
+              const SizedBox(height: 2),
               Text(
-                price,
-                style: AppTextStyles.h4.copyWith(
-                  color: featured ? AppColors.primaryBlue : AppColors.textSecondaryLight,
-                ),
-              )
-            else
-              const SizedBox(height: 28),
-            const SizedBox(height: 16),
-            Text(
-              description,
-              style: AppTextStyles.bodySmall.copyWith(
-                color: AppColors.textSecondaryLight,
+                '${space.peopleCount} ${space.peopleCount == 1 ? 'person' : 'people'}'
+                ' · ${space.placements.length} devices',
+                style: TextStyle(fontSize: 11, color: cs.outline),
               ),
-              textAlign: TextAlign.center,
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
   }
+}
 
-  void _launchExternal(String url) {
-    // TODO: Implement url_launcher
-    debugPrint('Launch: $url');
+/// "gad — in office" chips for entities carrying a location state.
+class _PresenceStrip extends StatelessWidget {
+  const _PresenceStrip({required this.snapshot});
+  final ContextSnapshot snapshot;
+
+  @override
+  Widget build(BuildContext context) {
+    final rows = <Widget>[];
+    for (final st in snapshot.states) {
+      if (st.key != 'location.space.v1' || !st.active) continue;
+      final place = _placeName(st.value);
+      if (place.isEmpty) continue;
+      ContextEntity? entity;
+      for (final e in snapshot.entities) {
+        if (e.id == st.entityId) {
+          entity = e;
+          break;
+        }
+      }
+      final who = entity != null && (entity.name?.isNotEmpty ?? false)
+          ? entity.name!
+          : st.entityId.split(':').last;
+      rows.add(Chip(
+        avatar: Icon(
+            entity?.kind == 'person' ? Icons.person : Icons.tag,
+            size: 16),
+        label: Text('$who · $place', style: const TextStyle(fontSize: 12)),
+        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        visualDensity: VisualDensity.compact,
+      ));
+    }
+    if (rows.isEmpty) return const SizedBox.shrink();
+    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      const _SectionTitle(title: 'Presence'),
+      Wrap(spacing: 8, runSpacing: 4, children: rows),
+    ]);
   }
 
-  void _scrollToSection(BuildContext context) {
-    // TODO: Implement smooth scroll
-    debugPrint('Scroll to section');
+  static String _placeName(dynamic v) {
+    if (v is String) return v;
+    if (v is Map) {
+      return '${v['space'] ?? v['name'] ?? v['space_id'] ?? ''}';
+    }
+    return '';
+  }
+}
+
+/// One paired watch — connection dot + tap through to the watch hub.
+class _WatchTile extends ConsumerWidget {
+  const _WatchTile(
+      {required this.bleId, required this.name, required this.connected});
+  final String bleId;
+  final String name;
+  final bool connected;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final conn = ref.watch(watchConnectionProvider(bleId)).valueOrNull;
+    final live = connected || conn == BluetoothConnectionState.connected;
+    final tele = ref.watch(watchTelemetryProvider(bleId)).valueOrNull;
+    final batt = tele?.battery;
+    return Card(
+      child: ListTile(
+        leading: Icon(Icons.watch,
+            color: live ? Colors.teal : Colors.grey, size: 30),
+        title: Text(name),
+        subtitle: Text(
+            live
+                ? 'Connected${batt != null ? ' · $batt%' : ''}'
+                : 'Not connected',
+            style: TextStyle(
+                fontSize: 12, color: live ? Colors.teal : Colors.grey)),
+        trailing: const Icon(Icons.chevron_right),
+        onTap: () => context.push('/watch'),
+      ),
+    );
+  }
+}
+
+/// Fleet summary — online nodes with per-node activity, tap → devices.
+class _NodesCard extends StatelessWidget {
+  const _NodesCard({required this.devices});
+  final List<ThothDevice> devices;
+
+  @override
+  Widget build(BuildContext context) {
+    final nodes =
+        devices.where((d) => (d.deviceType ?? '') != 'pinetime').toList();
+    if (nodes.isEmpty) return const SizedBox.shrink();
+    final online = nodes.where((d) => d.online).length;
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 12, 8, 12),
+        child: Column(children: [
+          InkWell(
+            onTap: () => context.go('/devices'),
+            child: Row(children: [
+              const Icon(Icons.router, size: 20),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text('$online of ${nodes.length} nodes online',
+                    style: const TextStyle(fontWeight: FontWeight.w600)),
+              ),
+              const Icon(Icons.chevron_right, color: Colors.grey),
+            ]),
+          ),
+          const SizedBox(height: 6),
+          for (final d in nodes)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 3),
+              child: InkWell(
+                onTap: () => context.push('/devices/${d.uuid}'),
+                child: Row(children: [
+                  Icon(Icons.circle,
+                      size: 8,
+                      color: d.online ? Colors.green : Colors.grey),
+                  const SizedBox(width: 10),
+                  Expanded(
+                      child: Text(d.name,
+                          style: const TextStyle(fontSize: 13))),
+                  Text(_activityTag(d),
+                      style: const TextStyle(
+                          fontSize: 11, color: Colors.grey)),
+                ]),
+              ),
+            ),
+        ]),
+      ),
+    );
+  }
+
+  static String _activityTag(ThothDevice d) {
+    final a = d.activity;
+    if (a == null) return d.online ? 'idle' : 'offline';
+    final mode = '${a['mode'] ?? 'idle'}';
+    final streams = a['streams'] is List
+        ? (a['streams'] as List).where((s) {
+            return s is Map && (((s['age_s'] as num?) ?? 999) < 10);
+          }).length
+        : 0;
+    return streams > 0 ? '$mode · $streams live' : mode;
+  }
+}
+
+/// One transition row in the Recent activity preview.
+class _EventRow extends StatelessWidget {
+  const _EventRow({required this.event});
+  final ContextEvent event;
+
+  @override
+  Widget build(BuildContext context) {
+    final when = event.timestamp != null
+        ? DateTime.fromMillisecondsSinceEpoch(
+            (event.timestamp! * 1000).round())
+        : null;
+    final icon = switch (event.type) {
+      'entered' => Icons.login,
+      'exited' => Icons.logout,
+      _ => Icons.swap_horiz,
+    };
+    final color = switch (event.type) {
+      'entered' => Colors.green,
+      'exited' => Colors.grey,
+      _ => Colors.blue,
+    };
+    return ListTile(
+      dense: true,
+      contentPadding: EdgeInsets.zero,
+      leading: Icon(icon, size: 18, color: color),
+      title: Text(
+          '${event.entityId?.split(':').last ?? 'entity'} '
+          '${event.type} ${_val(event.value)}',
+          style: const TextStyle(fontSize: 13)),
+      subtitle: when != null
+          ? Text(_ago(when), style: const TextStyle(fontSize: 11))
+          : null,
+    );
+  }
+
+  static String _val(dynamic v) {
+    if (v is Map) return '${v['space'] ?? v['space_id'] ?? v}';
+    return '$v';
+  }
+
+  static String _ago(DateTime t) {
+    final d = DateTime.now().difference(t);
+    if (d.inMinutes < 1) return 'just now';
+    if (d.inHours < 1) return '${d.inMinutes}m ago';
+    if (d.inDays < 1) return '${d.inHours}h ago';
+    return '${d.inDays}d ago';
   }
 }

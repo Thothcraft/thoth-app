@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/api/node_client.dart';
 import '../application/device_detail_provider.dart';
+import '../application/devices_provider.dart';
 
 /// Device detail — tabbed view over the node relay (status, captures,
 /// automations, events). Every request flows Brain → node WS tunnel, so
@@ -146,6 +147,7 @@ class _OverviewTab extends ConsumerWidget {
         ref.invalidate(deviceSensorsProvider(deviceId));
         ref.invalidate(deviceMetadataProvider(deviceId));
         ref.invalidate(deviceRoomProvider(deviceId));
+        ref.invalidate(devicesProvider);
       },
       child: ListView(
         padding: const EdgeInsets.all(16),
@@ -177,6 +179,8 @@ class _OverviewTab extends ConsumerWidget {
               ),
             ),
           ),
+          const SizedBox(height: 12),
+          _ActivityCard(deviceId: deviceId),
           const SizedBox(height: 12),
           sensors.when(
             loading: () => const LinearProgressIndicator(),
@@ -273,6 +277,104 @@ class _OverviewTab extends ConsumerWidget {
           children: [
             Text(k, style: const TextStyle(color: Colors.black54)),
             Text(v, style: const TextStyle(fontWeight: FontWeight.w500)),
+          ],
+        ),
+      );
+}
+
+/// Live "what is the node doing" card — sourced from the heartbeat's
+/// ``hardware_info.activity`` snapshot carried by the device list, so it
+/// works even when the node's local API is unreachable.
+class _ActivityCard extends ConsumerWidget {
+  const _ActivityCard({required this.deviceId});
+  final String deviceId;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final devices = ref.watch(devicesProvider).valueOrNull ?? const [];
+    Map<String, dynamic>? act;
+    for (final d in devices) {
+      if (d.uuid == deviceId) {
+        act = d.activity;
+        break;
+      }
+    }
+    if (act == null) return const SizedBox.shrink();
+    final streams = (act['streams'] as List? ?? const [])
+        .whereType<Map>()
+        .toList();
+    final live = streams.where((s) => s['fresh'] == true).toList();
+    final captures = act['captures'] as List? ?? const [];
+    final models = act['models'] as List? ?? const [];
+    final watches = act['watches'] as List? ?? const [];
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Activity',
+                style: Theme.of(context).textTheme.titleMedium),
+            const SizedBox(height: 8),
+            _kv('Mode', '${act['mode'] ?? 'unknown'}'),
+            _kv('Brain channel',
+                act['brain_ws'] == true ? 'connected' : 'down'),
+            if (models.isNotEmpty)
+              _kv('Models', models.map((m) => '$m').join(', ')),
+            if (captures.isNotEmpty)
+              _kv('Capturing',
+                  captures.map((c) => '${c['id']}').join(', ')),
+            if (watches.isNotEmpty)
+              _kv('Watches',
+                  watches
+                      .map((w) =>
+                          '${(w['subject'] ?? '').toString().split(':').last.substring(0, 8)}${w['connected'] == true ? ' ✓' : ' ✗'}')
+                      .join(', ')),
+            if (live.isNotEmpty) ...[
+              const SizedBox(height: 4),
+              Text('Live streams',
+                  style: Theme.of(context).textTheme.bodySmall),
+              for (final s in live)
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 2),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.sensors, size: 14,
+                          color: Colors.green),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: Text('${s['id']}',
+                            style: const TextStyle(
+                                fontFamily: 'monospace', fontSize: 12)),
+                      ),
+                      if ((s['subscribers'] as List? ?? const [])
+                          .isNotEmpty)
+                        Text(
+                          (s['subscribers'] as List).join(', '),
+                          style: const TextStyle(
+                              fontSize: 10, color: Colors.black45),
+                        ),
+                    ],
+                  ),
+                ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _kv(String k, String v) => Padding(
+        padding: const EdgeInsets.symmetric(vertical: 2),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(k, style: const TextStyle(color: Colors.black54)),
+            Flexible(
+              child: Text(v,
+                  textAlign: TextAlign.right,
+                  style: const TextStyle(fontWeight: FontWeight.w500)),
+            ),
           ],
         ),
       );

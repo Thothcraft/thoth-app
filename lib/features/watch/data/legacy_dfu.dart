@@ -80,31 +80,58 @@ class LegacyDfu {
     }
   }
 
-  Future<void> _cpWrite(List<int> bytes) => _cp!.write(bytes);
-
-  /// Wait for a control-point response ``{0x10, opcode, status}``.
-  Future<void> _awaitResp(int opcode,
-      {Duration timeout = const Duration(seconds: 30)}) async {
-    final deadline = DateTime.now().add(timeout);
-    await for (final v in _cpValues.stream) {
-      if (v.isNotEmpty && v[0] == 0x10 && v.length >= 3 && v[1] == opcode) {
-        if (v[2] != 0x01) {
-          throw StateError('DFU op 0x${opcode.toRadixString(16)} '
-              'rejected: status ${v[2]}');
-        }
+  /// Write honoring the char's declared properties, retrying the
+  /// transient Android `writeCharacteristic() returned false` case — it
+  /// means the request never entered the gatt queue (link busy with the
+  /// link-layer's housekeeping ops), so a retry cannot double-apply.
+  Future<void> _write(BluetoothCharacteristic c, List<int> bytes,
+      {required bool preferNoResponse}) async {
+    final noRsp = preferNoResponse
+        ? c.properties.writeWithoutResponse
+        : !c.properties.write;
+    Object? last;
+    for (var attempt = 0; attempt < 4; attempt++) {
+      try {
+        await c.write(bytes, withoutResponse: noRsp);
         return;
-      }
-      if (DateTime.now().isAfter(deadline)) {
-        throw TimeoutException('no response for DFU op '
-            '0x${opcode.toRadixString(16)}');
+      } catch (e) {
+        last = e;
+        if (!e.toString().contains('returned false')) rethrow;
+        await Future<void>.delayed(Duration(milliseconds: 20 + attempt * 40));
       }
     }
-    throw StateError('DFU link closed mid-transfer');
+    throw last ?? StateError('DFU write failed');
+  }
+
+  Future<void> _cpWrite(List<int> bytes) =>
+      _write(_cp!, bytes, preferNoResponse: false);
+
+  Future<void> _pktWrite(List<int> bytes) =>
+      _write(_pkt!, bytes, preferNoResponse: true);
+
+  /// Wait for a control-point response ``{0x10, opcode, status}``.
+  /// `firstWhere().timeout()` — the previous await-for checked its
+  /// deadline only when a notification *arrived*, so a silent link
+  /// (or a missed notify) hung the upload forever.
+  Future<void> _awaitResp(int opcode,
+      {Duration timeout = const Duration(seconds: 30)}) async {
+    final v = await _cpValues.stream
+        .firstWhere((v) =>
+            v.isNotEmpty && v[0] == 0x10 && v.length >= 3 && v[1] == opcode)
+        .timeout(timeout, onTimeout: () => throw TimeoutException(
+            'no response for DFU op 0x${opcode.toRadixString(16)}'));
+    if (v[2] != 0x01) {
+      throw StateError('DFU op 0x${opcode.toRadixString(16)} '
+          'rejected: status ${v[2]}');
+    }
   }
 
   /// Full transfer. Throws on protocol error; the caller owns the
   /// post-reboot reconnect.
   Future<void> run(Uint8List bin, Uint8List dat) async {
+    if (!device.isConnected) {
+      throw StateError('watch is not connected — retry once the link is up');
+    }
     await _resolve();
     await _cp!.setNotifyValue(true);
     _cpSub = _cp!.onValueReceived.listen(_cpValues.add);
@@ -117,12 +144,11 @@ class LegacyDfu {
         ..setUint32(0, 0, Endian.little) // softdevice
         ..setUint32(4, 0, Endian.little) // bootloader
         ..setUint32(8, bin.length, Endian.little); // application
-      await _pkt!.write(sizes.buffer.asUint8List(),
-          withoutResponse: true);
+      await _pktWrite(sizes.buffer.asUint8List());
       await _awaitResp(0x01, timeout: const Duration(seconds: 45));
       onProgress?.call(1, 'Flash erased — sending init packet…');
 
-      await _pkt!.write(dat, withoutResponse: true);
+      await _pktWrite(dat);
       await _cpWrite([0x02, 0x01]); // InitDFUParameters complete
       // PRN every 50 packets ≈ 1 kB — paces the write window and gives
       // firmware-side progress ticks. (0 would div-by-zero the counter.)
@@ -139,8 +165,7 @@ class LegacyDfu {
       for (var off = 0; off < bin.length; off += 20) {
         final end =
             (off + 20 > bin.length) ? bin.length : off + 20;
-        await _pkt!.write(bin.sublist(off, end),
-            withoutResponse: true);
+        await _pktWrite(bin.sublist(off, end));
         sent += end - off;
         if (sent % 1000 == 0) {
           // Yield to let PRN notifications land + report progress.
@@ -165,7 +190,7 @@ class LegacyDfu {
       });
       try {
         await complete.future
-            .timeout(const Duration(seconds: 30));
+            .timeout(const Duration(seconds: 60));
       } finally {
         await prnSub.cancel();
       }

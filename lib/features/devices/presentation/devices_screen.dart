@@ -76,6 +76,17 @@ class DevicesScreen extends ConsumerWidget {
                 }
                 final d = list[i];
                 final isWatch = d.deviceType == 'pinetime';
+                final act = d.activity;
+                final mode = act?['mode']?.toString();
+                final freshStreams = (act?['streams'] as List? ?? const [])
+                    .where((s) => s is Map && s['fresh'] == true)
+                    .length;
+                final sub = StringBuffer(
+                    '${d.deviceType ?? 'thoth'} • ${d.online ? 'online' : 'offline'}');
+                if (d.online && mode != null) sub.write(' • $mode');
+                if (d.online && freshStreams > 0) {
+                  sub.write(' · $freshStreams live');
+                }
                 return Card(
                   child: ListTile(
                     leading: Icon(
@@ -83,8 +94,7 @@ class DevicesScreen extends ConsumerWidget {
                       color: d.online ? Colors.green : Colors.grey,
                     ),
                     title: Text(d.name),
-                    subtitle: Text(
-                        '${d.deviceType ?? 'thoth'} • ${d.online ? 'online' : 'offline'}',),
+                    subtitle: Text(sub.toString()),
                     trailing: d.batteryLevel != null
                         ? Text('${d.batteryLevel}%')
                         : null,

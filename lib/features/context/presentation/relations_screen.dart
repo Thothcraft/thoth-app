@@ -23,9 +23,7 @@ class RelationsScreen extends ConsumerWidget {
     final spacesAsync = ref.watch(spacesLiveProvider);
     final watchesAsync = ref.watch(watchListProvider);
 
-    return Scaffold(
-      appBar: AppBar(title: const Text('BLE map')),
-      body: edgesAsync.when(
+    return edgesAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(
             child: Padding(
@@ -68,8 +66,7 @@ class RelationsScreen extends ConsumerWidget {
             _DescriptorList(edges: edges, watchNames: watchNames),
           ]);
         },
-      ),
-    );
+      );
   }
 }
 

@@ -68,6 +68,11 @@ class AppSettings {
     /// Optional phone accelerometer → coarse motion evidence.
     this.phoneMotion = false,
 
+    /// Advertise an owner-tagged BLE beacon (``thoth-p:<user>``) so
+    /// in-home scanners (ESP32 CSI receivers, Pi radios) can anchor
+    /// this phone's RSSI to the signed-in person. Non-connectable.
+    this.bleIdentityBeacon = false,
+
     /// Cached account username for source labels.
     this.username,
 
@@ -83,6 +88,7 @@ class AppSettings {
   final bool bleRssiCollection;
   final bool gpsEvidence;
   final bool phoneMotion;
+  final bool bleIdentityBeacon;
   final String? username;
   final List<GeoZone> geoZones;
 
@@ -94,6 +100,7 @@ class AppSettings {
     bool? bleRssiCollection,
     bool? gpsEvidence,
     bool? phoneMotion,
+    bool? bleIdentityBeacon,
     String? username,
     List<GeoZone>? geoZones,
   }) =>
@@ -105,6 +112,7 @@ class AppSettings {
         bleRssiCollection: bleRssiCollection ?? this.bleRssiCollection,
         gpsEvidence: gpsEvidence ?? this.gpsEvidence,
         phoneMotion: phoneMotion ?? this.phoneMotion,
+        bleIdentityBeacon: bleIdentityBeacon ?? this.bleIdentityBeacon,
         username: username ?? this.username,
         geoZones: geoZones ?? this.geoZones,
       );
@@ -116,6 +124,7 @@ class AppSettings {
   static const _kBleRssi = 'settings.ble_rssi';
   static const _kGpsEvidence = 'settings.gps_evidence';
   static const _kMotion = 'settings.phone_motion';
+  static const _kBleBeacon = 'settings.ble_identity_beacon';
   static const _kUsername = 'settings.username';
   static const _kGeoZones = 'settings.geo_zones';
 }
@@ -140,6 +149,7 @@ class AppSettingsNotifier extends AsyncNotifier<AppSettings> {
       bleRssiCollection: p.getBool(AppSettings._kBleRssi) ?? false,
       gpsEvidence: p.getBool(AppSettings._kGpsEvidence) ?? false,
       phoneMotion: p.getBool(AppSettings._kMotion) ?? false,
+      bleIdentityBeacon: p.getBool(AppSettings._kBleBeacon) ?? false,
       username: p.getString(AppSettings._kUsername),
       geoZones: (json.decode(
               p.getString(AppSettings._kGeoZones) ?? '[]') as List)
@@ -195,6 +205,12 @@ class AppSettingsNotifier extends AsyncNotifier<AppSettings> {
     state = AsyncData((state.valueOrNull ?? const AppSettings())
         .copyWith(phoneMotion: v));
     await _save((p) => p.setBool(AppSettings._kMotion, v));
+  }
+
+  Future<void> setBleIdentityBeacon(bool v) async {
+    state = AsyncData((state.valueOrNull ?? const AppSettings())
+        .copyWith(bleIdentityBeacon: v));
+    await _save((p) => p.setBool(AppSettings._kBleBeacon, v));
   }
 
   Future<void> setGeoZones(List<GeoZone> zones) async {

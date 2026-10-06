@@ -284,6 +284,7 @@ class WatchRelay {
         'hardware_info': {
           'firmware': _firmware,
           'transport': 'ble',
+          'ble_id': record.bleId,
           'gateway': 'thoth-app',
           'sensors': [kWatchSensorMotion, kWatchSensorHr, kWatchSensorSteps,
               kWatchSensorBattery, kWatchSensorProx, kWatchSensorGps],

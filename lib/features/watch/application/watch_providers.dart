@@ -1,8 +1,11 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/api/node_client.dart';
+import '../../devices/application/devices_provider.dart';
 import '../../observe/data/observation_service.dart';
 import '../../settings/application/app_settings.dart';
 import '../data/trace_service.dart';
@@ -66,26 +69,54 @@ class WatchManager extends Notifier<Map<String, WatchRelay>> {
       unawaited(TraceService.instance.setBackgroundRelay(s.backgroundRelay));
       unawaited(TraceService.instance.setGpsTrace(s.gpsTrace));
     });
+    // Cold start: re-link every paired watch without waiting for a tap.
+    // A process kill drops the BLE connection with the app and nothing
+    // re-established it on relaunch — the "watch disconnects when I
+    // leave the app" symptom.
+    unawaited(_autoConnect());
     return {};
+  }
+
+  bool _autoConnected = false;
+  Future<void> _autoConnect() async {
+    if (_autoConnected) return;
+    _autoConnected = true;
+    try {
+      final watches = await ref.read(watchListProvider.future);
+      for (final w in watches) {
+        try {
+          await connect(w);
+        } catch (e) {
+          // Watch asleep / out of range — WatchLink's reconnect loop
+          // keeps trying in the background anyway.
+          debugPrint('[watch] auto-connect ${w.bleId}: $e');
+        }
+      }
+    } catch (e) {
+      debugPrint('[watch] auto-connect list load: $e');
+    }
   }
 
   WatchRelay? relayFor(String bleId) => state[bleId];
 
   /// Connect (or reuse) the BLE link and start the Brain relay.
+  ///
+  /// The relay registers + starts BEFORE the link completes so a slow or
+  /// out-of-range watch never leaves an unowned [WatchLink] retrying in
+  /// the void — whenever its connect loop lands, telemetry buffering,
+  /// the scan-forward sub, and heartbeats are already attached.
   Future<WatchRelay> connect(WatchRecord record) async {
     final existing = state[record.bleId];
-    if (existing != null && existing.connected) return existing;
-    await existing?.dispose();
+    if (existing != null) {
+      if (existing.connected) return existing;
+      // Relay exists; its link's connect loop is still running. Wait for
+      // it instead of disposing an in-flight connect under the caller.
+      await _waitConnected(existing.link!, record);
+      return existing;
+    }
 
     final device = BluetoothDevice.fromId(record.bleId);
     final link = WatchLink(device);
-    // Bounded: WatchLink's connect loop retries forever by design for
-    // reconnects, but a pairing-time connect must fail fast or the
-    // "Pairing with Brain" dialog hangs with no feedback.
-    await link.connect().timeout(const Duration(seconds: 60),
-        onTimeout: () => throw TimeoutException(
-            'watch unreachable — keep it awake and in range'));
-
     final relay = WatchRelay(record);
     await relay.start(link);
     state = {...state, record.bleId: relay};
@@ -100,22 +131,70 @@ class WatchManager extends Notifier<Map<String, WatchRelay>> {
             observer: record.deviceUuid, sightings: scan);
       }
     });
-    // Foreground service + GPS/RSSI trace — keeps IMU streaming with the
-    // screen off and feeds pinetime-prox / pinetime-gps into Brain.
-    final s = ref.read(appSettingsProvider).valueOrNull ??
-        const AppSettings();
-    unawaited(TraceService.instance.attach(relay,
-        backgroundRelay: s.backgroundRelay, gpsTrace: s.gpsTrace));
-    // First connect ever: ask for the doze exemption. FGS + wakelock keep
-    // the process alive, but only the whitelist keeps uploads flowing when
-    // the phone sits unplugged and still for a long stretch.
-    if (!s.batteryOptPrompted) {
-      await ref.read(appSettingsProvider.notifier).setBatteryOptPrompted();
-      unawaited(
-          TraceService.instance.requestBatteryOptimizationExemption());
-    }
+    // Foreground service + GPS/RSSI trace attach once the link is
+    // actually live — no "watch relay active" notification for a watch
+    // that never came up. attach() is idempotent across reconnects.
+    unawaited(link.connection
+        .firstWhere((s) => s == BluetoothConnectionState.connected)
+        .then((_) async {
+      final s = ref.read(appSettingsProvider).valueOrNull ??
+          const AppSettings();
+      unawaited(TraceService.instance.attach(relay,
+          backgroundRelay: s.backgroundRelay, gpsTrace: s.gpsTrace));
+      // First connect ever: ask for the doze exemption. FGS + wakelock
+      // keep the process alive, but only the whitelist keeps uploads
+      // flowing when the phone sits unplugged and still for a long
+      // stretch.
+      if (!s.batteryOptPrompted) {
+        await ref.read(appSettingsProvider.notifier).setBatteryOptPrompted();
+        unawaited(
+            TraceService.instance.requestBatteryOptimizationExemption());
+      }
+    }).catchError((Object e) => debugPrint('[watch] trace attach: $e')));
+
+    unawaited(link.connect());
+    unawaited(_enrollWatchOnNodes(record));
+    // Bounded wait for the first live link so pairing + DFU callers get
+    // a usable connection or a clear failure; the registered relay keeps
+    // retrying in the background either way.
+    await _waitConnected(link, record);
     return relay;
   }
+
+  /// Enroll the watch as a ``kind=watch`` device on every online thoth
+  /// node — the node's central session then connects whenever the phone
+  /// releases the link (watch stops advertising while it's held), so
+  /// whispy keeps streaming IMU + the watch's own neighbor scan to Brain.
+  Future<void> _enrollWatchOnNodes(WatchRecord record) async {
+    try {
+      final devices = await ref.read(devicesProvider.future);
+      for (final d in devices) {
+        if (!d.online || d.deviceType == 'pinetime') continue;
+        try {
+          await NodeClient.instance.post(d.uuid, '/api/v1/ble/enroll',
+              body: {
+                'address': record.bleId,
+                'kind': 'watch',
+                'name': record.name ?? 'PineTime',
+              });
+        } catch (e) {
+          // Offline/no-tunnel nodes: they can still be enrolled later
+          // from the node's own API once they're back.
+          debugPrint('[watch] enroll on ${d.name}: $e');
+        }
+      }
+    } catch (e) {
+      debugPrint('[watch] enroll device list: $e');
+    }
+  }
+
+  Future<void> _waitConnected(WatchLink link, WatchRecord record) =>
+      link.connection
+          .firstWhere((s) => s == BluetoothConnectionState.connected)
+          .timeout(const Duration(seconds: 60),
+              onTimeout: () => throw TimeoutException(
+                  '${record.name ?? 'watch'} unreachable — keep it awake '
+                  'and in range'));
 
   /// Pair + connect a newly scanned watch in one shot. [onStage]
   /// reports progress ('pairing' → 'connecting') for the dialog.
