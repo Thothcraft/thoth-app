@@ -373,11 +373,11 @@ final observationControllerProvider =
     targets: watches,
     observer: 'phone:${settings.username ?? 'this'}',
     geoZones: settings.geoZones,
+  ));
   // Owner-tagged BLE advert — the other direction: lets the home's
   // scanners see this phone.
   unawaited(IdentityBeacon.instance
       .sync(settings.bleIdentityBeacon, settings.username));
-  ));
 });
 
 /// Enrolled wearable BLE ids — the only targets the RSSI scanner tracks.

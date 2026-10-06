@@ -53,7 +53,7 @@ class IdentityBeacon {
         manufacturerId: 0xFFFF,
         manufacturerData: Uint8List.fromList(ascii.encode(tag)),
       ),
-      advertiseSettings: const AdvertiseSettings(
+      advertiseSettings: AdvertiseSettings(
         advertiseMode: AdvertiseMode.advertiseModeBalanced,
         txPowerLevel: AdvertiseTxPower.advertiseTxPowerMedium,
         connectable: false,
