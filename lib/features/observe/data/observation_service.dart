@@ -14,6 +14,7 @@ import '../../settings/application/app_settings.dart';
 import '../../watch/application/watch_providers.dart';
 import '../../watch/domain/pinetime_gatt.dart';
 import 'identity_beacon.dart';
+import 'phone_relay.dart';
 
 /// Mobile-device observation producers (Part 4).
 ///
@@ -39,6 +40,7 @@ class ObservationService {
   int _failed = 0;
   String? _lastError;
   bool _running = false;
+
   /// Whether BLE RSSI evidence is enabled — also gates watch-relayed
   /// sightings (same privacy semantics as the phone's own scan).
   bool _bleEnabled = false;
@@ -46,6 +48,7 @@ class ObservationService {
   /// Enrolled targets the BLE scanner reports on — Thoth devices the user
   /// owns (watch BLE ids, node ids).
   final Set<String> knownTargets = {};
+
   /// Observer id: this phone's logical source identity.
   String observerId = 'phone:this';
 
@@ -92,11 +95,20 @@ class ObservationService {
     _running = bleRssi || gps || motion;
     _bleEnabled = bleRssi;
     _flushTimer ??= Timer.periodic(
-        const Duration(seconds: 60), (_) => unawaited(flush()));
+      const Duration(seconds: 60),
+      (_) => unawaited(flush()),
+    );
 
     if (bleRssi) await _startBleScan();
     if (gps) await _startGps();
     if (motion) _startMotion();
+    // Phone-as-device: when any source is live the handset also registers
+    // on Brain and streams phone-gps/imu/ble live-chunks (whispy SDK).
+    if (_running) {
+      unawaited(PhoneRelay.instance.start(name: observerId));
+    } else {
+      unawaited(PhoneRelay.instance.stop());
+    }
   }
 
   Future<void> stop() async {
@@ -112,6 +124,7 @@ class ObservationService {
     } catch (_) {}
     _flushTimer?.cancel();
     _flushTimer = null;
+    await PhoneRelay.instance.stop();
   }
 
   // ── BLE RSSI evidence ────────────────────────────────────────────────────
@@ -160,6 +173,11 @@ class ObservationService {
       }
       await Future<void>.delayed(bleWindow + const Duration(seconds: 2));
       for (final e in _rssiByTarget.entries) {
+        PhoneRelay.instance.submitBleSighting(
+          addr: e.key,
+          rssi: e.value,
+          known: true,
+        );
         _pending.add({
           'key': ContextKeys.bleProximityEvidence,
           'value': {
@@ -181,6 +199,12 @@ class ObservationService {
       final unknowns = _unknownRssi.entries.toList()
         ..sort((a, b) => b.value.compareTo(a.value));
       for (final e in unknowns.take(8)) {
+        PhoneRelay.instance.submitBleSighting(
+          addr: e.key,
+          rssi: e.value,
+          name: _unknownName[e.key],
+          known: false,
+        );
         _pending.add({
           'key': ContextKeys.bleDiscovery,
           'value': {
@@ -256,6 +280,13 @@ class ObservationService {
           'provenance': {'collector': 'thoth-app', 'class': 'geographic'},
         });
         _checkGeoZones(p);
+        PhoneRelay.instance.submitGps(
+          lat: p.latitude,
+          lon: p.longitude,
+          accM: p.accuracy,
+          speedMps: p.speed,
+          at: p.timestamp,
+        );
       });
     } catch (e) {
       debugPrint('[observe] gps failed: $e');
@@ -269,7 +300,11 @@ class ObservationService {
     String? inside;
     for (final z in _geoZones) {
       final d = Geolocator.distanceBetween(
-          p.latitude, p.longitude, z.latitude, z.longitude);
+        p.latitude,
+        p.longitude,
+        z.latitude,
+        z.longitude,
+      );
       if (d <= z.radiusM) {
         inside = z.name;
         break;
@@ -295,15 +330,17 @@ class ObservationService {
       'provenance': {'collector': 'thoth-app', 'class': 'geofence'},
     });
     final ts = p.timestamp.millisecondsSinceEpoch / 1000.0;
-    unawaited(_repo.postState(
-      stateKey: ContextKeys.locationZone,
-      entityId: personEntity,
-      value: {'zone': inside ?? 'away'},
-      since: ts,
-      transition: inside != null ? 'entered' : 'exited',
-      estimator: 'mobile.geofence',
-      confidence: (p.accuracy <= 25 ? 0.9 : 0.6),
-    ));
+    unawaited(
+      _repo.postState(
+        stateKey: ContextKeys.locationZone,
+        entityId: personEntity,
+        value: {'zone': inside ?? 'away'},
+        since: ts,
+        transition: inside != null ? 'entered' : 'exited',
+        estimator: 'mobile.geofence',
+        confidence: (p.accuracy <= 25 ? 0.9 : 0.6),
+      ),
+    );
   }
 
   // ── Phone motion evidence (optional generic source) ──────────────────────
@@ -317,6 +354,7 @@ class ObservationService {
         final now = DateTime.now();
         if (now.difference(lastSent) < const Duration(seconds: 1)) return;
         lastSent = now;
+        PhoneRelay.instance.submitImu(x: e.x, y: e.y, z: e.z, at: now);
         _pending.add({
           'key': ContextKeys.phoneMotionEvidence,
           'value': {'acc_x': e.x, 'acc_y': e.y, 'acc_z': e.z},
@@ -360,29 +398,30 @@ final observationServiceProvider =
 
 /// Applies the user's privacy toggles to the producers; watches the
 /// settings provider so toggles take effect immediately.
-final observationControllerProvider =
-    Provider<void>((ref) {
+final observationControllerProvider = Provider<void>((ref) {
   final settings = ref.watch(appSettingsProvider).valueOrNull;
   if (settings == null) return;
   final watches =
       ref.watch(_watchTargetsProvider).valueOrNull ?? const <String>{};
-  unawaited(ObservationService.instance.configure(
-    bleRssi: settings.bleRssiCollection,
-    gps: settings.gpsTrace && settings.gpsEvidence,
-    motion: settings.phoneMotion,
-    targets: watches,
-    observer: 'phone:${settings.username ?? 'this'}',
-    geoZones: settings.geoZones,
-  ));
+  unawaited(
+    ObservationService.instance.configure(
+      bleRssi: settings.bleRssiCollection,
+      gps: settings.gpsTrace && settings.gpsEvidence,
+      motion: settings.phoneMotion,
+      targets: watches,
+      observer: 'phone:${settings.username ?? 'this'}',
+      geoZones: settings.geoZones,
+    ),
+  );
   // Owner-tagged BLE advert — the other direction: lets the home's
   // scanners see this phone.
-  unawaited(IdentityBeacon.instance
-      .sync(settings.bleIdentityBeacon, settings.username));
+  unawaited(
+    IdentityBeacon.instance.sync(settings.bleIdentityBeacon, settings.username),
+  );
 });
 
 /// Enrolled wearable BLE ids — the only targets the RSSI scanner tracks.
-final _watchTargetsProvider =
-    FutureProvider<Set<String>>((ref) async {
+final _watchTargetsProvider = FutureProvider<Set<String>>((ref) async {
   try {
     final watches = await ref.watch(watchListProvider.future);
     return watches.map((w) => w.bleId).toSet();
