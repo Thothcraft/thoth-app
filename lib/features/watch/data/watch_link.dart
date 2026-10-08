@@ -124,7 +124,7 @@ class WatchLink {
     // before we subscribed.
     _connection.add(device.isConnected
         ? BluetoothConnectionState.connected
-        : BluetoothConnectionState.disconnected);
+        : BluetoothConnectionState.disconnected,);
     await _connectLoop();
   }
 
@@ -151,7 +151,7 @@ class WatchLink {
             await device.connect(
                 autoConnect: false,
                 mtu: 247,
-                timeout: const Duration(seconds: 12));
+                timeout: const Duration(seconds: 12),);
             // FBP can resolve connect() before its isConnected flag
             // flips — poll briefly instead of trusting it blindly.
             for (var i = 0; i < 40 && !device.isConnected; i++) {
@@ -206,7 +206,7 @@ class WatchLink {
             final t = decode(v);
             if (t != null) _telemetry.add(t);
           },
-        ));
+        ),);
       } catch (e) {
         debugPrint('[watch] notify $uuid failed: $e');
       }
@@ -229,7 +229,7 @@ class WatchLink {
               debugPrint('[watch] motionRx=$_motionRx (stamped)');
             }
             return WatchTelemetry(
-                motion: PinetimeCodec.decodeMotionStamped(v));
+                motion: PinetimeCodec.decodeMotionStamped(v),);
           });
     } else {
       // Stock InfiniTime only notifies 00030002 when x/y/z *change* — a
@@ -237,33 +237,33 @@ class WatchLink {
       // the phone screen is off. Poll the char at 10 Hz instead (matches
       // SystemTask's 100 ms motion period; reads work even while dozing).
       await notify(PinetimeGatt.charMotion,
-          (v) => WatchTelemetry(motion: PinetimeCodec.decodeMotion(v)));
+          (v) => WatchTelemetry(motion: PinetimeCodec.decodeMotion(v)),);
       _motionPollTimer ??= Timer.periodic(
-          const Duration(milliseconds: 100), (_) => _pollMotion());
+          const Duration(milliseconds: 100), (_) => _pollMotion(),);
     }
     await notify(PinetimeGatt.charSteps,
-        (v) => WatchTelemetry(steps: PinetimeCodec.decodeSteps(v)));
+        (v) => WatchTelemetry(steps: PinetimeCodec.decodeSteps(v)),);
     await notify(PinetimeGatt.charHr,
-        (v) => WatchTelemetry(heartRate: PinetimeCodec.decodeHeartRate(v)));
+        (v) => WatchTelemetry(heartRate: PinetimeCodec.decodeHeartRate(v)),);
     await notify(PinetimeGatt.charBattery,
-        (v) => WatchTelemetry(battery: PinetimeCodec.decodeBattery(v)));
+        (v) => WatchTelemetry(battery: PinetimeCodec.decodeBattery(v)),);
     await notify(
         PinetimeGatt.charMusicEvent,
         (v) => WatchTelemetry(
-            event: v.isEmpty ? null : PinetimeCodec.decodeMusicEvent(v.first)));
+            event: v.isEmpty ? null : PinetimeCodec.decodeMusicEvent(v.first),),);
     await notify(
         PinetimeGatt.charNotifEvent,
         (v) => WatchTelemetry(
-            event: v.isEmpty ? null : PinetimeCodec.decodeCallEvent(v.first)));
+            event: v.isEmpty ? null : PinetimeCodec.decodeCallEvent(v.first),),);
 
     // thoth-fork: watch-side neighbor scan — the watch reports what IT
     // hears so the fleet map has a wrist-level observer (triangulation).
     if (_chars.containsKey(PinetimeGatt.charScanResult)) {
       await notify(
           PinetimeGatt.charScanResult,
-          (v) => WatchTelemetry(bleScan: PinetimeCodec.decodeScanResults(v)));
+          (v) => WatchTelemetry(bleScan: PinetimeCodec.decodeScanResults(v)),);
       await _safeWrite(PinetimeGatt.charScanControl, [0x01],
-          withoutResponse: true);
+          withoutResponse: true,);
     }
 
     debugPrint('[watch] subscribed'
@@ -272,7 +272,7 @@ class WatchLink {
     // Time sync — InfiniTime reads CTS on connect; a direct write keeps it
     // honest after NTP drift without needing a peripheral-mode CTS server.
     await _safeWrite(PinetimeGatt.charCurrentTime,
-        PinetimeCodec.encodeCurrentTime(DateTime.now()));
+        PinetimeCodec.encodeCurrentTime(DateTime.now()),);
 
     // One-shot reads to seed UI + heartbeat hardware_info.
     final fw = await _safeRead(PinetimeGatt.charFirmware);
@@ -280,7 +280,7 @@ class WatchLink {
     _telemetry.add(WatchTelemetry(
       event: fw != null ? 'info:firmware=${utf8.decode(fw, allowMalformed: true)}' : null,
       battery: battery != null ? PinetimeCodec.decodeBattery(battery) : null,
-    ));
+    ),);
   }
 
   Future<List<int>?> _safeRead(Guid uuid) async {
@@ -292,7 +292,7 @@ class WatchLink {
   }
 
   Future<bool> _safeWrite(Guid uuid, List<int> bytes,
-      {bool withoutResponse = false}) async {
+      {bool withoutResponse = false,}) async {
     try {
       final c = _chars[uuid];
       if (c == null) return false;
@@ -323,7 +323,7 @@ class WatchLink {
     if (!_stampedMotion && !_disposed &&
         device.isConnected && _motionPollTimer == null) {
       _motionPollTimer = Timer.periodic(
-          const Duration(milliseconds: 100), (_) => _pollMotion());
+          const Duration(milliseconds: 100), (_) => _pollMotion(),);
     }
   }
 
@@ -365,7 +365,7 @@ class WatchLink {
   /// Raw GATT write by characteristic UUID — used by ``ble_gatt_write``
   /// device commands pushed from Brain.
   Future<bool> writeRaw(Guid uuid, List<int> bytes,
-          {bool withoutResponse = false}) =>
+          {bool withoutResponse = false,}) =>
       _safeWrite(uuid, bytes, withoutResponse: withoutResponse);
 
   // ── Typed command writers (Brain commands → GATT) ────────────────────────
@@ -373,7 +373,7 @@ class WatchLink {
   /// ANS New Alert — category 0 simple, 3 call, 5 sms, 9 instant message.
   Future<bool> sendAlert({int category = 0, String title = '', String body = ''}) =>
       _safeWrite(PinetimeGatt.charNewAlert,
-          PinetimeCodec.encodeAlert(category, [title, body]));
+          PinetimeCodec.encodeAlert(category, [title, body]),);
 
   /// Music playback state shown on the watch music app.
   Future<bool> setMusic({bool? playing, String? artist, String? track, String? album}) async {
@@ -395,7 +395,7 @@ class WatchLink {
 
   /// Navigation update (flag icon name, instruction, distance, % complete).
   Future<bool> setNavigation(
-      {String? flag, String? narrative, String? distance, int? progress}) async {
+      {String? flag, String? narrative, String? distance, int? progress,}) async {
     var ok = true;
     if (flag != null) {
       ok &= await _safeWrite(PinetimeGatt.charNavFlag, utf8.encode(flag));
@@ -408,7 +408,7 @@ class WatchLink {
     }
     if (progress != null) {
       ok &= await _safeWrite(PinetimeGatt.charNavProgress,
-          [progress.clamp(0, 100)]);
+          [progress.clamp(0, 100)],);
     }
     return ok;
   }
@@ -423,7 +423,7 @@ class WatchLink {
   Future<bool> syncTime() async {
     if (!device.isConnected || _chars.isEmpty) return false;
     return _safeWrite(PinetimeGatt.charCurrentTime,
-        PinetimeCodec.encodeCurrentTime(DateTime.now()));
+        PinetimeCodec.encodeCurrentTime(DateTime.now()),);
   }
 
   Future<void> dispose() async {

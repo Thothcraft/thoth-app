@@ -190,7 +190,7 @@ class SetupController extends Notifier<SetupState> {
     state = state.copyWith(
         error: message,
         provisionPhase: ProvisionPhase.failed,
-        retryCount: state.retryCount + 1);
+        retryCount: state.retryCount + 1,);
   }
 
   /// Restore a saved checkpoint — the wizard calls this when the user
@@ -215,7 +215,7 @@ class SetupController extends Notifier<SetupState> {
   /// Clear a retryable failure without resetting the flow.
   void clearError() {
     state = state.copyWith(
-        provisionPhase: ProvisionPhase.idle, clearError: true);
+        provisionPhase: ProvisionPhase.idle, clearError: true,);
   }
 
   // ── stage transitions ──────────────────────────────────────────────────
@@ -223,7 +223,7 @@ class SetupController extends Notifier<SetupState> {
   /// Step 2: QR/setup code accepted → move to discovery.
   Future<void> acceptIdentity(SetupIdentity identity) async {
     state = state.copyWith(
-        identity: identity, stage: SetupStage.discover, clearError: true);
+        identity: identity, stage: SetupStage.discover, clearError: true,);
     await _saveCheckpoint();
   }
 
@@ -239,12 +239,12 @@ class SetupController extends Notifier<SetupState> {
         candidate: candidate,
         transportMode: 'ble',
         provisionPhase: ProvisionPhase.connectingToNode,
-        clearError: true);
+        clearError: true,);
     try {
       _transport = transportFactory != null
           ? transportFactory!(candidate)
           : BleCommissioningTransport(candidate.device ??
-              (throw StateError('candidate has no BLE device')));
+              (throw StateError('candidate has no BLE device')),);
       if (_transport is BleCommissioningTransport) {
         await (_transport as BleCommissioningTransport).connect();
       }
@@ -259,7 +259,7 @@ class SetupController extends Notifier<SetupState> {
       state = state.copyWith(
           deviceModel: idDoc['model']?.toString(),
           deviceUuid: idDoc['device_id']?.toString(),
-          stage: SetupStage.wifiDetails);
+          stage: SetupStage.wifiDetails,);
       _statusSub?.cancel();
       _statusSub = _transport!.status().listen(_onProvisionStatus);
       await _saveCheckpoint();
@@ -276,7 +276,7 @@ class SetupController extends Notifier<SetupState> {
     state = state.copyWith(
         transportMode: 'ap',
         provisionPhase: ProvisionPhase.connectingToNode,
-        clearError: true);
+        clearError: true,);
     try {
       final identity = state.identity;
       final verified =
@@ -289,7 +289,7 @@ class SetupController extends Notifier<SetupState> {
       state = state.copyWith(
           deviceModel: idDoc['model']?.toString(),
           deviceUuid: idDoc['device_id']?.toString(),
-          stage: SetupStage.wifiDetails);
+          stage: SetupStage.wifiDetails,);
       await _saveCheckpoint();
     } catch (e) {
       fail('node AP unreachable — join the temporary network first');
@@ -308,7 +308,7 @@ class SetupController extends Notifier<SetupState> {
     state = state.copyWith(
         stage: SetupStage.provision,
         provisionPhase: ProvisionPhase.sendingCredentials,
-        clearError: true);
+        clearError: true,);
     try {
       await transport.sendCredentials(ssid, psk);
       // PSK deliberately drops out of scope here — never stored, never
@@ -335,7 +335,7 @@ class SetupController extends Notifier<SetupState> {
         if (s.pairingCode != null) {
           state = state.copyWith(
               pairingCode: s.pairingCode,
-              provisionPhase: ProvisionPhase.registered);
+              provisionPhase: ProvisionPhase.registered,);
           await _advanceToClaim();
           return;
         }
@@ -346,7 +346,7 @@ class SetupController extends Notifier<SetupState> {
       } catch (_) {
         // AP went away — node is joining the target network.
         state = state.copyWith(
-            provisionPhase: ProvisionPhase.connectingToService);
+            provisionPhase: ProvisionPhase.connectingToService,);
         await _advanceToClaim();
         return;
       }
@@ -360,11 +360,11 @@ class SetupController extends Notifier<SetupState> {
         state = state.copyWith(provisionPhase: ProvisionPhase.joiningWifi);
       case CommissioningContract.phaseVerified:
         state = state.copyWith(
-            provisionPhase: ProvisionPhase.networkVerified);
+            provisionPhase: ProvisionPhase.networkVerified,);
       case CommissioningContract.phaseRegistered:
         state = state.copyWith(
             provisionPhase: ProvisionPhase.registered,
-            pairingCode: s.pairingCode ?? state.pairingCode);
+            pairingCode: s.pairingCode ?? state.pairingCode,);
         unawaited(_advanceToClaim());
       case CommissioningContract.phaseFailed:
         fail(s.error ?? s.detail ?? 'node reported a provisioning failure');
@@ -395,12 +395,12 @@ class SetupController extends Notifier<SetupState> {
     try {
       final res = await BrainClient.instance.postJson(
           '/device/pairing/claim',
-          body: {'code': code.toUpperCase().replaceAll('THOTH-', '')});
+          body: {'code': code.toUpperCase().replaceAll('THOTH-', '')},);
       final dev = res['device'] is Map ? res['device'] as Map : res;
       state = state.copyWith(
           deviceUuid: '${dev['device_uuid'] ?? dev['id'] ?? state.deviceUuid}',
           stage: SetupStage.space,
-          clearError: true);
+          clearError: true,);
       await _saveCheckpoint();
       return true;
     } catch (e) {
@@ -434,7 +434,7 @@ class SetupController extends Notifier<SetupState> {
     if (capabilityProbe != null) {
       final caps = await capabilityProbe!();
       state = state.copyWith(
-          capabilities: caps, stage: SetupStage.calibrate);
+          capabilities: caps, stage: SetupStage.calibrate,);
       await _saveCheckpoint();
       return {'ok': true, 'capabilities': caps};
     }
@@ -447,7 +447,7 @@ class SetupController extends Notifier<SetupState> {
           ? null
           : devices.cast<Map<String, dynamic>?>().firstWhere(
               (d) => '${d?['device_uuid']}' == uuid,
-              orElse: () => null);
+              orElse: () => null,);
       final hw = match?['hardware_info'] is Map
           ? Map<String, dynamic>.from(match!['hardware_info'])
           : <String, dynamic>{};
@@ -461,7 +461,7 @@ class SetupController extends Notifier<SetupState> {
       state = state.copyWith(
           capabilities: caps,
           deviceUuid: uuid ?? '${match?['device_uuid'] ?? ''}',
-          stage: SetupStage.calibrate);
+          stage: SetupStage.calibrate,);
       await _saveCheckpoint();
       return {'ok': true, 'capabilities': caps};
     } catch (e) {

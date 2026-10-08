@@ -29,8 +29,8 @@ class WatchScreen extends ConsumerWidget {
           error: (e, _) => ListView(children: [
             const SizedBox(height: 120),
             Center(child: Text('Could not load watches\n$e',
-                textAlign: TextAlign.center)),
-          ]),
+                textAlign: TextAlign.center,),),
+          ],),
           data: (list) {
             if (list.isEmpty) {
               return ListView(
@@ -41,7 +41,7 @@ class WatchScreen extends ConsumerWidget {
                   const SizedBox(height: 16),
                   const Center(
                     child: Text('No watch paired yet',
-                        style: TextStyle(fontSize: 16)),
+                        style: TextStyle(fontSize: 16),),
                   ),
                   const SizedBox(height: 8),
                   const Center(
@@ -109,7 +109,7 @@ class _WatchCard extends ConsumerWidget {
               child: Icon(Icons.watch,
                   color: connected
                       ? Colors.green
-                      : Theme.of(context).colorScheme.outline),
+                      : Theme.of(context).colorScheme.outline,),
             ),
             title: Text(record.name ?? 'PineTime'),
             subtitle: Text(
@@ -124,15 +124,15 @@ class _WatchCard extends ConsumerWidget {
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
                         _chip(Icons.bluetooth,
-                            '${TraceService.instance.lastRssi ?? '—'} dBm'),
+                            '${TraceService.instance.lastRssi ?? '—'} dBm',),
                         const SizedBox(height: 4),
                         _chip(Icons.battery_full,
-                            relay?.battery != null ? '${relay!.battery}%' : '—'),
+                            relay?.battery != null ? '${relay!.battery}%' : '—',),
                       ],
                     ),
                   )
                 : const Text('not connected',
-                    style: TextStyle(fontSize: 12, color: Colors.grey)),
+                    style: TextStyle(fontSize: 12, color: Colors.grey),),
             onTap: () =>
                 context.push('/watch/${Uri.encodeComponent(record.bleId)}'),
           ),
@@ -152,7 +152,7 @@ class _WatchCard extends ConsumerWidget {
                       } catch (e) {
                         if (context.mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text('Connect failed: $e')));
+                              SnackBar(content: Text('Connect failed: $e')),);
                         }
                       }
                     },
@@ -173,7 +173,7 @@ class _WatchCard extends ConsumerWidget {
                         overflow: TextOverflow.ellipsis,
                         textAlign: TextAlign.end,
                         style: const TextStyle(
-                            color: Colors.redAccent, fontSize: 11)),
+                            color: Colors.redAccent, fontSize: 11,),),
                   ),
                 IconButton(
                   icon: const Icon(Icons.delete_outline),
@@ -202,7 +202,7 @@ Widget _chip(IconData icon, String text) => Row(
         Icon(icon, size: 12, color: Colors.grey),
         const SizedBox(width: 3),
         Text(text,
-            style: const TextStyle(fontSize: 11, fontFamily: 'monospace')),
+            style: const TextStyle(fontSize: 11, fontFamily: 'monospace'),),
       ],
     );
 
@@ -221,7 +221,7 @@ class WatchScanSheet extends ConsumerWidget {
           const Padding(
             padding: EdgeInsets.all(16),
             child: Text('Nearby watches',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),),
           ),
           Expanded(
             child: results.when(
@@ -235,7 +235,7 @@ class WatchScanSheet extends ConsumerWidget {
                   return const Center(
                       child: Text(
                           'Searching…\nMake sure the watch is awake and in range.',
-                          textAlign: TextAlign.center));
+                          textAlign: TextAlign.center,),);
                 }
                 return ListView.builder(
                   controller: scroll,
@@ -249,7 +249,7 @@ class WatchScanSheet extends ConsumerWidget {
                       leading: const Icon(Icons.watch),
                       title: Text(name.isEmpty ? 'PineTime' : name),
                       subtitle: Text(
-                          '${r.device.remoteId.str} • ${r.rssi} dBm'),
+                          '${r.device.remoteId.str} • ${r.rssi} dBm',),
                       trailing: const Icon(Icons.add_link),
                       onTap: () => _pair(context, ref, r),
                     );
@@ -264,7 +264,7 @@ class WatchScanSheet extends ConsumerWidget {
   }
 
   Future<void> _pair(
-      BuildContext context, WidgetRef ref, ScanResult r) async {
+      BuildContext context, WidgetRef ref, ScanResult r,) async {
     // Stage-aware progress + hard cap so the dialog can never spin
     // forever; Cancel dismisses the dialog (the BLE connect continues
     // in the background — pairing is idempotent server-side).
@@ -283,7 +283,7 @@ class WatchScanSheet extends ConsumerWidget {
               builder: (_, s, __) => Text(s),
             ),
           ),
-        ]),
+        ],),
         actions: [
           TextButton(
             onPressed: () {
@@ -316,7 +316,7 @@ class WatchScanSheet extends ConsumerWidget {
       ).timeout(const Duration(seconds: 90), onTimeout: () {
         throw TimeoutException('still no answer — watch asleep or Brain '
             'unreachable; pairing is idempotent, try again');
-      });
+      },);
       if (context.mounted && !cancelled) {
         popLocked();
         WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -324,7 +324,7 @@ class WatchScanSheet extends ConsumerWidget {
           if (nav.canPop()) nav.pop(); // sheet
         });
         ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Watch paired — relay active')));
+            const SnackBar(content: Text('Watch paired — relay active')),);
       }
     } catch (e) {
       if (context.mounted && !cancelled) {

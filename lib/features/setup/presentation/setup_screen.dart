@@ -40,14 +40,14 @@ class _SetupScreenState extends ConsumerState<SetupScreen> {
       builder: (ctx) => AlertDialog(
         title: const Text('Resume setup?'),
         content: Text(
-            'A previous setup stopped at ${stage.name}. Continue from there?'),
+            'A previous setup stopped at ${stage.name}. Continue from there?',),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(ctx, false),
-              child: const Text('Start over')),
+              child: const Text('Start over'),),
           FilledButton(
               onPressed: () => Navigator.pop(ctx, true),
-              child: const Text('Resume')),
+              child: const Text('Resume'),),
         ],
       ),
     );
@@ -79,13 +79,13 @@ class _SetupScreenState extends ConsumerState<SetupScreen> {
                     child: Text(s.error!,
                         style: TextStyle(
                             color:
-                                Theme.of(context).colorScheme.error)),
+                                Theme.of(context).colorScheme.error,),),
                   ),
                   TextButton(
                     onPressed: ctl.clearError,
                     child: const Text('Retry'),
                   ),
-                ]),
+                ],),
               ),
             )
           : null,
@@ -109,8 +109,8 @@ class _SetupScreenState extends ConsumerState<SetupScreen> {
         );
       case SetupStage.verify:
       case SetupStage.connect:
-        return _ProgressStep(
-          key: const ValueKey('verify'),
+        return const _ProgressStep(
+          key: ValueKey('verify'),
           title: 'Verifying setup identity',
           detail: 'Checking the node\'s advertised key against the '
               'scanned code…',
@@ -153,7 +153,7 @@ class _ScanStepState extends State<_ScanStep> {
     final id = SetupIdentity.tryParse(raw);
     if (id == null) {
       setState(() => _error = 'Unrecognized setup code — check the sticker '
-          'QR or enter the id:key pair.');
+          'QR or enter the id:key pair.',);
       return;
     }
     widget.onIdentity(id);
@@ -163,7 +163,7 @@ class _ScanStepState extends State<_ScanStep> {
   Widget build(BuildContext context) {
     return ListView(padding: const EdgeInsets.all(20), children: [
       const Text('Scan the setup code',
-          style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700)),
+          style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700),),
       const SizedBox(height: 6),
       const Text(
         'The QR on the device proves you\'re physically next to it — the '
@@ -206,7 +206,7 @@ class _ScanStepState extends State<_ScanStep> {
           padding: const EdgeInsets.only(top: 12),
           child: Text(_error!,
               style:
-                  TextStyle(color: Theme.of(context).colorScheme.error)),
+                  TextStyle(color: Theme.of(context).colorScheme.error),),
         ),
       const SizedBox(height: 16),
       Wrap(spacing: 8, children: [
@@ -215,7 +215,7 @@ class _ScanStepState extends State<_ScanStep> {
           label: Text(_manualMode ? 'Scan instead' : 'Enter manually'),
           onPressed: () => setState(() => _manualMode = !_manualMode),
         ),
-      ]),
+      ],),
       const SizedBox(height: 24),
       const Divider(),
       ListTile(
@@ -225,10 +225,10 @@ class _ScanStepState extends State<_ScanStep> {
         subtitle: const Text(
             'Use this only if the device is already broadcasting its own '
             'network — normal setup stays on Bluetooth.',
-            style: TextStyle(fontSize: 11)),
+            style: TextStyle(fontSize: 11),),
         onTap: () => context.push('/setup/ap'),
       ),
-    ]);
+    ],);
   }
 }
 
@@ -259,7 +259,7 @@ class _DiscoverStepState extends State<_DiscoverStep> {
     ].request();
     if (!mounted) return;
     setState(() =>
-        _permGranted = granted.values.every((s) => s.isGranted));
+        _permGranted = granted.values.every((s) => s.isGranted),);
     if (!_permGranted) return;
     _startScan();
   }
@@ -274,7 +274,7 @@ class _DiscoverStepState extends State<_DiscoverStep> {
       if (mounted) setState(() => _candidates = list);
     }, onDone: () {
       if (mounted) setState(() => _scanning = false);
-    });
+    },);
   }
 
   @override
@@ -296,21 +296,21 @@ class _DiscoverStepState extends State<_DiscoverStep> {
         const Expanded(
           child: Text('Discovered nodes',
               style:
-                  TextStyle(fontSize: 20, fontWeight: FontWeight.w700)),
+                  TextStyle(fontSize: 20, fontWeight: FontWeight.w700),),
         ),
         if (_scanning)
           const SizedBox(
               width: 18,
               height: 18,
-              child: CircularProgressIndicator(strokeWidth: 2))
+              child: CircularProgressIndicator(strokeWidth: 2),)
         else
           IconButton(icon: const Icon(Icons.refresh), onPressed: _startScan),
-      ]),
+      ],),
       const SizedBox(height: 6),
       const Text(
           'Only devices advertising the commissioning service appear. '
           'The app will verify the scanned code before connecting.',
-          style: TextStyle(color: Colors.black54, fontSize: 12)),
+          style: TextStyle(color: Colors.black54, fontSize: 12),),
       const SizedBox(height: 12),
       for (final c in _candidates)
         Card(
@@ -329,9 +329,9 @@ class _DiscoverStepState extends State<_DiscoverStep> {
           child: Text(
               'No nodes found — hold the node\'s setup button until it '
               'advertises, then rescan.',
-              textAlign: TextAlign.center),
+              textAlign: TextAlign.center,),
         ),
-    ]);
+    ],);
   }
 
   String _matchTag(String advertised) {
@@ -355,7 +355,7 @@ class _PermissionPane extends StatelessWidget {
           const SizedBox(height: 16),
           const Text('Bluetooth permission required',
               style:
-                  TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
+                  TextStyle(fontSize: 18, fontWeight: FontWeight.w600),),
           const SizedBox(height: 8),
           const Text(
             'Commissioning talks to the node over BLE. Grant Nearby '
@@ -366,8 +366,8 @@ class _PermissionPane extends StatelessWidget {
           const SizedBox(height: 24),
           FilledButton(onPressed: onRetry, child: const Text('Try again')),
           TextButton(
-              onPressed: onOpenSettings, child: const Text('Open settings')),
-        ]),
+              onPressed: onOpenSettings, child: const Text('Open settings'),),
+        ],),
       );
 }
 
@@ -380,14 +380,14 @@ class _ProgressStep extends StatelessWidget {
           const SizedBox(
               width: 48,
               height: 48,
-              child: CircularProgressIndicator()),
+              child: CircularProgressIndicator(),),
           const SizedBox(height: 24),
           Text(title,
               style:
-                  const TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
+                  const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),),
           const SizedBox(height: 8),
           Text(detail, textAlign: TextAlign.center),
-        ]),
+        ],),
       );
 }
 
@@ -419,28 +419,28 @@ class _WifiStepState extends ConsumerState<_WifiStep> {
         Card(
           child: ListTile(
             leading: const Icon(Icons.verified_outlined, color: Colors.green),
-            title: Text('Node verified',
-                style: const TextStyle(fontWeight: FontWeight.w600)),
+            title: const Text('Node verified',
+                style: TextStyle(fontWeight: FontWeight.w600),),
             subtitle: Text(
                 '${s.deviceModel ?? 'node'} · ${s.deviceUuid ?? ''}',
                 style:
-                    const TextStyle(fontFamily: 'monospace', fontSize: 11)),
+                    const TextStyle(fontFamily: 'monospace', fontSize: 11),),
           ),
         ),
       const SizedBox(height: 16),
       const Text('Wi-Fi credentials',
-          style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700)),
+          style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700),),
       const SizedBox(height: 6),
       const Text(
           'Credentials travel over the commissioning channel only — the '
           'app never asks for an IP and never shows the password again.',
-          style: TextStyle(color: Colors.black54, fontSize: 12)),
+          style: TextStyle(color: Colors.black54, fontSize: 12),),
       const SizedBox(height: 16),
       TextField(
           controller: _ssid,
           decoration: const InputDecoration(
               labelText: 'Network name (SSID)',
-              prefixIcon: Icon(Icons.wifi))),
+              prefixIcon: Icon(Icons.wifi),),),
       const SizedBox(height: 12),
       TextField(
           controller: _psk,
@@ -450,9 +450,9 @@ class _WifiStepState extends ConsumerState<_WifiStep> {
               prefixIcon: const Icon(Icons.lock_outline),
               suffixIcon: IconButton(
                   icon: Icon(
-                      _obscure ? Icons.visibility : Icons.visibility_off),
+                      _obscure ? Icons.visibility : Icons.visibility_off,),
                   onPressed: () =>
-                      setState(() => _obscure = !_obscure)))),
+                      setState(() => _obscure = !_obscure),),),),
       const SizedBox(height: 24),
       FilledButton.icon(
         icon: const Icon(Icons.send),
@@ -460,9 +460,9 @@ class _WifiStepState extends ConsumerState<_WifiStep> {
         onPressed: _ssid.text.trim().isEmpty
             ? null
             : () => unawaited(widget.ctl
-                .provisionWifi(_ssid.text.trim(), _psk.text)),
+                .provisionWifi(_ssid.text.trim(), _psk.text),),
       ),
-    ]);
+    ],);
   }
 }
 
@@ -483,7 +483,7 @@ class _ProvisionStep extends StatelessWidget {
     final idx = labels.indexWhere((l) => l.$1 == state.provisionPhase);
     return ListView(padding: const EdgeInsets.all(24), children: [
       const Text('Provisioning',
-          style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700)),
+          style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700),),
       const SizedBox(height: 20),
       for (var i = 0; i < labels.length; i++)
         ListTile(
@@ -504,7 +504,7 @@ class _ProvisionStep extends StatelessWidget {
               ? const SizedBox(
                   width: 14,
                   height: 14,
-                  child: CircularProgressIndicator(strokeWidth: 2))
+                  child: CircularProgressIndicator(strokeWidth: 2),)
               : null,
         ),
       if (state.provisionPhase == ProvisionPhase.failed)
@@ -512,9 +512,9 @@ class _ProvisionStep extends StatelessWidget {
           padding: const EdgeInsets.only(top: 12),
           child: Text(state.error ?? 'Provisioning failed',
               style:
-                  TextStyle(color: Theme.of(context).colorScheme.error)),
+                  TextStyle(color: Theme.of(context).colorScheme.error),),
         ),
-    ]);
+    ],);
   }
 }
 
@@ -555,7 +555,7 @@ class _ClaimStepState extends ConsumerState<_ClaimStep> {
     final hasCode = widget.state.pairingCode != null;
     return ListView(padding: const EdgeInsets.all(24), children: [
       const Text('Link node to your account',
-          style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700)),
+          style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700),),
       const SizedBox(height: 12),
       if (hasCode)
         ListTile(
@@ -563,7 +563,7 @@ class _ClaimStepState extends ConsumerState<_ClaimStep> {
               ? const SizedBox(
                   width: 18,
                   height: 18,
-                  child: CircularProgressIndicator(strokeWidth: 2))
+                  child: CircularProgressIndicator(strokeWidth: 2),)
               : const Icon(Icons.key, color: Colors.green),
           title: const Text('Claiming with node-provided code…'),
         )
@@ -576,13 +576,13 @@ class _ClaimStepState extends ConsumerState<_ClaimStep> {
             controller: _code,
             textCapitalization: TextCapitalization.characters,
             decoration: const InputDecoration(
-                labelText: 'Pairing code', hintText: 'THOTH-XXXXXXXX')),
+                labelText: 'Pairing code', hintText: 'THOTH-XXXXXXXX',),),
         const SizedBox(height: 12),
         FilledButton(
             onPressed: _busy ? null : () => _claim(_code.text.trim()),
-            child: const Text('Claim')),
+            child: const Text('Claim'),),
       ],
-    ]);
+    ],);
   }
 }
 
@@ -595,10 +595,10 @@ class _SpaceStep extends ConsumerWidget {
     final spaces = ref.watch(spacesLiveProvider);
     return ListView(padding: const EdgeInsets.all(24), children: [
       const Text('Assign to a space',
-          style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700)),
+          style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700),),
       const SizedBox(height: 6),
       const Text('Where is this node physically installed?',
-          style: TextStyle(color: Colors.black54)),
+          style: TextStyle(color: Colors.black54),),
       const SizedBox(height: 16),
       spaces.when(
         loading: () => const LinearProgressIndicator(),
@@ -624,11 +624,11 @@ class _SpaceStep extends ConsumerWidget {
                   content: TextField(
                       controller: ctl2,
                       decoration:
-                          const InputDecoration(hintText: 'e.g. office')),
+                          const InputDecoration(hintText: 'e.g. office'),),
                   actions: [
                     FilledButton(
                         onPressed: () => Navigator.pop(ctx, true),
-                        child: const Text('Create')),
+                        child: const Text('Create'),),
                   ],
                 ),
               );
@@ -642,10 +642,10 @@ class _SpaceStep extends ConsumerWidget {
           ),
           TextButton(
               onPressed: () => unawaited(ctl.selfTest()),
-              child: const Text('Skip — assign later')),
-        ]),
+              child: const Text('Skip — assign later'),),
+        ],),
       ),
-    ]);
+    ],);
   }
 }
 
@@ -673,7 +673,7 @@ class _SelfTestStepState extends ConsumerState<_SelfTestStep> {
     final caps = s.capabilities;
     return ListView(padding: const EdgeInsets.all(24), children: [
       const Text('Hardware check',
-          style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700)),
+          style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700),),
       const SizedBox(height: 16),
       if (caps.isEmpty)
         const Center(child: CircularProgressIndicator())
@@ -686,19 +686,19 @@ class _SelfTestStepState extends ConsumerState<_SelfTestStep> {
                 leading: Icon(
                     c['ok'] == false ? Icons.error : Icons.check_circle,
                     color: c['ok'] == false ? Colors.red : Colors.green,
-                    size: 18),
+                    size: 18,),
                 title: Text('${c['id']}',
-                    style: const TextStyle(fontFamily: 'monospace')),
+                    style: const TextStyle(fontFamily: 'monospace'),),
                 subtitle: Text('${c['detail'] ?? 'detected'}',
-                    style: const TextStyle(fontSize: 11)),
+                    style: const TextStyle(fontSize: 11),),
               ),
-          ]),
+          ],),
         ),
       const SizedBox(height: 24),
       FilledButton(
           onPressed: () => widget.ctl.goToStage(SetupStage.calibrate),
-          child: const Text('Continue')),
-    ]);
+          child: const Text('Continue'),),
+    ],);
   }
 }
 
@@ -714,7 +714,7 @@ class _FinishStep extends ConsumerWidget {
       const SizedBox(height: 12),
       const Text('Node is online',
           textAlign: TextAlign.center,
-          style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700)),
+          style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700),),
       const SizedBox(height: 24),
       Card(
         child: Column(children: [
@@ -735,7 +735,7 @@ class _FinishStep extends ConsumerWidget {
                 'node attributes IMU evidence.'),
             onTap: () => context.push('/watch/enroll'),
           ),
-        ]),
+        ],),
       ),
       const SizedBox(height: 24),
       FilledButton.icon(
@@ -746,7 +746,7 @@ class _FinishStep extends ConsumerWidget {
           if (context.mounted) context.go('/context');
         },
       ),
-    ]);
+    ],);
   }
 }
 

@@ -76,7 +76,7 @@ abstract final class PinetimeGatt {
 /// One decoded accelerometer reading.
 class MotionSample {
   const MotionSample(this.x, this.y, this.z, this.at,
-      {this.tickMs, this.seq});
+      {this.tickMs, this.seq,});
 
   /// g units (firmware sends binary milli-g, 1g = 1024).
   final double x, y, z;
@@ -204,7 +204,7 @@ abstract final class PinetimeCodec {
       final name = nameLen == 0
           ? null
           : utf8.decode(bytes.sublist(off + 8, off + 8 + nameLen),
-              allowMalformed: true);
+              allowMalformed: true,);
       out.add(BleSighting(mac, rssi, name: name));
     }
     return out;

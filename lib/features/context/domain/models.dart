@@ -328,7 +328,7 @@ class SpaceInfo {
                 is Map
             ? Map<String, Map<String, dynamic>>.from(
                 ((j['zone_states'] ?? j['zones_state']) as Map).map((k, v) =>
-                    MapEntry('$k', Map<String, dynamic>.from(v as Map))))
+                    MapEntry('$k', Map<String, dynamic>.from(v as Map)),),)
             : const {},
         lastActivity: j['last_activity']?.toString(),
       );

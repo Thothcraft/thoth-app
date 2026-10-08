@@ -72,7 +72,7 @@ final contextEventsProvider =
 /// All current states for one entity — the person page's context card.
 final entityStatesProvider = FutureProvider.autoDispose
     .family<List<ContextState>, String>((ref, entityId) =>
-        ref.watch(contextRepoProvider).states(entityId: entityId));
+        ref.watch(contextRepoProvider).states(entityId: entityId),);
 
 /// Recent evidence touching an entity (via provenance) or a key.
 final entityEvidenceProvider = FutureProvider.autoDispose
@@ -84,7 +84,7 @@ final entityEvidenceProvider = FutureProvider.autoDispose
           e.provenance['entity'] == entityId ||
           e.provenance['entity_id'] == entityId ||
           e.deviceId == entityId ||
-          '${e.value}'.contains(entityId))
+          '${e.value}'.contains(entityId),)
       .toList();
 });
 
@@ -177,8 +177,9 @@ final bleRelationsProvider =
     final rssi = (v['rssi_dbm'] as num?)?.toDouble();
     final observer = e.deviceId ?? v['observer']?.toString() ?? '';
     final target = v['target']?.toString().toLowerCase() ?? '';
-    if (observer.isEmpty || target.isEmpty || rssi == null || !rssi.isFinite)
+    if (observer.isEmpty || target.isEmpty || rssi == null || !rssi.isFinite) {
       return null;
+    }
     return (observer, target, rssi, false, v['name']?.toString());
   }
   if (e.key == ContextKeys.bleRssi) {
@@ -279,7 +280,7 @@ class BleRelation {
       known: known,
       advName: advName,
       modality: modality,
-      componentId: componentId);
+      componentId: componentId,);
 }
 
 /// Owned devices (for claim/space pickers in setup).

@@ -89,7 +89,7 @@ class SetupIdentity {
         if (id.isEmpty || k.isEmpty) return null;
         return SetupIdentity(
             nodeId: id, setupKey: k,
-            model: j['model']?.toString(), name: j['name']?.toString());
+            model: j['model']?.toString(), name: j['name']?.toString(),);
       } catch (_) {
         return null;
       }
@@ -102,13 +102,13 @@ class SetupIdentity {
       if (id.isEmpty || k.isEmpty) return null;
       return SetupIdentity(
           nodeId: id, setupKey: k,
-          model: uri.queryParameters['model'], name: uri.queryParameters['name']);
+          model: uri.queryParameters['model'], name: uri.queryParameters['name'],);
     }
     // Compact form: <id>:<key>
     final idx = s.indexOf(':');
     if (idx > 0 && idx < s.length - 1) {
       return SetupIdentity(nodeId: s.substring(0, idx),
-          setupKey: s.substring(idx + 1));
+          setupKey: s.substring(idx + 1),);
     }
     return null;
   }
@@ -117,7 +117,7 @@ class SetupIdentity {
 /// Live provisioning status reported by the node (BLE notify or AP poll).
 class ProvisionStatus {
   const ProvisionStatus({required this.phase, this.detail, this.pairingCode,
-    this.ip, this.error});
+    this.ip, this.error,});
 
   final String phase;
   final String? detail;

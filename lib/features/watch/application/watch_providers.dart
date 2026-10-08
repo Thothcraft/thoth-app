@@ -17,7 +17,7 @@ import '../domain/pinetime_gatt.dart';
 /// Paired watches persisted in secure storage.
 final watchListProvider =
     AsyncNotifierProvider<WatchListNotifier, List<WatchRecord>>(
-        WatchListNotifier.new);
+        WatchListNotifier.new,);
 
 class WatchListNotifier extends AsyncNotifier<List<WatchRecord>> {
   @override
@@ -128,7 +128,7 @@ class WatchManager extends Notifier<Map<String, WatchRelay>> {
       final scan = t.bleScan;
       if (scan != null && scan.isNotEmpty) {
         ObservationService.instance.submitWatchSightings(
-            observer: record.deviceUuid, sightings: scan);
+            observer: record.deviceUuid, sightings: scan,);
       }
     });
     // Foreground service + GPS/RSSI trace attach once the link is
@@ -140,7 +140,7 @@ class WatchManager extends Notifier<Map<String, WatchRelay>> {
       final s = ref.read(appSettingsProvider).valueOrNull ??
           const AppSettings();
       unawaited(TraceService.instance.attach(relay,
-          backgroundRelay: s.backgroundRelay, gpsTrace: s.gpsTrace));
+          backgroundRelay: s.backgroundRelay, gpsTrace: s.gpsTrace,),);
       // First connect ever: ask for the doze exemption. FGS + wakelock
       // keep the process alive, but only the whitelist keeps uploads
       // flowing when the phone sits unplugged and still for a long
@@ -148,9 +148,9 @@ class WatchManager extends Notifier<Map<String, WatchRelay>> {
       if (!s.batteryOptPrompted) {
         await ref.read(appSettingsProvider.notifier).setBatteryOptPrompted();
         unawaited(
-            TraceService.instance.requestBatteryOptimizationExemption());
+            TraceService.instance.requestBatteryOptimizationExemption(),);
       }
-    }).catchError((Object e) => debugPrint('[watch] trace attach: $e')));
+    }).catchError((Object e) => debugPrint('[watch] trace attach: $e')),);
 
     unawaited(link.connect());
     unawaited(_enrollWatchOnNodes(record));
@@ -176,7 +176,7 @@ class WatchManager extends Notifier<Map<String, WatchRelay>> {
                 'address': record.bleId,
                 'kind': 'watch',
                 'name': record.name ?? 'PineTime',
-              });
+              },);
         } catch (e) {
           // Offline/no-tunnel nodes: they can still be enrolled later
           // from the node's own API once they're back.
@@ -194,12 +194,12 @@ class WatchManager extends Notifier<Map<String, WatchRelay>> {
           .timeout(const Duration(seconds: 60),
               onTimeout: () => throw TimeoutException(
                   '${record.name ?? 'watch'} unreachable — keep it awake '
-                  'and in range'));
+                  'and in range'),);
 
   /// Pair + connect a newly scanned watch in one shot. [onStage]
   /// reports progress ('pairing' → 'connecting') for the dialog.
   Future<WatchRecord> pairAndConnect(String bleId,
-      {String? name, void Function(String stage)? onStage}) async {
+      {String? name, void Function(String stage)? onStage,}) async {
     onStage?.call('pairing');
     final record = await WatchRelay.pair(bleId, name: name);
     await WatchStore.instance.upsert(record);

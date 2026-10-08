@@ -64,7 +64,7 @@ final devicesProvider =
   // online state + hardware_info.activity stay live; autoDispose stops
   // the loop when nothing is looking.
   final timer = Timer.periodic(
-      const Duration(seconds: 30), (_) => ref.invalidateSelf());
+      const Duration(seconds: 30), (_) => ref.invalidateSelf(),);
   ref.onDispose(timer.cancel);
   final client = BrainClient.instance;
   Map<String, dynamic> payload;

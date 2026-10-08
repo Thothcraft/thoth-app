@@ -11,7 +11,7 @@ class ContextRepository {
 
   Future<List<ContextEntity>> entities({String? kind}) async {
     final res = await _brain.getV1('/context/entities',
-        params: {if (kind != null) 'kind': kind});
+        params: {if (kind != null) 'kind': kind},);
     return (res['entities'] as List? ?? const [])
         .map((e) => ContextEntity.fromJson(Map<String, dynamic>.from(e)))
         .toList();
@@ -29,12 +29,12 @@ class ContextRepository {
   // ── relationships ───────────────────────────────────────────────────────
 
   Future<List<ContextRelationship>> relationships(
-      {String? subject, String? predicate, bool activeOnly = false}) async {
+      {String? subject, String? predicate, bool activeOnly = false,}) async {
     final res = await _brain.getV1('/context/relationships', params: {
       if (subject != null) 'subject': subject,
       if (predicate != null) 'predicate': predicate,
       if (activeOnly) 'active_only': true,
-    });
+    },);
     return (res['relationships'] as List? ?? const [])
         .map((e) => ContextRelationship.fromJson(Map<String, dynamic>.from(e)))
         .toList();
@@ -57,7 +57,7 @@ class ContextRepository {
       'source': source,
       'provenance': provenance,
       'allow_unresolved': allowUnresolved,
-    });
+    },);
     return ContextRelationship.fromJson(res);
   }
 
@@ -70,22 +70,22 @@ class ContextRepository {
   /// Ingest one or more evidence items. ``external_id`` provides
   /// idempotency so batched retries never duplicate.
   Future<List<ContextEvidence>> postEvidence(
-      List<Map<String, dynamic>> items) async {
+      List<Map<String, dynamic>> items,) async {
     final res = await _brain.postV1('/context/evidence',
-        body: items.length == 1 ? items.first : {'items': items});
+        body: items.length == 1 ? items.first : {'items': items},);
     return (res['evidence'] as List? ?? const [])
         .map((e) => ContextEvidence.fromJson(Map<String, dynamic>.from(e)))
         .toList();
   }
 
   Future<List<ContextEvidence>> evidence(
-      {String? key, String? sourceId, double? since, int limit = 200}) async {
+      {String? key, String? sourceId, double? since, int limit = 200,}) async {
     final res = await _brain.getV1('/context/evidence', params: {
       if (key != null) 'key': key,
       if (sourceId != null) 'source_id': sourceId,
       if (since != null) 'since': since,
       'limit': limit,
-    });
+    },);
     return (res['evidence'] as List? ?? const [])
         .map((e) => ContextEvidence.fromJson(Map<String, dynamic>.from(e)))
         .toList();
@@ -94,12 +94,12 @@ class ContextRepository {
   // ── state + events ──────────────────────────────────────────────────────
 
   Future<List<ContextState>> states(
-      {String? key, String? entityId, bool activeOnly = false}) async {
+      {String? key, String? entityId, bool activeOnly = false,}) async {
     final res = await _brain.getV1('/context/state', params: {
       if (key != null) 'key': key,
       if (entityId != null) 'entity_id': entityId,
       if (activeOnly) 'active_only': true,
-    });
+    },);
     return (res['states'] as List? ?? const [])
         .map((e) => ContextState.fromJson(Map<String, dynamic>.from(e)))
         .toList();
@@ -124,18 +124,18 @@ class ContextRepository {
       if (transition != null) 'transition': transition,
       if (estimator != null) 'estimator': estimator,
       if (confidence != null) 'confidence': confidence,
-    });
+    },);
     return ContextState.fromJson(
-        Map<String, dynamic>.from(res['state'] ?? res));
+        Map<String, dynamic>.from(res['state'] ?? res),);
   }
 
   Future<List<ContextEvent>> events(
-      {String? key, double? since, int limit = 200}) async {
+      {String? key, double? since, int limit = 200,}) async {
     final res = await _brain.getV1('/context/events', params: {
       if (key != null) 'key': key,
       if (since != null) 'since': since,
       'limit': limit,
-    });
+    },);
     return (res['events'] as List? ?? const [])
         .map((e) => ContextEvent.fromJson(Map<String, dynamic>.from(e)))
         .toList();
@@ -151,7 +151,7 @@ class ContextRepository {
           .toList(),
       relationships: (res['relationships'] as List? ?? const [])
           .map((e) =>
-              ContextRelationship.fromJson(Map<String, dynamic>.from(e)))
+              ContextRelationship.fromJson(Map<String, dynamic>.from(e)),)
           .toList(),
       states: (res['states'] as List? ?? const [])
           .map((e) => ContextState.fromJson(Map<String, dynamic>.from(e)))
@@ -181,25 +181,25 @@ class ContextRepository {
   }
 
   Future<SpaceInfo> createSpace(String name,
-      {int? parentId, double? widthM, double? heightM}) async {
+      {int? parentId, double? widthM, double? heightM,}) async {
     final res = await _brain.postJson('/spaces', body: {
       'name': name,
       if (parentId != null) 'parent_id': parentId,
       if (widthM != null) 'width_m': widthM,
       if (heightM != null) 'height_m': heightM,
-    });
+    },);
     return SpaceInfo.fromJson(
-        Map<String, dynamic>.from(res['space'] as Map? ?? res));
+        Map<String, dynamic>.from(res['space'] as Map? ?? res),);
   }
 
   Future<void> assignDeviceToSpace(String deviceUuid, int spaceId,
-      {double x = 0.0, double y = 0.0, double rotationDeg = 0.0}) async {
+      {double x = 0.0, double y = 0.0, double rotationDeg = 0.0,}) async {
     await _brain.putJson('/spaces/devices/$deviceUuid/placement', body: {
       'space_id': spaceId,
       'x': x,
       'y': y,
       'rotation_deg': rotationDeg,
-    });
+    },);
   }
 
   // ── device pairing (existing contract) ──────────────────────────────────

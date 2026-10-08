@@ -36,13 +36,13 @@ class ContextHomeScreen extends ConsumerWidget {
             icon: const Icon(Icons.add, size: 16),
             label: const Text('New'),
             onPressed: () => _createSpaceDialog(context, ref),
-          )),
+          ),),
           spaces.when(
             loading: () => const _Skeleton(),
             error: (e, _) => _ErrCard('spaces unavailable: $e'),
             data: (list) => list.isEmpty
                 ? const _EmptyCard(
-                    'No spaces yet — assign a node to a space during setup.')
+                    'No spaces yet — assign a node to a space during setup.',)
                 : Column(
                     children: [
                       for (final s in list)
@@ -51,7 +51,7 @@ class ContextHomeScreen extends ConsumerWidget {
                               ? Duration.zero
                               : const Duration(milliseconds: 400),
                           child: _SpaceCard(key: ValueKey(
-                              '${s.id}-${s.occupied}'), space: s),
+                              '${s.id}-${s.occupied}',), space: s,),
                         ),
                     ],
                   ),
@@ -63,7 +63,7 @@ class ContextHomeScreen extends ConsumerWidget {
             icon: const Icon(Icons.hub_outlined, size: 16),
             label: const Text('Radio map'),
             onPressed: () => context.push('/context/relations'),
-          )),
+          ),),
           snapshot.when(
             loading: () => const _Skeleton(),
             error: (e, _) => _ErrCard('context unavailable: $e'),
@@ -96,7 +96,7 @@ class ContextHomeScreen extends ConsumerWidget {
               }
               return Column(children: [
                 for (final st in live) _StateRow(state: st),
-              ]);
+              ],);
             },
           ),
           const SizedBox(height: 20),
@@ -110,7 +110,7 @@ class ContextHomeScreen extends ConsumerWidget {
                 ? const _EmptyCard('No transitions yet.')
                 : Column(children: [
                     for (final ev in list.take(12)) _EventRow(event: ev),
-                  ]),
+                  ],),
           ),
         ],
       ),
@@ -126,14 +126,14 @@ class ContextHomeScreen extends ConsumerWidget {
         content: TextField(
             controller: ctl,
             autofocus: true,
-            decoration: const InputDecoration(hintText: 'e.g. office')),
+            decoration: const InputDecoration(hintText: 'e.g. office'),),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(ctx, false),
-              child: const Text('Cancel')),
+              child: const Text('Cancel'),),
           FilledButton(
               onPressed: () => Navigator.pop(ctx, true),
-              child: const Text('Create')),
+              child: const Text('Create'),),
         ],
       ),
     );
@@ -182,7 +182,7 @@ class _SpaceCard extends StatelessWidget {
               child: Column(crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                 Text(space.name,
-                    style: const TextStyle(fontWeight: FontWeight.w600)),
+                    style: const TextStyle(fontWeight: FontWeight.w600),),
                 Text(
                   occupied
                       ? 'occupied · ${space.peopleCount} '
@@ -190,7 +190,7 @@ class _SpaceCard extends StatelessWidget {
                       : 'no occupancy reported',
                   style: TextStyle(fontSize: 12, color: color),
                 ),
-              ]),
+              ],),
             ),
             if (space.zoneStates.isNotEmpty)
               Wrap(spacing: 4, children: [
@@ -202,10 +202,10 @@ class _SpaceCard extends StatelessWidget {
                         size: 8,
                         color: z.value['occupied'] == true
                             ? Colors.green
-                            : Colors.grey),
+                            : Colors.grey,),
                   ),
-              ]),
-          ]),
+              ],),
+          ],),
         ),
       ),
     );
@@ -245,7 +245,7 @@ class _EntityChip extends StatelessWidget {
         label: Text(
           [entity.name ?? entity.id.split(':').last,
                if (location != null) '@$location',
-               if (activity != null) activity]
+               if (activity != null) activity,]
               .join(' '),
           style: const TextStyle(fontSize: 12),
         ),
@@ -266,7 +266,7 @@ class _StateRow extends StatelessWidget {
         dense: true,
         leading: const Icon(Icons.insights_outlined, size: 20),
         title: Text('${state.key}  ·  ${state.value}',
-            style: const TextStyle(fontSize: 13)),
+            style: const TextStyle(fontSize: 13),),
         subtitle: Text(
           '${state.entityId.isEmpty ? 'space' : state.entityId}'
           ' · est ${state.estimator.isEmpty ? '—' : state.estimator}'
@@ -287,7 +287,7 @@ class _EventRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final when = event.timestamp != null
         ? DateTime.fromMillisecondsSinceEpoch(
-                (event.timestamp! * 1000).round())
+                (event.timestamp! * 1000).round(),)
             .toLocal()
             .toString()
             .substring(11, 19)
@@ -300,13 +300,13 @@ class _EventRow extends StatelessWidget {
     return ListTile(
       dense: true,
       leading: Icon(icon, size: 18,
-          color: event.type == 'exited' ? Colors.grey : AppColors.primaryBlue),
+          color: event.type == 'exited' ? Colors.grey : AppColors.primaryBlue,),
       title: Text(
         '${event.entityId ?? ''} ${event.type} ${event.value ?? event.key}',
         style: const TextStyle(fontSize: 13),
       ),
       subtitle: Text('${event.key} · $when',
-          style: const TextStyle(fontSize: 11, color: Colors.black45)),
+          style: const TextStyle(fontSize: 11, color: Colors.black45),),
     );
   }
 }
@@ -332,7 +332,7 @@ class _EmptyCard extends StatelessWidget {
               style: Theme.of(context)
                   .textTheme
                   .bodySmall
-                  ?.copyWith(color: Colors.black54)),
+                  ?.copyWith(color: Colors.black54),),
         ),
       );
 }

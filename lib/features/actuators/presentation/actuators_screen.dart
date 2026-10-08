@@ -61,7 +61,7 @@ class _ActuatorsScreenState extends ConsumerState<ActuatorsScreen> {
         'then': _decode(rule['then']),
         'cooldown_s': rule['cooldown_s'] ?? 0,
         'enabled': enabled,
-      });
+      },);
       await _reload();
     } catch (e) {
       if (mounted) {
@@ -88,7 +88,7 @@ class _ActuatorsScreenState extends ConsumerState<ActuatorsScreen> {
       if (mounted) {
         final fired = (res['fired'] as List? ?? const []).length;
         ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Evaluated — $fired rule(s) fired')));
+            SnackBar(content: Text('Evaluated — $fired rule(s) fired')),);
       }
     } catch (e) {
       if (mounted) {
@@ -120,18 +120,18 @@ class _ActuatorsScreenState extends ConsumerState<ActuatorsScreen> {
           const TabBar(tabs: [
             Tab(text: 'Rules'),
             Tab(text: 'Actions'),
-          ]),
+          ],),
           Expanded(
             child: _loading
                 ? const Center(child: CircularProgressIndicator())
                 : _error != null
                     ? Center(
                         child: Text('Failed to load\n$_error',
-                            textAlign: TextAlign.center))
+                            textAlign: TextAlign.center,),)
                     : TabBarView(children: [
                         _rulesTab(),
                         _actionsTab(),
-                      ]),
+                      ],),
           ),
         ],
       ),
@@ -150,7 +150,7 @@ class _ActuatorsScreenState extends ConsumerState<ActuatorsScreen> {
               label: const Text('Evaluate now'),
               onPressed: _evaluate,
             ),
-          ]),
+          ],),
           const SizedBox(height: 8),
           if (_rules.isEmpty)
             const Padding(
@@ -158,7 +158,7 @@ class _ActuatorsScreenState extends ConsumerState<ActuatorsScreen> {
               child: Center(
                 child: Text(
                     'No automation rules yet.\nRules fire actuators when predictions/context change — create them in the portal.',
-                    textAlign: TextAlign.center),
+                    textAlign: TextAlign.center,),
               ),
             ),
           for (final r in _rules)
@@ -166,7 +166,7 @@ class _ActuatorsScreenState extends ConsumerState<ActuatorsScreen> {
               child: SwitchListTile(
                 dense: true,
                 title: Text('${r['name']}',
-                    style: const TextStyle(fontSize: 14)),
+                    style: const TextStyle(fontSize: 14),),
                 subtitle: Text(
                   'when ${_short(r['when'])} → then ${_short(r['then'])}',
                   maxLines: 2,
@@ -191,8 +191,8 @@ class _ActuatorsScreenState extends ConsumerState<ActuatorsScreen> {
               SizedBox(height: 120),
               Center(
                   child: Text(
-                      'No action requests yet.\nThey appear when rules fire or actuators are called.')),
-            ])
+                      'No action requests yet.\nThey appear when rules fire or actuators are called.',),),
+            ],)
           : ListView.builder(
               padding: const EdgeInsets.all(12),
               itemCount: _actions.length,
@@ -218,13 +218,13 @@ class _ActuatorsScreenState extends ConsumerState<ActuatorsScreen> {
                     ),
                     title: Text(
                         '${a['actuator_id'] ?? a['action_id'] ?? 'action'}',
-                        style: const TextStyle(fontSize: 13)),
+                        style: const TextStyle(fontSize: 13),),
                     subtitle: Text(
                       '${a['command'] ?? _short(a['payload'])} • $status',
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
-                          fontFamily: 'monospace', fontSize: 11),
+                          fontFamily: 'monospace', fontSize: 11,),
                     ),
                     trailing: queued
                         ? IconButton(

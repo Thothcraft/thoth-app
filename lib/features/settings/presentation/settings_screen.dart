@@ -28,7 +28,7 @@ class SettingsScreen extends ConsumerWidget {
               ThemeMode.light => 'Light',
               ThemeMode.dark => 'Dark',
               _ => 'System',
-            }),
+            },),
             onTap: () => _pickTheme(context, notifier, s?.themeMode),
           ),
           const Divider(height: 24),
@@ -37,7 +37,7 @@ class SettingsScreen extends ConsumerWidget {
             secondary: const Icon(Icons.screen_lock_portrait),
             title: const Text('Background streaming'),
             subtitle: const Text(
-                'Keep IMU + proximity data flowing with the screen off'),
+                'Keep IMU + proximity data flowing with the screen off',),
             value: s?.backgroundRelay ?? true,
             onChanged: notifier.setBackgroundRelay,
           ),
@@ -45,7 +45,7 @@ class SettingsScreen extends ConsumerWidget {
             secondary: const Icon(Icons.route),
             title: const Text('GPS trace'),
             subtitle: const Text(
-                'Record phone location + watch signal for the Trace map'),
+                'Record phone location + watch signal for the Trace map',),
             value: s?.gpsTrace ?? true,
             onChanged: notifier.setGpsTrace,
           ),
@@ -53,7 +53,7 @@ class SettingsScreen extends ConsumerWidget {
             leading: const Icon(Icons.battery_saver),
             title: const Text('Disable battery optimization'),
             subtitle: const Text(
-                'Recommended on Samsung — prevents Android killing the relay'),
+                'Recommended on Samsung — prevents Android killing the relay',),
             trailing: const Icon(Icons.chevron_right),
             onTap: () =>
                 TraceService.instance.requestBatteryOptimizationExemption(),
@@ -85,7 +85,7 @@ class SettingsScreen extends ConsumerWidget {
             secondary: const Icon(Icons.vibration),
             title: const Text('Phone motion'),
             subtitle: const Text(
-                'Optional accelerometer evidence — coarse activity only'),
+                'Optional accelerometer evidence — coarse activity only',),
             value: s?.phoneMotion ?? false,
             onChanged: notifier.setPhoneMotion,
           ),
@@ -107,18 +107,18 @@ class SettingsScreen extends ConsumerWidget {
                 'Context states (who is where) are derived by estimators '
                 'and show their confidence — evidence is never presented '
                 'as asserted truth.',
-                style: TextStyle(fontSize: 11, color: Colors.black45)),
+                style: TextStyle(fontSize: 11, color: Colors.black45),),
           ),
           const Divider(height: 24),
           const _SectionLabel('Location zones'),
-          ListTile(
+          const ListTile(
             dense: true,
-            leading: const Icon(Icons.map_outlined, size: 18),
-            title: const Text(
+            leading: Icon(Icons.map_outlined, size: 18),
+            title: Text(
                 'Map-level geofences for the person entity — entering a '
                 'zone posts a transition and sets your location.zone '
                 'state. Requires GPS evidence on.',
-                style: TextStyle(fontSize: 11, color: Colors.black45)),
+                style: TextStyle(fontSize: 11, color: Colors.black45),),
           ),
           for (final z in s?.geoZones ?? const <GeoZone>[])
             ListTile(
@@ -129,7 +129,7 @@ class SettingsScreen extends ConsumerWidget {
                   '${z.latitude.toStringAsFixed(5)}, '
                   '${z.longitude.toStringAsFixed(5)} · '
                   '${z.radiusM.toStringAsFixed(0)} m',
-                  style: const TextStyle(fontSize: 11)),
+                  style: const TextStyle(fontSize: 11),),
               trailing: IconButton(
                 icon: const Icon(Icons.delete_outline, size: 18),
                 onPressed: () => notifier.setGeoZones([
@@ -146,10 +146,10 @@ class SettingsScreen extends ConsumerWidget {
           ),
           const Divider(height: 24),
           const _SectionLabel('About'),
-          ListTile(
-            leading: const Icon(Icons.info_outline),
-            title: const Text('Thothcraft'),
-            subtitle: const Text('${AppConstants.appName} · version 1.0.0'),
+          const ListTile(
+            leading: Icon(Icons.info_outline),
+            title: Text('Thothcraft'),
+            subtitle: Text('${AppConstants.appName} · version 1.0.0'),
           ),
           ListTile(
             leading: const Icon(Icons.open_in_new),
@@ -170,14 +170,14 @@ class SettingsScreen extends ConsumerWidget {
         perm == LocationPermission.deniedForever) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-            content: Text('Location permission needed to place a zone')));
+            content: Text('Location permission needed to place a zone'),),);
       }
       return;
     }
     Position? pos;
     try {
       pos = await Geolocator.getCurrentPosition(
-          desiredAccuracy: LocationAccuracy.medium);
+          desiredAccuracy: LocationAccuracy.medium,);
     } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context)
@@ -200,7 +200,7 @@ class SettingsScreen extends ConsumerWidget {
               autofocus: true,
               decoration: const InputDecoration(
                   hintText: 'home / office / backyard / university',
-                  labelText: 'Name'),
+                  labelText: 'Name',),
             ),
             const SizedBox(height: 12),
             Row(children: [
@@ -216,16 +216,16 @@ class SettingsScreen extends ConsumerWidget {
                 ),
               ),
               Text('${radius.round()} m',
-                  style: const TextStyle(fontSize: 11)),
-            ]),
-          ]),
+                  style: const TextStyle(fontSize: 11),),
+            ],),
+          ],),
           actions: [
             TextButton(
                 onPressed: () => Navigator.pop(dctx, false),
-                child: const Text('Cancel')),
+                child: const Text('Cancel'),),
             FilledButton(
                 onPressed: () => Navigator.pop(dctx, true),
-                child: const Text('Add')),
+                child: const Text('Add'),),
           ],
         ),
       ),
@@ -239,12 +239,12 @@ class SettingsScreen extends ConsumerWidget {
           name: nameCtrl.text.trim().toLowerCase(),
           latitude: pos.latitude,
           longitude: pos.longitude,
-          radiusM: radius),
+          radiusM: radius,),
     ]);
   }
 
   void _pickTheme(BuildContext context, AppSettingsNotifier notifier,
-      ThemeMode? current) {
+      ThemeMode? current,) {
     showModalBottomSheet(
       context: context,
       showDragHandle: true,
@@ -262,7 +262,7 @@ class SettingsScreen extends ConsumerWidget {
                 title: Text(label),
                 trailing: current == mode
                     ? Icon(Icons.check,
-                        color: Theme.of(ctx).colorScheme.primary)
+                        color: Theme.of(ctx).colorScheme.primary,)
                     : null,
                 onTap: () {
                   notifier.setThemeMode(mode);

@@ -43,7 +43,7 @@ class HomeScreen extends ConsumerWidget {
                 icon: const Icon(Icons.add, size: 18),
                 label: const Text('New'),
                 onPressed: () => _createSpace(context, ref),
-              )),
+              ),),
           if (spaces.isEmpty)
             const _EmptyHint(
                 'No spaces yet — design spaces on the portal or tap + '
@@ -74,7 +74,7 @@ class HomeScreen extends ConsumerWidget {
             _WatchTile(
                 bleId: w.bleId,
                 name: w.name ?? 'PineTime',
-                connected: manager[w.bleId]?.connected ?? false),
+                connected: manager[w.bleId]?.connected ?? false,),
           _NodesCard(devices: devices),
           const SizedBox(height: 20),
 
@@ -84,7 +84,7 @@ class HomeScreen extends ConsumerWidget {
               action: TextButton(
                 onPressed: () => context.go('/events'),
                 child: const Text('See all'),
-              )),
+              ),),
           if (events.isEmpty)
             const _EmptyHint(
                 'Nothing yet — transitions between spaces will show up '
@@ -106,15 +106,15 @@ class HomeScreen extends ConsumerWidget {
           controller: ctrl,
           autofocus: true,
           decoration: const InputDecoration(
-              hintText: 'e.g. Office, Kitchen, Lab'),
+              hintText: 'e.g. Office, Kitchen, Lab',),
         ),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(c),
-              child: const Text('Cancel')),
+              child: const Text('Cancel'),),
           FilledButton(
               onPressed: () => Navigator.pop(c, ctrl.text.trim()),
-              child: const Text('Create')),
+              child: const Text('Create'),),
         ],
       ),
     );
@@ -151,16 +151,16 @@ class _Greeting extends StatelessWidget {
       Text(date,
           style: TextStyle(
               color: Theme.of(context).colorScheme.outline,
-              fontSize: 13)),
-    ]);
+              fontSize: 13,),),
+    ],);
   }
 
   static const _wd = {
-    1: 'Mon', 2: 'Tue', 3: 'Wed', 4: 'Thu', 5: 'Fri', 6: 'Sat', 7: 'Sun'
+    1: 'Mon', 2: 'Tue', 3: 'Wed', 4: 'Thu', 5: 'Fri', 6: 'Sat', 7: 'Sun',
   };
   static const _mo = {
     1: 'Jan', 2: 'Feb', 3: 'Mar', 4: 'Apr', 5: 'May', 6: 'Jun',
-    7: 'Jul', 8: 'Aug', 9: 'Sep', 10: 'Oct', 11: 'Nov', 12: 'Dec'
+    7: 'Jul', 8: 'Aug', 9: 'Sep', 10: 'Oct', 11: 'Nov', 12: 'Dec',
   };
 }
 
@@ -179,10 +179,10 @@ class _SectionTitle extends StatelessWidget {
               style: Theme.of(context)
                   .textTheme
                   .titleMedium
-                  ?.copyWith(fontWeight: FontWeight.w700)),
+                  ?.copyWith(fontWeight: FontWeight.w700),),
         ),
         if (action != null) action!,
-      ]),
+      ],),
     );
   }
 }
@@ -198,7 +198,7 @@ class _EmptyHint extends StatelessWidget {
       child: Text(text,
           style: TextStyle(
               fontSize: 12.5,
-              color: Theme.of(context).colorScheme.outline)),
+              color: Theme.of(context).colorScheme.outline,),),
     );
   }
 }
@@ -232,22 +232,22 @@ class _SpaceTile extends StatelessWidget {
                 if (space.occupied)
                   Container(
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 6, vertical: 2),
+                        horizontal: 6, vertical: 2,),
                     decoration: BoxDecoration(
                       color: Colors.green.withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: const Text('Occupied',
                         style:
-                            TextStyle(fontSize: 10, color: Colors.green)),
+                            TextStyle(fontSize: 10, color: Colors.green),),
                   ),
-              ]),
+              ],),
               const Spacer(),
               Text(space.name,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
-                      fontWeight: FontWeight.w600, fontSize: 14)),
+                      fontWeight: FontWeight.w600, fontSize: 14,),),
               const SizedBox(height: 2),
               Text(
                 '${space.peopleCount} ${space.peopleCount == 1 ? 'person' : 'people'}'
@@ -287,17 +287,17 @@ class _PresenceStrip extends StatelessWidget {
       rows.add(Chip(
         avatar: Icon(
             entity?.kind == 'person' ? Icons.person : Icons.tag,
-            size: 16),
+            size: 16,),
         label: Text('$who · $place', style: const TextStyle(fontSize: 12)),
         materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
         visualDensity: VisualDensity.compact,
-      ));
+      ),);
     }
     if (rows.isEmpty) return const SizedBox.shrink();
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       const _SectionTitle(title: 'Presence'),
       Wrap(spacing: 8, runSpacing: 4, children: rows),
-    ]);
+    ],);
   }
 
   static String _placeName(dynamic v) {
@@ -312,7 +312,7 @@ class _PresenceStrip extends StatelessWidget {
 /// One paired watch — connection dot + tap through to the watch hub.
 class _WatchTile extends ConsumerWidget {
   const _WatchTile(
-      {required this.bleId, required this.name, required this.connected});
+      {required this.bleId, required this.name, required this.connected,});
   final String bleId;
   final String name;
   final bool connected;
@@ -326,14 +326,14 @@ class _WatchTile extends ConsumerWidget {
     return Card(
       child: ListTile(
         leading: Icon(Icons.watch,
-            color: live ? Colors.teal : Colors.grey, size: 30),
+            color: live ? Colors.teal : Colors.grey, size: 30,),
         title: Text(name),
         subtitle: Text(
             live
                 ? 'Connected${batt != null ? ' · $batt%' : ''}'
                 : 'Not connected',
             style: TextStyle(
-                fontSize: 12, color: live ? Colors.teal : Colors.grey)),
+                fontSize: 12, color: live ? Colors.teal : Colors.grey,),),
         trailing: const Icon(Icons.chevron_right),
         onTap: () => context.push('/watch'),
       ),
@@ -363,10 +363,10 @@ class _NodesCard extends StatelessWidget {
               const SizedBox(width: 10),
               Expanded(
                 child: Text('$online of ${nodes.length} nodes online',
-                    style: const TextStyle(fontWeight: FontWeight.w600)),
+                    style: const TextStyle(fontWeight: FontWeight.w600),),
               ),
               const Icon(Icons.chevron_right, color: Colors.grey),
-            ]),
+            ],),
           ),
           const SizedBox(height: 6),
           for (final d in nodes)
@@ -377,18 +377,18 @@ class _NodesCard extends StatelessWidget {
                 child: Row(children: [
                   Icon(Icons.circle,
                       size: 8,
-                      color: d.online ? Colors.green : Colors.grey),
+                      color: d.online ? Colors.green : Colors.grey,),
                   const SizedBox(width: 10),
                   Expanded(
                       child: Text(d.name,
-                          style: const TextStyle(fontSize: 13))),
+                          style: const TextStyle(fontSize: 13),),),
                   Text(_activityTag(d),
                       style: const TextStyle(
-                          fontSize: 11, color: Colors.grey)),
-                ]),
+                          fontSize: 11, color: Colors.grey,),),
+                ],),
               ),
             ),
-        ]),
+        ],),
       ),
     );
   }
@@ -415,7 +415,7 @@ class _EventRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final when = event.timestamp != null
         ? DateTime.fromMillisecondsSinceEpoch(
-            (event.timestamp! * 1000).round())
+            (event.timestamp! * 1000).round(),)
         : null;
     final icon = switch (event.type) {
       'entered' => Icons.login,
@@ -434,7 +434,7 @@ class _EventRow extends StatelessWidget {
       title: Text(
           '${event.entityId?.split(':').last ?? 'entity'} '
           '${event.type} ${_val(event.value)}',
-          style: const TextStyle(fontSize: 13)),
+          style: const TextStyle(fontSize: 13),),
       subtitle: when != null
           ? Text(_ago(when), style: const TextStyle(fontSize: 11))
           : null,

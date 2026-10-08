@@ -77,7 +77,7 @@ class _PinetimeDetailScreenState
       _motionWindow.add(m);
       if (_motionWindow.length > _windowCap) {
         _motionWindow.removeRange(
-            0, _motionWindow.length - _windowCap);
+            0, _motionWindow.length - _windowCap,);
       }
       // Repaint throttled to ~4 Hz — without setState the chart only
       // redrew on unrelated state changes, so a returning-from-sleep
@@ -107,7 +107,7 @@ class _PinetimeDetailScreenState
                 connected ? 'connected' : 'disconnected',
                 style: TextStyle(
                     fontSize: 11,
-                    color: connected ? Colors.green : Colors.grey),
+                    color: connected ? Colors.green : Colors.grey,),
               ),
             ],
           ),
@@ -117,18 +117,18 @@ class _PinetimeDetailScreenState
             Tab(text: 'Controls'),
             Tab(text: 'Captures'),
             Tab(text: 'Info'),
-          ]),
+          ],),
         ),
         body: TabBarView(children: [
           _SensorsTab(
               relay: relay,
               motion: _motionWindow,
-              droppedSeq: _droppedSeq),
+              droppedSeq: _droppedSeq,),
           _TraceTab(relay: relay),
           _ControlsTab(bleId: widget.bleId),
           _WatchCapturesTab(bleId: widget.bleId),
           _InfoTab(relay: relay),
-        ]),
+        ],),
       ),
     );
   }
@@ -140,7 +140,7 @@ class _SensorsTab extends ConsumerWidget {
   const _SensorsTab(
       {required this.relay,
       required this.motion,
-      required this.droppedSeq});
+      required this.droppedSeq,});
   final WatchRelay? relay;
   final List<MotionSample> motion;
   final int droppedSeq;
@@ -154,13 +154,13 @@ class _SensorsTab extends ConsumerWidget {
           children: [
             _tile('Heart rate',
                 relay?.heartRate != null ? '${relay!.heartRate} bpm' : '—',
-                Icons.favorite, Colors.red),
+                Icons.favorite, Colors.red,),
             _tile('Steps',
                 relay?.steps != null ? '${relay!.steps}' : '—',
-                Icons.directions_walk, Colors.blue),
+                Icons.directions_walk, Colors.blue,),
             _tile('Battery',
                 relay?.battery != null ? '${relay!.battery}%' : '—',
-                Icons.battery_full, Colors.green),
+                Icons.battery_full, Colors.green,),
           ],
         ),
         const SizedBox(height: 12),
@@ -177,7 +177,7 @@ class _SensorsTab extends ConsumerWidget {
                 Row(
                   children: [
                     Text('Accelerometer (g)',
-                        style: Theme.of(context).textTheme.titleMedium),
+                        style: Theme.of(context).textTheme.titleMedium,),
                     const Spacer(),
                     // Stock firmware parks the accel while dozing — say
                     // so instead of implying a dead stream.
@@ -187,7 +187,7 @@ class _SensorsTab extends ConsumerWidget {
                     _statChip(context, _rateLabel()),
                     const SizedBox(width: 8),
                     _statChip(context,
-                        droppedSeq == 0 ? 'no drops' : '$droppedSeq dropped'),
+                        droppedSeq == 0 ? 'no drops' : '$droppedSeq dropped',),
                   ],
                 ),
                 const SizedBox(height: 8),
@@ -220,10 +220,10 @@ class _SensorsTab extends ConsumerWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text('Watch events',
-                      style: Theme.of(context).textTheme.titleMedium),
+                      style: Theme.of(context).textTheme.titleMedium,),
                   for (final e in relay!.recentEvents.take(8))
                     Text('• $e',
-                        style: Theme.of(context).textTheme.bodySmall),
+                        style: Theme.of(context).textTheme.bodySmall,),
                 ],
               ),
             ),
@@ -249,7 +249,7 @@ class _SensorsTab extends ConsumerWidget {
           borderRadius: BorderRadius.circular(8),
         ),
         child: Text(text,
-            style: const TextStyle(fontSize: 11, fontFamily: 'monospace')),
+            style: const TextStyle(fontSize: 11, fontFamily: 'monospace'),),
       );
 
   Widget _tile(String label, String value, IconData icon, Color color) =>
@@ -263,7 +263,7 @@ class _SensorsTab extends ConsumerWidget {
                 const SizedBox(height: 6),
                 Text(value,
                     style: const TextStyle(
-                        fontSize: 18, fontWeight: FontWeight.bold)),
+                        fontSize: 18, fontWeight: FontWeight.bold,),),
                 Text(label, style: const TextStyle(fontSize: 11)),
               ],
             ),
@@ -283,7 +283,7 @@ class _Legend extends StatelessWidget {
           Container(width: 10, height: 2, color: color),
           const SizedBox(width: 4),
           Text(label, style: const TextStyle(fontSize: 11)),
-        ]),
+        ],),
       );
 }
 
@@ -309,13 +309,13 @@ class _ImuChartPainter extends CustomPainter {
     const leftPad = 26.0;
     const bottomPad = 16.0;
     final plot = Rect.fromLTWH(
-        leftPad, 0, size.width - leftPad - 2, size.height - bottomPad);
+        leftPad, 0, size.width - leftPad - 2, size.height - bottomPad,);
 
     final bg = Paint()
       ..color = Colors.black.withValues(alpha: 0.04)
       ..style = PaintingStyle.fill;
     canvas.drawRRect(
-        RRect.fromRectAndRadius(plot, const Radius.circular(8)), bg);
+        RRect.fromRectAndRadius(plot, const Radius.circular(8)), bg,);
 
     // Window ends at now so the curve visibly flows even between packets.
     final tEnd = DateTime.now().toUtc();
@@ -337,29 +337,29 @@ class _ImuChartPainter extends CustomPainter {
     for (final g in const [-2, -1, 0, 1, 2]) {
       final y = yOf(g.toDouble());
       canvas.drawLine(
-          Offset(plot.left, y), Offset(plot.right, y), gridPaint);
+          Offset(plot.left, y), Offset(plot.right, y), gridPaint,);
       _text(canvas, '${g > 0 ? '+' : ''}$g', axisStyle,
-          Offset(2, y - 5));
+          Offset(2, y - 5),);
     }
 
     // Vertical time-grid + HH:MM:SS labels every 5 s.
     final firstTick = DateTime.fromMillisecondsSinceEpoch(
         (tStart.millisecondsSinceEpoch ~/ 5000 + 1) * 5000,
-        isUtc: true);
+        isUtc: true,);
     for (var t = firstTick;
         t.isBefore(tEnd);
         t = t.add(const Duration(seconds: 5))) {
       final x = xOf(t);
       canvas.drawLine(
-          Offset(x, plot.top), Offset(x, plot.bottom), gridPaint);
+          Offset(x, plot.top), Offset(x, plot.bottom), gridPaint,);
       final label = t.toLocal().toIso8601String().substring(11, 19);
       _text(canvas, label, axisStyle,
-          Offset(x - 21, plot.bottom + 3));
+          Offset(x - 21, plot.bottom + 3),);
     }
 
     if (samples.isEmpty) {
       _text(canvas, 'waiting for motion data…', axisStyle,
-          Offset(plot.center.dx - 60, plot.center.dy - 5));
+          Offset(plot.center.dx - 60, plot.center.dy - 5),);
       return;
     }
 
@@ -393,7 +393,7 @@ class _ImuChartPainter extends CustomPainter {
   void _text(Canvas canvas, String text, TextStyle style, Offset at) {
     final tp = TextPainter(
         text: TextSpan(text: text, style: style),
-        textDirection: TextDirection.ltr)
+        textDirection: TextDirection.ltr,)
       ..layout();
     tp.paint(canvas, at);
   }
@@ -442,7 +442,7 @@ class _ControlsTabState extends ConsumerState<_ControlsTab>
                 ? 'Watch not connected'
                 : ok
                     ? '$what sent'
-                    : '$what failed')));
+                    : '$what failed',),),);
       }
     }
 
@@ -456,21 +456,21 @@ class _ControlsTabState extends ConsumerState<_ControlsTab>
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text('Notification',
-                    style: Theme.of(context).textTheme.titleMedium),
+                    style: Theme.of(context).textTheme.titleMedium,),
                 TextField(
                     controller: _titleCtrl,
-                    decoration: const InputDecoration(labelText: 'Title')),
+                    decoration: const InputDecoration(labelText: 'Title'),),
                 TextField(
                     controller: _bodyCtrl,
-                    decoration: const InputDecoration(labelText: 'Body')),
+                    decoration: const InputDecoration(labelText: 'Body'),),
                 const SizedBox(height: 8),
                 FilledButton.tonalIcon(
                   icon: const Icon(Icons.notifications),
                   label: const Text('Send to watch'),
                   onPressed: () => act(
                       () => link!.sendAlert(
-                          title: _titleCtrl.text, body: _bodyCtrl.text),
-                      'Notification'),
+                          title: _titleCtrl.text, body: _bodyCtrl.text,),
+                      'Notification',),
                 ),
               ],
             ),
@@ -513,8 +513,8 @@ class _ControlsTabState extends ConsumerState<_ControlsTab>
                           flag: 'turn-right',
                           narrative: 'Turn right in',
                           distance: '50 m',
-                          progress: 30),
-                      'Navigation'),
+                          progress: 30,),
+                      'Navigation',),
                 ),
               ],
             ),
@@ -528,11 +528,11 @@ class _ControlsTabState extends ConsumerState<_ControlsTab>
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text('Via Brain command queue',
-                    style: Theme.of(context).textTheme.titleMedium),
+                    style: Theme.of(context).textTheme.titleMedium,),
                 const SizedBox(height: 4),
                 const Text(
                     'Queues a DeviceCommand that this app drains on the next watch heartbeat (~30 s).',
-                    style: TextStyle(fontSize: 12, color: Colors.black54)),
+                    style: TextStyle(fontSize: 12, color: Colors.black54),),
                 const SizedBox(height: 8),
                 FilledButton.tonalIcon(
                   icon: const Icon(Icons.cloud_upload),
@@ -540,17 +540,17 @@ class _ControlsTabState extends ConsumerState<_ControlsTab>
                   onPressed: () async {
                     try {
                       await BrainClient.instance.queueDeviceCommand(
-                          relay!.record.deviceUuid, 'watch_alert');
+                          relay!.record.deviceUuid, 'watch_alert',);
                       if (context.mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
                                 content: Text(
-                                    'Command queued — watch executes on next heartbeat')));
+                                    'Command queued — watch executes on next heartbeat',),),);
                       }
                     } catch (e) {
                       if (context.mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('Queue failed: $e')));
+                            SnackBar(content: Text('Queue failed: $e')),);
                       }
                     }
                   },
@@ -589,7 +589,7 @@ class _ProximityCard extends StatelessWidget {
                   const Icon(Icons.near_me, size: 18),
                   const SizedBox(width: 8),
                   Text('Phone proximity',
-                      style: Theme.of(context).textTheme.titleMedium),
+                      style: Theme.of(context).textTheme.titleMedium,),
                   const Spacer(),
                   Text(band ?? 'no signal',
                       style: TextStyle(
@@ -597,8 +597,8 @@ class _ProximityCard extends StatelessWidget {
                           color: pct == null
                               ? Colors.grey
                               : _rssiColor(rssi),
-                          fontWeight: FontWeight.w600)),
-                ]),
+                          fontWeight: FontWeight.w600,),),
+                ],),
                 const SizedBox(height: 12),
                 ClipRRect(
                   borderRadius: BorderRadius.circular(6),
@@ -657,17 +657,17 @@ class _BackgroundCard extends ConsumerWidget {
                       fontSize: 11,
                       color: TraceService.instance.foregroundServiceRunning
                           ? Colors.green
-                          : Colors.grey),
+                          : Colors.grey,),
                 ),
               ),
-            ]),
+            ],),
             SwitchListTile(
               dense: true,
               contentPadding: EdgeInsets.zero,
               title: const Text('Background relay'),
               subtitle: const Text(
                   'Phone stays connected while the screen is off. On stock InfiniTime the accel parks when the watch dozes — samples resume on wake; the thoth firmware streams unconditionally.',
-                  style: TextStyle(fontSize: 11)),
+                  style: TextStyle(fontSize: 11),),
               value: settings?.backgroundRelay ?? true,
               onChanged: (v) => notifier.setBackgroundRelay(v),
             ),
@@ -677,7 +677,7 @@ class _BackgroundCard extends ConsumerWidget {
               title: const Text('GPS trace'),
               subtitle: const Text(
                   'Log phone location + watch RSSI for the Trace map.',
-                  style: TextStyle(fontSize: 11)),
+                  style: TextStyle(fontSize: 11),),
               value: settings?.gpsTrace ?? true,
               onChanged: (v) => notifier.setGpsTrace(v),
             ),
@@ -716,7 +716,7 @@ class _TraceTab extends ConsumerStatefulWidget {
 class _TraceTabState extends ConsumerState<_TraceTab>
     with AutomaticKeepAliveClientMixin {
   final MapController _map = MapController();
-  late List<TracePoint> _points = List.of(TraceService.instance.trace);
+  late final List<TracePoint> _points = List.of(TraceService.instance.trace);
   StreamSubscription<TracePoint>? _sub;
   Timer? _fleetTimer;
 
@@ -737,7 +737,7 @@ class _TraceTabState extends ConsumerState<_TraceTab>
     });
     _refreshFleet();
     _fleetTimer = Timer.periodic(
-        const Duration(seconds: 15), (_) => _refreshFleet());
+        const Duration(seconds: 15), (_) => _refreshFleet(),);
     // Raw fixes arrive every ~2 s even when the jitter filter keeps them
     // out of the path — follow tracks the live position, not just the
     // recorded points.
@@ -816,7 +816,7 @@ class _TraceTabState extends ConsumerState<_TraceTab>
               rssi: (p['rssi'] as num?)?.toInt(),
               name: '',
               type: '',
-              online: false);
+              online: false,);
         }
       }
     }
@@ -836,9 +836,9 @@ class _TraceTabState extends ConsumerState<_TraceTab>
     if (_points.length < 2) return;
     _map.fitCamera(CameraFit.bounds(
       bounds: LatLngBounds.fromPoints(
-          [for (final p in _points) LatLng(p.lat, p.lon)]),
+          [for (final p in _points) LatLng(p.lat, p.lon)],),
       padding: const EdgeInsets.all(48),
-    ));
+    ),);
     setState(() => _follow = false);
   }
 
@@ -846,7 +846,7 @@ class _TraceTabState extends ConsumerState<_TraceTab>
   /// the live GPS fix, a watch bleId resolves through its device_uuid
   /// to the fleet fix, and device uuids resolve via the fleet map.
   (LatLng, LatLng)? _edgeEndpoints(BleRelation e, TraceService svc,
-      Map<String, String> bleToUuid) {
+      Map<String, String> bleToUuid,) {
     LatLng? posOf(String id) {
       if (id.startsWith('phone:')) {
         final f = svc.lastFix;
@@ -891,12 +891,12 @@ class _TraceTabState extends ConsumerState<_TraceTab>
           child: Row(
             children: [
               _traceStat(Icons.route,
-                  dist >= 1000 ? '${(dist / 1000).toStringAsFixed(2)} km' : '${dist.toStringAsFixed(0)} m'),
+                  dist >= 1000 ? '${(dist / 1000).toStringAsFixed(2)} km' : '${dist.toStringAsFixed(0)} m',),
               _traceStat(Icons.place, '${_points.length} pts'),
               _traceStat(Icons.gps_fixed,
-                  fix == null ? 'no fix' : '±${fix.accuracy.toStringAsFixed(0)} m'),
+                  fix == null ? 'no fix' : '±${fix.accuracy.toStringAsFixed(0)} m',),
               _traceStat(Icons.bluetooth,
-                  rssi != null ? '$rssi dBm' : '—'),
+                  rssi != null ? '$rssi dBm' : '—',),
             ],
           ),
         ),
@@ -907,8 +907,8 @@ class _TraceTabState extends ConsumerState<_TraceTab>
               const Icon(Icons.warning_amber, size: 13, color: Colors.orange),
               const SizedBox(width: 4),
               Text('GPS stale — last fix ${fixAge}s ago',
-                  style: const TextStyle(fontSize: 11, color: Colors.orange)),
-            ]),
+                  style: const TextStyle(fontSize: 11, color: Colors.orange),),
+            ],),
           ),
         const SizedBox(height: 8),
         Expanded(
@@ -953,18 +953,18 @@ class _TraceTabState extends ConsumerState<_TraceTab>
                           borderColor: Colors.blue.withValues(alpha: 0.35),
                           borderStrokeWidth: 1,
                         ),
-                      ]),
+                      ],),
                     PolylineLayer(polylines: [
                       Polyline(
                         points: [
-                          for (final p in _points) LatLng(p.lat, p.lon)
+                          for (final p in _points) LatLng(p.lat, p.lon),
                         ],
                         strokeWidth: 4,
                         borderStrokeWidth: 1.5,
                         borderColor: Colors.black26,
                         color: Colors.blue.withValues(alpha: 0.8),
                       ),
-                    ]),
+                    ],),
                     CircleLayer(circles: [
                       for (final p in _points)
                         CircleMarker(
@@ -974,7 +974,7 @@ class _TraceTabState extends ConsumerState<_TraceTab>
                           borderStrokeWidth: 0.5,
                           borderColor: Colors.white,
                         ),
-                    ]),
+                    ],),
                     // Start marker + live position dot.
                     CircleLayer(circles: [
                       if (_points.isNotEmpty)
@@ -994,7 +994,7 @@ class _TraceTabState extends ConsumerState<_TraceTab>
                           borderColor: Colors.blue,
                           borderStrokeWidth: 3.5,
                         ),
-                    ]),
+                    ],),
                     // BLE relation overlay — every live proximity edge
                     // drawn on the absolute map. Width = RSSI strength,
                     // alpha = freshness. Signal, not distance.
@@ -1011,9 +1011,9 @@ class _TraceTabState extends ConsumerState<_TraceTab>
                                     0.6 *
                                         (1 -
                                             (e.ageSeconds / 90)
-                                                .clamp(0, 1))),
+                                                .clamp(0, 1)),),
                           ),
-                    ]),
+                    ],),
                     // Fleet — every account device with a recent GPS fix.
                     MarkerLayer(markers: [
                       for (final e in _fleet.entries)
@@ -1022,21 +1022,21 @@ class _TraceTabState extends ConsumerState<_TraceTab>
                           width: 90,
                           height: 50,
                           child: _FleetMarker(
-                              fix: e.value, self: _isSelf(e.key)),
+                              fix: e.value, self: _isSelf(e.key),),
                         ),
-                    ]),
+                    ],),
                     // Endpoint labels — first and latest trace dots.
                     MarkerLayer(markers: [
                       if (_points.isNotEmpty)
                         Marker(
                           point: LatLng(
-                              _points.first.lat, _points.first.lon),
+                              _points.first.lat, _points.first.lon,),
                           width: 90,
                           height: 18,
                           child: Transform.translate(
                             offset: const Offset(0, -14),
                             child: _TraceTag(
-                                'start ${_hhmm(_points.first.at)}'),
+                                'start ${_hhmm(_points.first.at)}',),
                           ),
                         ),
                       if (_points.length > 1)
@@ -1051,7 +1051,7 @@ class _TraceTabState extends ConsumerState<_TraceTab>
                                 '${latest.rssi != null ? ' · ${latest.rssi} dBm' : ''}'),
                           ),
                         ),
-                    ]),
+                    ],),
                   ],
                 ),
         ),
@@ -1062,10 +1062,10 @@ class _TraceTabState extends ConsumerState<_TraceTab>
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             child: Row(
               children: [
-                Expanded(
+                const Expanded(
                   child: Wrap(
                     spacing: 10,
-                    children: const [
+                    children: [
                       _DotLegend(Colors.green, 'close'),
                       _DotLegend(Colors.orange, 'near'),
                       _DotLegend(Colors.red, 'far'),
@@ -1075,7 +1075,7 @@ class _TraceTabState extends ConsumerState<_TraceTab>
                 IconButton(
                   icon: Icon(Icons.my_location,
                       size: 20,
-                      color: _follow ? Colors.blue : null),
+                      color: _follow ? Colors.blue : null,),
                   tooltip: 'Follow me',
                   onPressed: () {
                     setState(() => _follow = true);
@@ -1117,7 +1117,7 @@ class _TraceTabState extends ConsumerState<_TraceTab>
                 style: const TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
-                    fontFamily: 'monospace')),
+                    fontFamily: 'monospace',),),
           ],
         ),
       );
@@ -1151,7 +1151,7 @@ class _FleetFix {
           rssi: rssi,
           name: name ?? this.name,
           type: type ?? this.type,
-          online: online ?? this.online);
+          online: online ?? this.online,);
 }
 
 class _FleetMarker extends StatelessWidget {
@@ -1172,7 +1172,7 @@ class _FleetMarker extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         Icon(self ? Icons.watch : Icons.sensors,
-            size: 20, color: fresh ? color : color.withValues(alpha: 0.5)),
+            size: 20, color: fresh ? color : color.withValues(alpha: 0.5),),
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
           decoration: BoxDecoration(
@@ -1184,7 +1184,7 @@ class _FleetMarker extends StatelessWidget {
             style: TextStyle(
                 fontSize: 9,
                 fontWeight: self ? FontWeight.w700 : FontWeight.w500,
-                color: color),
+                color: color,),
             overflow: TextOverflow.ellipsis,
           ),
         ),
@@ -1228,7 +1228,7 @@ class _TraceTag extends StatelessWidget {
           child: Text(text,
               style:
                   const TextStyle(fontSize: 9, color: Colors.black87),
-              overflow: TextOverflow.ellipsis),
+              overflow: TextOverflow.ellipsis,),
         ),
       );
 }
@@ -1296,13 +1296,13 @@ class _WatchCapturesTabState extends ConsumerState<_WatchCapturesTab>
                               kWatchSensorMotion,
                               kWatchSensorHr,
                               kWatchSensorSteps,
-                              kWatchSensorBattery
-                            ]);
+                              kWatchSensorBattery,
+                            ],);
                         _reload();
                       } catch (e) {
                         if (context.mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text('$e')));
+                              SnackBar(content: Text('$e')),);
                         }
                       }
                     },
@@ -1310,7 +1310,7 @@ class _WatchCapturesTabState extends ConsumerState<_WatchCapturesTab>
                   const Spacer(),
                   IconButton(
                       icon: const Icon(Icons.refresh),
-                      onPressed: _reload),
+                      onPressed: _reload,),
                 ],
               ),
             ),
@@ -1320,22 +1320,22 @@ class _WatchCapturesTabState extends ConsumerState<_WatchCapturesTab>
                   : snap.hasError
                       ? Center(
                           child: Text('Failed to load\n${snap.error}',
-                              textAlign: TextAlign.center))
+                              textAlign: TextAlign.center,),)
                       : captures.isEmpty
                           ? const Center(
                               child:
-                                  Text('No captures yet for this watch.'))
+                                  Text('No captures yet for this watch.'),)
                           : ListView.builder(
                               itemCount: captures.length,
                               itemBuilder: (context, i) {
                                 final c = captures[i];
                                 return ListTile(
                                   leading: const Icon(Icons.folder_zip,
-                                      size: 18),
+                                      size: 18,),
                                   title: Text('${c['id'] ?? ''}',
                                       style: const TextStyle(
                                           fontFamily: 'monospace',
-                                          fontSize: 13)),
+                                          fontSize: 13,),),
                                   subtitle:
                                       Text('${c['state'] ?? ''}'),
                                   trailing: c['state'] == 'active'
@@ -1345,7 +1345,7 @@ class _WatchCapturesTabState extends ConsumerState<_WatchCapturesTab>
                                           onPressed: () async {
                                             await BrainClient.instance
                                                 .stopCapture(
-                                                    '${c['id']}');
+                                                    '${c['id']}',);
                                             _reload();
                                           },
                                         )
@@ -1387,7 +1387,7 @@ class _InfoTab extends StatelessWidget {
                 _kv('Device token',
                     (r?.deviceToken?.isNotEmpty ?? false)
                         ? 'device-scoped JWT stored'
-                        : 'missing — re-pair'),
+                        : 'missing — re-pair',),
                 _kv('Relay error', relay?.lastError ?? 'none'),
               ],
             ),
@@ -1410,7 +1410,7 @@ class _InfoTab extends StatelessWidget {
                   style: const TextStyle(
                       fontWeight: FontWeight.w500,
                       fontFamily: 'monospace',
-                      fontSize: 12)),
+                      fontSize: 12,),),
             ),
           ],
         ),
@@ -1531,12 +1531,12 @@ class _FirmwareUpdateCardState extends ConsumerState<_FirmwareUpdateCard> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text('Firmware update (OTA)',
-                style: Theme.of(context).textTheme.titleMedium),
+                style: Theme.of(context).textTheme.titleMedium,),
             const SizedBox(height: 4),
             const Text(
                 'Select a *-dfu.zip built from the fork. The watch reboots '
                 'into its mcuboot DFU loader during the transfer.',
-                style: TextStyle(fontSize: 12, color: Colors.black54)),
+                style: TextStyle(fontSize: 12, color: Colors.black54),),
             const SizedBox(height: 8),
             if (_percent != null)
               LinearProgressIndicator(value: (_percent ?? 0) / 100),

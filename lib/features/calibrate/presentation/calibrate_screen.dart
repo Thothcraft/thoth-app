@@ -103,7 +103,7 @@ class _CalibrateScreenState extends ConsumerState<CalibrateScreen> {
       r.forEach((k, v) => acc.putIfAbsent(k, () => []).add(v));
     }
     return acc.map((k, v) =>
-        MapEntry(k, v.reduce((a, b) => a + b) / v.length));
+        MapEntry(k, v.reduce((a, b) => a + b) / v.length),);
   }
 
   @override
@@ -119,7 +119,7 @@ class _CalibrateScreenState extends ConsumerState<CalibrateScreen> {
           _Phase.collect => _collect(),
           _Phase.validate => _validate(),
         },
-      ]),
+      ],),
     );
   }
 
@@ -140,11 +140,11 @@ class _CalibrateScreenState extends ConsumerState<CalibrateScreen> {
               size: 18,
               color: i <= idx
                   ? Theme.of(context).colorScheme.primary
-                  : Colors.grey),
+                  : Colors.grey,),
           Text(labels[i], style: const TextStyle(fontSize: 10)),
-        ]),
+        ],),
       ],
-    ]);
+    ],);
   }
 
   Widget _pickSpace() {
@@ -155,7 +155,7 @@ class _CalibrateScreenState extends ConsumerState<CalibrateScreen> {
       data: (list) => Column(children: [
         const Align(
             alignment: Alignment.centerLeft,
-            child: Text('Which space are you calibrating?')),
+            child: Text('Which space are you calibrating?'),),
         const SizedBox(height: 12),
         for (final s in list)
           Card(
@@ -168,14 +168,14 @@ class _CalibrateScreenState extends ConsumerState<CalibrateScreen> {
                 _space = s;
                 _zones.addAll(s.zones
                     .map((z) => '${z['name']}')
-                    .where((n) => n.isNotEmpty));
+                    .where((n) => n.isNotEmpty),);
                 _phase =
                     _zones.isEmpty ? _Phase.defineZones : _Phase.collect;
                 _activeZone = _zones.isNotEmpty ? _zones.first : 'space';
               }),
             ),
           ),
-      ]),
+      ],),
     );
   }
 
@@ -189,7 +189,7 @@ class _CalibrateScreenState extends ConsumerState<CalibrateScreen> {
             child: TextField(
                 controller: _zoneName,
                 decoration:
-                    const InputDecoration(hintText: 'zone name'))),
+                    const InputDecoration(hintText: 'zone name'),),),
         IconButton(
             icon: const Icon(Icons.add_circle_outline),
             onPressed: () {
@@ -199,22 +199,22 @@ class _CalibrateScreenState extends ConsumerState<CalibrateScreen> {
                   _zoneName.clear();
                 });
               }
-            }),
-      ]),
+            },),
+      ],),
       const SizedBox(height: 8),
       Wrap(spacing: 8, children: [
         for (final z in _zones) Chip(label: Text(z)),
         if (_zones.isEmpty)
           const Chip(label: Text('whole space')),
-      ]),
+      ],),
       const SizedBox(height: 20),
       FilledButton(
           onPressed: () => setState(() {
                 _phase = _Phase.collect;
                 _activeZone = _zones.isNotEmpty ? _zones.first : 'space';
               }),
-          child: const Text('Start collecting')),
-    ]);
+          child: const Text('Start collecting'),),
+    ],);
   }
 
   Widget _collect() {
@@ -227,7 +227,7 @@ class _CalibrateScreenState extends ConsumerState<CalibrateScreen> {
           style: Theme.of(context)
               .textTheme
               .bodySmall
-              ?.copyWith(color: Colors.black54)),
+              ?.copyWith(color: Colors.black54),),
       const SizedBox(height: 12),
       SegmentedButton<String>(
         segments: [
@@ -244,14 +244,14 @@ class _CalibrateScreenState extends ConsumerState<CalibrateScreen> {
           Text(
               '${_fingerprints[_activeZone ?? spots.first]?.length ?? 0} samples',
               style: const TextStyle(
-                  fontSize: 28, fontWeight: FontWeight.w700)),
+                  fontSize: 28, fontWeight: FontWeight.w700,),),
           const SizedBox(height: 8),
           FilledButton.icon(
             icon: Icon(collecting ? Icons.stop : Icons.play_arrow),
             label: Text(collecting ? 'Stop' : 'Collect here'),
             onPressed: _toggleCollect,
           ),
-        ]),
+        ],),
       ),
       const SizedBox(height: 20),
       FilledButton.tonal(
@@ -262,21 +262,21 @@ class _CalibrateScreenState extends ConsumerState<CalibrateScreen> {
               ? const SizedBox(
                   width: 16,
                   height: 16,
-                  child: CircularProgressIndicator(strokeWidth: 2))
-              : const Text('Save calibration')),
-    ]);
+                  child: CircularProgressIndicator(strokeWidth: 2),)
+              : const Text('Save calibration'),),
+    ],);
   }
 
   Widget _validate() {
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       const Text('Validation',
-          style: TextStyle(fontWeight: FontWeight.w600)),
+          style: TextStyle(fontWeight: FontWeight.w600),),
       const SizedBox(height: 8),
       const Text(
           'Walk between zones — the estimator compares live BLE evidence '
           'to the saved fingerprints and reports accuracy back through '
           'context state (location.zone.v1).',
-          style: TextStyle(color: Colors.black54, fontSize: 12)),
+          style: TextStyle(color: Colors.black54, fontSize: 12),),
       const SizedBox(height: 12),
       // Live zone estimate, if the estimator is already producing it.
       Consumer(builder: (context, ref, _) {
@@ -289,7 +289,7 @@ class _CalibrateScreenState extends ConsumerState<CalibrateScreen> {
           return const Text(
               'No zone estimate yet — the estimator will publish '
               'location.zone.v1 once it has enough evidence.',
-              style: TextStyle(fontSize: 12));
+              style: TextStyle(fontSize: 12),);
         }
         return Column(children: [
           for (final s in zoneStates)
@@ -300,12 +300,12 @@ class _CalibrateScreenState extends ConsumerState<CalibrateScreen> {
               subtitle: Text('${(s.confidence * 100).round()}% · '
                   '${s.estimator}'),
             ),
-        ]);
-      }),
+        ],);
+      },),
       const SizedBox(height: 20),
       FilledButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Done')),
-    ]);
+          child: const Text('Done'),),
+    ],);
   }
 }

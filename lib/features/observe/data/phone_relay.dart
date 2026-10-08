@@ -191,7 +191,14 @@ class PhoneRelay {
           'hardware_info': {
             'transport': 'app',
             'platform': defaultTargetPlatform.name,
-            'sensors': [kPhoneSensorGps, kPhoneSensorImu, kPhoneSensorBle],
+            // Dict entries keep their ids verbatim — a bare string would be
+            // re-keyed to `<name>-0` by Brain's sensors_from_hardware and
+            // the stream sensor_ids would no longer match.
+            'sensors': [
+              {'id': kPhoneSensorGps, 'type': 'gps'},
+              {'id': kPhoneSensorImu, 'type': 'imu'},
+              {'id': kPhoneSensorBle, 'type': 'ble_scan'},
+            ],
           },
         },
       );

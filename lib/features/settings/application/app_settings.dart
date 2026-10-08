@@ -131,7 +131,7 @@ class AppSettings {
 
 final appSettingsProvider =
     AsyncNotifierProvider<AppSettingsNotifier, AppSettings>(
-        AppSettingsNotifier.new);
+        AppSettingsNotifier.new,);
 
 class AppSettingsNotifier extends AsyncNotifier<AppSettings> {
   @override
@@ -152,7 +152,7 @@ class AppSettingsNotifier extends AsyncNotifier<AppSettings> {
       bleIdentityBeacon: p.getBool(AppSettings._kBleBeacon) ?? false,
       username: p.getString(AppSettings._kUsername),
       geoZones: (json.decode(
-              p.getString(AppSettings._kGeoZones) ?? '[]') as List)
+              p.getString(AppSettings._kGeoZones) ?? '[]',) as List)
           .map((e) => GeoZone.fromJson(Map<String, dynamic>.from(e)))
           .toList(),
     );
@@ -165,7 +165,7 @@ class AppSettingsNotifier extends AsyncNotifier<AppSettings> {
 
   Future<void> setThemeMode(ThemeMode m) async {
     state = AsyncData(state.valueOrNull?.copyWith(themeMode: m) ??
-        AppSettings(themeMode: m));
+        AppSettings(themeMode: m),);
     await _save((p) => p.setString(AppSettings._kTheme, m.name));
   }
 
@@ -183,7 +183,7 @@ class AppSettingsNotifier extends AsyncNotifier<AppSettings> {
 
   Future<void> setBatteryOptPrompted() async {
     state = AsyncData(
-        (state.valueOrNull ?? const AppSettings()).copyWith(batteryOptPrompted: true));
+        (state.valueOrNull ?? const AppSettings()).copyWith(batteryOptPrompted: true),);
     await _save((p) => p.setBool(AppSettings._kBattOpt, true));
   }
 
@@ -191,40 +191,40 @@ class AppSettingsNotifier extends AsyncNotifier<AppSettings> {
 
   Future<void> setBleRssiCollection(bool v) async {
     state = AsyncData((state.valueOrNull ?? const AppSettings())
-        .copyWith(bleRssiCollection: v));
+        .copyWith(bleRssiCollection: v),);
     await _save((p) => p.setBool(AppSettings._kBleRssi, v));
   }
 
   Future<void> setGpsEvidence(bool v) async {
     state = AsyncData((state.valueOrNull ?? const AppSettings())
-        .copyWith(gpsEvidence: v));
+        .copyWith(gpsEvidence: v),);
     await _save((p) => p.setBool(AppSettings._kGpsEvidence, v));
   }
 
   Future<void> setPhoneMotion(bool v) async {
     state = AsyncData((state.valueOrNull ?? const AppSettings())
-        .copyWith(phoneMotion: v));
+        .copyWith(phoneMotion: v),);
     await _save((p) => p.setBool(AppSettings._kMotion, v));
   }
 
   Future<void> setBleIdentityBeacon(bool v) async {
     state = AsyncData((state.valueOrNull ?? const AppSettings())
-        .copyWith(bleIdentityBeacon: v));
+        .copyWith(bleIdentityBeacon: v),);
     await _save((p) => p.setBool(AppSettings._kBleBeacon, v));
   }
 
   Future<void> setGeoZones(List<GeoZone> zones) async {
     state = AsyncData((state.valueOrNull ?? const AppSettings())
-        .copyWith(geoZones: zones));
+        .copyWith(geoZones: zones),);
     await _save((p) => p.setString(AppSettings._kGeoZones,
-        json.encode(zones.map((z) => z.toJson()).toList())));
+        json.encode(zones.map((z) => z.toJson()).toList()),),);
   }
 
   Future<void> setUsername(String? v) async {
     state = AsyncData((state.valueOrNull ?? const AppSettings())
-        .copyWith(username: v));
+        .copyWith(username: v),);
     await _save((p) => v == null
         ? p.remove(AppSettings._kUsername)
-        : p.setString(AppSettings._kUsername, v));
+        : p.setString(AppSettings._kUsername, v),);
   }
 }

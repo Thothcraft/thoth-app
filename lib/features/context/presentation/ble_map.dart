@@ -75,7 +75,7 @@ class _BleMapViewState extends State<BleMapView> {
       context: context,
       builder: (c) => AlertDialog(
         title: Text(
-            'Label for ${n.id.length > 24 ? '${n.id.substring(0, 24)}…' : n.id}'),
+            'Label for ${n.id.length > 24 ? '${n.id.substring(0, 24)}…' : n.id}',),
         content: TextField(
           controller: ctrl,
           autofocus: true,
@@ -1003,7 +1003,7 @@ class _BleMapPainter extends CustomPainter {
 
     _text(canvas, 'Link diagram · room offsets and floors not calibrated',
         Offset(16, size.height - 16),
-        Colors.black54, 11);
+        Colors.black54, 11,);
   }
 
   /// Edge-distance chip drawn over the line midpoint when selected.
@@ -1132,7 +1132,7 @@ class _LegendCard extends StatelessWidget {
     'ble',
     'tv',
     'speaker',
-    'unknown'
+    'unknown',
   ];
   static const _icons = {
     'phone': Icons.smartphone,

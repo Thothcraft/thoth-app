@@ -44,16 +44,16 @@ class SpaceDetailScreen extends ConsumerWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     const Icon(Icons.sensor_door_outlined,
-                        size: 48, color: Colors.grey),
+                        size: 48, color: Colors.grey,),
                     const SizedBox(height: 12),
                     Text('Space "$spaceId" was not found.',
-                        textAlign: TextAlign.center),
+                        textAlign: TextAlign.center,),
                     const SizedBox(height: 8),
                     const Text(
                         'It may have been deleted on the portal, or the '
                         'spaces feed has not synced yet.',
                         style: TextStyle(color: Colors.grey, fontSize: 12),
-                        textAlign: TextAlign.center),
+                        textAlign: TextAlign.center,),
                   ],
                 ),
               ),
@@ -71,7 +71,7 @@ class SpaceDetailScreen extends ConsumerWidget {
           ];
           final unlinked = sp.placements
               .where((p) => '${p['device_id']}'.isNotEmpty &&
-                  !placed.any((d) => d.uuid == '${p['device_id']}'))
+                  !placed.any((d) => d.uuid == '${p['device_id']}'),)
               .toList();
 
           // Entities whose active location state points here.
@@ -190,7 +190,7 @@ class _HeaderCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(space.name,
-                    style: Theme.of(context).textTheme.titleLarge),
+                    style: Theme.of(context).textTheme.titleLarge,),
                 const SizedBox(height: 4),
                 Text(
                   space.occupied
@@ -200,7 +200,7 @@ class _HeaderCard extends StatelessWidget {
                           : 'Empty',
                   style: TextStyle(
                       color: space.occupied ? Colors.green : cs.outline,
-                      fontWeight: FontWeight.w600),
+                      fontWeight: FontWeight.w600,),
                 ),
                 const SizedBox(height: 4),
                 Text(
@@ -216,7 +216,7 @@ class _HeaderCard extends StatelessWidget {
               ],
             ),
           ),
-        ]),
+        ],),
       ),
     );
   }
@@ -251,7 +251,7 @@ class _ZonesCard extends StatelessWidget {
                         0;
                     return Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 8),
+                          horizontal: 12, vertical: 8,),
                       decoration: BoxDecoration(
                         color: occ
                             ? Colors.green.withValues(alpha: 0.12)
@@ -263,19 +263,19 @@ class _ZonesCard extends StatelessWidget {
                       child: Row(mainAxisSize: MainAxisSize.min, children: [
                         Icon(occ ? Icons.circle : Icons.circle_outlined,
                             size: 10,
-                            color: occ ? Colors.green : Colors.grey),
+                            color: occ ? Colors.green : Colors.grey,),
                         const SizedBox(width: 6),
                         Text('${z['name'] ?? zid}',
-                            style: const TextStyle(fontSize: 13)),
+                            style: const TextStyle(fontSize: 13),),
                         if (conf > 0) ...[
                           const SizedBox(width: 6),
                           Text('${(conf * 100).round()}%',
                               style: const TextStyle(
-                                  fontSize: 11, color: Colors.grey)),
+                                  fontSize: 11, color: Colors.grey,),),
                         ],
-                      ]),
+                      ],),
                     );
-                  }),
+                  },),
               ],
             ),
           ],
@@ -299,13 +299,13 @@ class _DevicesCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text('Devices in this space',
-                style: Theme.of(context).textTheme.titleMedium),
+                style: Theme.of(context).textTheme.titleMedium,),
             const SizedBox(height: 8),
             if (placed.isEmpty && unlinked.isEmpty)
               const Text(
                   'No devices placed here yet — place them on the space '
                   'in the portal and they will appear here.',
-                  style: TextStyle(fontSize: 12, color: Colors.grey)),
+                  style: TextStyle(fontSize: 12, color: Colors.grey),),
             for (final d in placed)
               ListTile(
                 dense: true,
@@ -314,10 +314,10 @@ class _DevicesCard extends StatelessWidget {
                     (d.deviceType ?? '').contains('watch')
                         ? Icons.watch
                         : Icons.router,
-                    color: d.online ? Colors.green : Colors.grey),
+                    color: d.online ? Colors.green : Colors.grey,),
                 title: Text(d.name),
                 subtitle: Text(d.online ? 'online' : 'offline',
-                    style: const TextStyle(fontSize: 12)),
+                    style: const TextStyle(fontSize: 12),),
                 onTap: () => context.push('/devices/${d.uuid}'),
               ),
             for (final p in unlinked)
@@ -326,12 +326,12 @@ class _DevicesCard extends StatelessWidget {
                 contentPadding: EdgeInsets.zero,
                 leading: const Icon(Icons.bluetooth, color: Colors.grey),
                 title: Text('${p['device_name'] ?? p['device_id']}',
-                    style: const TextStyle(fontSize: 13)),
+                    style: const TextStyle(fontSize: 13),),
                 subtitle: Text(
                     'placed at ${((p['x'] as num?) ?? 0).toStringAsFixed(1)},'
                     '${((p['y'] as num?) ?? 0).toStringAsFixed(1)} m'
                     '${p['floor'] != null ? ' · ${p['floor']}' : ''}',
-                    style: const TextStyle(fontSize: 12)),
+                    style: const TextStyle(fontSize: 12),),
               ),
           ],
         ),
@@ -353,7 +353,7 @@ class _PeopleCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text('Here now',
-                style: Theme.of(context).textTheme.titleMedium),
+                style: Theme.of(context).textTheme.titleMedium,),
             const SizedBox(height: 8),
             for (final e in entities)
               ListTile(
@@ -363,7 +363,7 @@ class _PeopleCard extends StatelessWidget {
                     e.kind == 'person'
                         ? Icons.person
                         : Icons.category_outlined,
-                    color: Theme.of(context).colorScheme.primary),
+                    color: Theme.of(context).colorScheme.primary,),
                 title: Text((e.name?.isNotEmpty ?? false) ? e.name! : e.id),
                 subtitle:
                     Text(e.kind, style: const TextStyle(fontSize: 12)),
@@ -390,11 +390,11 @@ class _MovesCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text('Recent activity here',
-                style: Theme.of(context).textTheme.titleMedium),
+                style: Theme.of(context).textTheme.titleMedium,),
             const SizedBox(height: 8),
             if (events.isEmpty)
               const Text('No movement recorded for this space yet.',
-                  style: TextStyle(fontSize: 12, color: Colors.grey)),
+                  style: TextStyle(fontSize: 12, color: Colors.grey),),
             for (final e in events)
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 4),
@@ -406,7 +406,7 @@ class _MovesCard extends StatelessWidget {
                             ? Icons.south_east
                             : Icons.north_east,
                         size: 14,
-                        color: Colors.grey),
+                        color: Colors.grey,),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
@@ -417,7 +417,7 @@ class _MovesCard extends StatelessWidget {
                     ),
                     Text(_ago(e.timestamp),
                         style: const TextStyle(
-                            fontSize: 11, color: Colors.grey)),
+                            fontSize: 11, color: Colors.grey,),),
                   ],
                 ),
               ),
@@ -435,7 +435,7 @@ class _MovesCard extends StatelessWidget {
   static String _ago(double? ts) {
     if (ts == null) return '';
     final d = DateTime.now().difference(
-        DateTime.fromMillisecondsSinceEpoch((ts * 1000).round()));
+        DateTime.fromMillisecondsSinceEpoch((ts * 1000).round()),);
     if (d.inMinutes < 1) return 'now';
     if (d.inHours < 1) return '${d.inMinutes}m';
     if (d.inDays < 1) return '${d.inHours}h';

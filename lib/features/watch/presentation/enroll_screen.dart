@@ -53,7 +53,7 @@ class _EnrollScreenState extends ConsumerState<EnrollScreen> {
     _sub = WatchLink.scan().listen((results) {
       if (!mounted) return;
       setState(() => _found =
-          results.where(WatchLink.looksLikeWatch).toList());
+          results.where(WatchLink.looksLikeWatch).toList(),);
     });
   }
 
@@ -76,7 +76,7 @@ class _EnrollScreenState extends ConsumerState<EnrollScreen> {
           .pairAndConnect(r.device.remoteId.str,
               name: r.advertisementData.advName.isNotEmpty
                   ? r.advertisementData.advName
-                  : 'PineTime');
+                  : 'PineTime',);
       // Register the logical entity + relationship in context.
       final repo = ref.read(contextRepoProvider);
       await repo.upsertEntity(ContextEntity(
@@ -84,7 +84,7 @@ class _EnrollScreenState extends ConsumerState<EnrollScreen> {
         kind: 'wearable',
         name: record.name,
         attributes: {'transport': 'ble', 'ble_id': record.bleId},
-      ));
+      ),);
       setState(() => _step = _EnrollStep.associate);
       _startImuVerify(record.bleId);
     } catch (e) {
@@ -102,18 +102,18 @@ class _EnrollScreenState extends ConsumerState<EnrollScreen> {
     try {
       final bleId = record.device.remoteId.str;
       final uuid = await ref.read(watchListProvider.future).then((l) =>
-          l.where((w) => w.bleId == bleId).firstOrNull?.deviceUuid ?? bleId);
+          l.where((w) => w.bleId == bleId).firstOrNull?.deviceUuid ?? bleId,);
       // person —wears→ wearable ; wearable —worn_by→ person
       await repo.createRelationship(
           subject: personEntity,
           predicate: 'wears',
           object: 'wearable:$uuid',
-          source: 'thoth-app/enroll');
+          source: 'thoth-app/enroll',);
       await repo.createRelationship(
           subject: 'wearable:$uuid',
           predicate: 'worn_by',
           object: personEntity,
-          source: 'thoth-app/enroll');
+          source: 'thoth-app/enroll',);
       setState(() => _step = _EnrollStep.verify);
     } catch (e) {
       setState(() => _error = 'association failed: $e');
@@ -143,7 +143,7 @@ class _EnrollScreenState extends ConsumerState<EnrollScreen> {
             'The phone relays the wearable until the node can observe it '
             'directly — enrollment only binds identity, not a permanent '
             'relay.',
-            style: TextStyle(color: Colors.black54, fontSize: 12)),
+            style: TextStyle(color: Colors.black54, fontSize: 12),),
         const SizedBox(height: 16),
 
         // ── discover ────────────────────────────────────────────────────
@@ -157,19 +157,19 @@ class _EnrollScreenState extends ConsumerState<EnrollScreen> {
                       leading: const Icon(Icons.watch_outlined),
                       title: Text(r.advertisementData.advName.isNotEmpty
                           ? r.advertisementData.advName
-                          : r.device.remoteId.str),
+                          : r.device.remoteId.str,),
                       subtitle: Text('${r.rssi} dBm',
-                          style: const TextStyle(fontSize: 11)),
+                          style: const TextStyle(fontSize: 11),),
                       trailing: FilledButton.tonal(
                           onPressed: () => _pair(r),
-                          child: const Text('Enroll')),
+                          child: const Text('Enroll'),),
                     ),
                   if (_found.isEmpty)
                     const Padding(
                       padding: EdgeInsets.all(16),
                       child: Text('Scanning for InfiniTime wearables…'),
                     ),
-                ])
+                ],)
               : const SizedBox.shrink(),
         ),
 
@@ -193,14 +193,14 @@ class _EnrollScreenState extends ConsumerState<EnrollScreen> {
                           : Icons.hourglass_top,
                       color:
                           _imuVerified ? Colors.green : Colors.orange,
-                      size: 20),
+                      size: 20,),
                   title: Text(_imuVerified
                       ? 'Motion samples arriving'
-                      : 'Waiting for IMU samples…'),
+                      : 'Waiting for IMU samples…',),
                   subtitle: const Text(
                       'The node picks the stream up from Brain evidence — '
                       'the phone relay can drop after this.',
-                      style: TextStyle(fontSize: 11)),
+                      style: TextStyle(fontSize: 11),),
                 )
               : const SizedBox.shrink(),
         ),
@@ -210,7 +210,7 @@ class _EnrollScreenState extends ConsumerState<EnrollScreen> {
             padding: const EdgeInsets.only(top: 12),
             child: Text(_error!,
                 style: TextStyle(
-                    color: Theme.of(context).colorScheme.error)),
+                    color: Theme.of(context).colorScheme.error,),),
           ),
         const SizedBox(height: 24),
         if (_step.index >= 3)
@@ -219,7 +219,7 @@ class _EnrollScreenState extends ConsumerState<EnrollScreen> {
             label: const Text('Done'),
             onPressed: () => context.go('/watch'),
           ),
-      ]),
+      ],),
     );
   }
 
@@ -243,7 +243,7 @@ class _EnrollScreenState extends ConsumerState<EnrollScreen> {
             child: TextField(
               controller: _personName,
               decoration: const InputDecoration(
-                  hintText: 'New person name', isDense: true),
+                  hintText: 'New person name', isDense: true,),
             ),
           ),
           TextButton(
@@ -255,10 +255,10 @@ class _EnrollScreenState extends ConsumerState<EnrollScreen> {
                     setState(() => _creatingPerson = true);
                     try {
                       final id = 'person:${name.toLowerCase().replaceAll(
-                          RegExp(r'[^a-z0-9]+'), '-')}';
+                          RegExp(r'[^a-z0-9]+'), '-',)}';
                       await ref.read(contextRepoProvider).upsertEntity(
                           ContextEntity(
-                              id: id, kind: 'person', name: name));
+                              id: id, kind: 'person', name: name,),);
                       await _associate(id);
                     } finally {
                       if (mounted) {
@@ -268,9 +268,9 @@ class _EnrollScreenState extends ConsumerState<EnrollScreen> {
                   },
             child: const Text('Create'),
           ),
-        ]),
-      ]);
-    });
+        ],),
+      ],);
+    },);
   }
 
   Widget _stepCard(int idx, String title, bool done, Widget child) {
@@ -281,12 +281,12 @@ class _EnrollScreenState extends ConsumerState<EnrollScreen> {
         leading: Icon(
             done ? Icons.check_circle : Icons.circle_outlined,
             color: done ? Colors.green : Colors.grey,
-            size: 20),
+            size: 20,),
         title: Text(title, style: const TextStyle(fontSize: 14)),
         children: [
           Padding(
               padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-              child: child),
+              child: child,),
         ],
       ),
     );

@@ -94,7 +94,7 @@ class BleCommissioningTransport implements ProvisioningTransport {
   /// Discover commissioning advertisements. Returns candidates filtered
   /// to devices advertising the service UUID or the name prefix.
   static Stream<List<CommissionCandidate>> scan(
-      {Duration timeout = const Duration(seconds: 12)}) {
+      {Duration timeout = const Duration(seconds: 12),}) {
     final controller = StreamController<List<CommissionCandidate>>();
     StreamSubscription<List<ScanResult>>? sub;
     final found = <String, CommissionCandidate>{};
@@ -151,7 +151,7 @@ class BleCommissioningTransport implements ProvisioningTransport {
       _statusSub = status.onValueReceived.listen((v) {
         try {
           _statusCtl.add(ProvisionStatus.fromJson(
-              Map<String, dynamic>.from(json.decode(utf8.decode(v)))));
+              Map<String, dynamic>.from(json.decode(utf8.decode(v))),),);
         } catch (e) {
           debugPrint('[setup] bad status frame: $e');
         }
@@ -185,7 +185,7 @@ class BleCommissioningTransport implements ProvisioningTransport {
       throw StateError('node did not expose a setup identity');
     }
     return Map<String, dynamic>.from(
-        json.decode(utf8.decode(raw, allowMalformed: true)));
+        json.decode(utf8.decode(raw, allowMalformed: true)),);
   }
 
   @override
@@ -203,14 +203,14 @@ class BleCommissioningTransport implements ProvisioningTransport {
     final ch = _chars[CommissioningContract.charHandshake];
     if (ch == null) return false;
     final nonce = List<int>.generate(
-        16, (i) => (identity.keyHash.codeUnitAt(i % 16) + i) & 0xFF);
+        16, (i) => (identity.keyHash.codeUnitAt(i % 16) + i) & 0xFF,);
     return _write(CommissioningContract.charHandshake, nonce);
   }
 
   @override
   Future<List<String>> scanWifi() async {
     final ok = await _write(
-        CommissioningContract.charWifiScan, utf8.encode('{}'));
+        CommissioningContract.charWifiScan, utf8.encode('{}'),);
     if (!ok) return const [];
     // Responses arrive over the status channel as a {wifi:[…]} frame;
     // nodes without scan support never send one — the UI offers manual
@@ -254,7 +254,7 @@ class ApProvisioningTransport implements ProvisioningTransport {
       : _dio = Dio(BaseOptions(
             baseUrl: 'http://$host',
             connectTimeout: const Duration(seconds: 5),
-            receiveTimeout: const Duration(seconds: 8)));
+            receiveTimeout: const Duration(seconds: 8),),);
 
   final Dio _dio;
   Timer? _pollTimer;
@@ -290,7 +290,7 @@ class ApProvisioningTransport implements ProvisioningTransport {
   @override
   Future<void> sendCredentials(String ssid, String psk) async {
     await _dio.post(CommissioningContract.apWifiPath,
-        data: {'ssid': ssid, 'psk': psk});
+        data: {'ssid': ssid, 'psk': psk},);
   }
 
   /// AP status is polled — the controller calls [pollStatus] on a cadence
@@ -298,7 +298,7 @@ class ApProvisioningTransport implements ProvisioningTransport {
   Future<ProvisionStatus> pollStatus() async {
     final res = await _dio.get(CommissioningContract.apStatusPath);
     return ProvisionStatus.fromJson(
-        Map<String, dynamic>.from(res.data as Map));
+        Map<String, dynamic>.from(res.data as Map),);
   }
 
   @override

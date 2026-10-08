@@ -82,7 +82,7 @@ class DevicesScreen extends ConsumerWidget {
                     .where((s) => s is Map && s['fresh'] == true)
                     .length;
                 final sub = StringBuffer(
-                    '${d.deviceType ?? 'thoth'} • ${d.online ? 'online' : 'offline'}');
+                    '${d.deviceType ?? 'thoth'} • ${d.online ? 'online' : 'offline'}',);
                 if (d.online && mode != null) sub.write(' • $mode');
                 if (d.online && freshStreams > 0) {
                   sub.write(' · $freshStreams live');

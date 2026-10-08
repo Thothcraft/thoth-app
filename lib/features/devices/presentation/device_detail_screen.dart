@@ -77,7 +77,7 @@ class _DeviceDetailScreenState extends ConsumerState<DeviceDetailScreen> {
           actions: [
             IconButton(icon: const Icon(Icons.home_work_outlined), tooltip: 'House and room layout',
               onPressed: () => Navigator.of(context).push(MaterialPageRoute<void>(
-                builder: (_) => RoomSettingsScreen(deviceId: deviceId)))),
+                builder: (_) => RoomSettingsScreen(deviceId: deviceId),),),),
             Padding(
               padding: const EdgeInsets.only(right: 12),
               child: Icon(
@@ -318,45 +318,45 @@ class _ActivityCard extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text('Activity',
-                style: Theme.of(context).textTheme.titleMedium),
+                style: Theme.of(context).textTheme.titleMedium,),
             const SizedBox(height: 8),
             _kv('Mode', '${act['mode'] ?? 'unknown'}'),
             _kv('Brain channel',
-                act['brain_ws'] == true ? 'connected' : 'down'),
+                act['brain_ws'] == true ? 'connected' : 'down',),
             if (models.isNotEmpty)
               _kv('Models', models.map((m) => '$m').join(', ')),
             if (captures.isNotEmpty)
               _kv('Capturing',
-                  captures.map((c) => '${c['id']}').join(', ')),
+                  captures.map((c) => '${c['id']}').join(', '),),
             if (watches.isNotEmpty)
               _kv('Watches',
                   watches
                       .map((w) =>
-                          '${(w['subject'] ?? '').toString().split(':').last.substring(0, 8)}${w['connected'] == true ? ' ✓' : ' ✗'}')
-                      .join(', ')),
+                          '${(w['subject'] ?? '').toString().split(':').last.substring(0, 8)}${w['connected'] == true ? ' ✓' : ' ✗'}',)
+                      .join(', '),),
             if (live.isNotEmpty) ...[
               const SizedBox(height: 4),
               Text('Live streams',
-                  style: Theme.of(context).textTheme.bodySmall),
+                  style: Theme.of(context).textTheme.bodySmall,),
               for (final s in live)
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: 2),
                   child: Row(
                     children: [
                       const Icon(Icons.sensors, size: 14,
-                          color: Colors.green),
+                          color: Colors.green,),
                       const SizedBox(width: 6),
                       Expanded(
                         child: Text('${s['id']}',
                             style: const TextStyle(
-                                fontFamily: 'monospace', fontSize: 12)),
+                                fontFamily: 'monospace', fontSize: 12,),),
                       ),
                       if ((s['subscribers'] as List? ?? const [])
                           .isNotEmpty)
                         Text(
                           (s['subscribers'] as List).join(', '),
                           style: const TextStyle(
-                              fontSize: 10, color: Colors.black45),
+                              fontSize: 10, color: Colors.black45,),
                         ),
                     ],
                   ),
@@ -377,7 +377,7 @@ class _ActivityCard extends ConsumerWidget {
             Flexible(
               child: Text(v,
                   textAlign: TextAlign.right,
-                  style: const TextStyle(fontWeight: FontWeight.w500)),
+                  style: const TextStyle(fontWeight: FontWeight.w500),),
             ),
           ],
         ),

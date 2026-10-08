@@ -191,26 +191,26 @@ class BrainClient {
         'device_name': deviceName,
         'device_type': deviceType,
         if (hardwareInfo != null) 'hardware_info': hardwareInfo,
-      });
+      },);
 
   /// GET /api/device/pairing/status — poll until the user claims the code.
   /// Returns ``access_token`` (device JWT) once paired.
   Future<Map<String, dynamic>> devicePairingStatus(String deviceId,
-          String pairingSecret) =>
+          String pairingSecret,) =>
       getJson('/device/pairing/status',
           params: {'device_id': deviceId},
-          headers: {'X-Pairing-Secret': pairingSecret});
+          headers: {'X-Pairing-Secret': pairingSecret},);
 
   /// POST /api/device/heartbeat on behalf of the watch (device JWT).
   Future<Map<String, dynamic>> deviceHeartbeat(String deviceToken,
-          Map<String, dynamic> body) =>
+          Map<String, dynamic> body,) =>
       postJson('/device/heartbeat', body: body, bearerToken: deviceToken);
 
   /// GET /api/device/list — all approved devices on the account.
   Future<List<Map<String, dynamic>>> listDevices(
       {bool includeOffline = true,}) async {
     final res = await getJson('/device/list',
-        params: {'include_offline': includeOffline});
+        params: {'include_offline': includeOffline},);
     final list = (res['devices'] ?? const []) as List;
     return list.map((e) => Map<String, dynamic>.from(e as Map)).toList();
   }
@@ -224,24 +224,24 @@ class BrainClient {
   /// are rejected by get_current_user; the watch device belongs to the
   /// app's owner so the user token is both valid and required).
   Future<Map<String, dynamic>> uploadLiveChunk(
-          String deviceUuid, Map<String, dynamic> payload) =>
+          String deviceUuid, Map<String, dynamic> payload,) =>
       postJson('/device/$deviceUuid/live-chunks', body: payload);
 
   /// POST /api/device/{uuid}/commands — queue a command the gateway drains
   /// (watch_notify / watch_nav / watch_alert / ble_gatt_write …).
   Future<Map<String, dynamic>> queueDeviceCommand(
           String deviceUuid, String command,
-          {Map<String, dynamic>? payload}) =>
+          {Map<String, dynamic>? payload,}) =>
       postJson('/device/$deviceUuid/commands',
-          body: {'command': command, 'payload': payload ?? {}});
+          body: {'command': command, 'payload': payload ?? {}},);
 
   /// POST /api/device/{uuid}/commands/{id}/ack — acknowledge an executed
   /// command; accepts either the device JWT or the owner user token.
   Future<Map<String, dynamic>> ackDeviceCommand(
           String deviceUuid, int commandId, Map<String, dynamic> result,
-          {String? bearerToken}) =>
+          {String? bearerToken,}) =>
       postJson('/device/$deviceUuid/commands/$commandId/ack',
-          body: result, bearerToken: bearerToken);
+          body: result, bearerToken: bearerToken,);
 
   Future<Map<String, dynamic>> postMultipart(
       String path, String field, String filename, List<int> bytes,) async {

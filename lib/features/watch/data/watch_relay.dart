@@ -212,7 +212,7 @@ class WatchRelay {
           if (t.rssi != null) 'rssi': t.rssi,
         },
         'units': {'lat': 'deg', 'lon': 'deg', 'acc_m': 'm',
-            'speed_mps': 'm/s', 'rssi': 'dBm'},
+            'speed_mps': 'm/s', 'rssi': 'dBm',},
       };
     }
     if (t.rssi != null) {
@@ -286,8 +286,16 @@ class WatchRelay {
           'transport': 'ble',
           'ble_id': record.bleId,
           'gateway': 'thoth-app',
-          'sensors': [kWatchSensorMotion, kWatchSensorHr, kWatchSensorSteps,
-              kWatchSensorBattery, kWatchSensorProx, kWatchSensorGps],
+          // {id,type} dicts — bare strings get re-keyed to `<name>-0` by
+          // Brain's sensors_from_hardware and lose the stream ids.
+          'sensors': [
+            {'id': kWatchSensorMotion, 'type': 'imu'},
+            {'id': kWatchSensorHr, 'type': 'heart_rate'},
+            {'id': kWatchSensorSteps, 'type': 'steps'},
+            {'id': kWatchSensorBattery, 'type': 'battery'},
+            {'id': kWatchSensorProx, 'type': 'rssi'},
+            {'id': kWatchSensorGps, 'type': 'gps'},
+          ],
         },
       });
       _lastError = null;

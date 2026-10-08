@@ -106,7 +106,7 @@ class TraceService extends ChangeNotifier {
   /// foreground service — a denied notification permission silently drops
   /// the FGS on API 33+.
   Future<void> attach(WatchRelay relay,
-      {bool backgroundRelay = true, bool gpsTrace = true}) async {
+      {bool backgroundRelay = true, bool gpsTrace = true,}) async {
     _relay = relay;
     _backgroundOn = backgroundRelay;
     _gpsOn = gpsTrace;
@@ -238,7 +238,7 @@ class TraceService extends ChangeNotifier {
       _permitted = false;
       _posSub?.cancel();
       _posSub = null;
-    });
+    },);
   }
 
   void _onPosition(Position p) {
@@ -273,7 +273,7 @@ class TraceService extends ChangeNotifier {
       accuracyM: p.accuracy,
       speedMps: p.speed >= 0 ? p.speed : null,
       rssi: _rssiSmooth?.round(),
-    ));
+    ),);
     notifyListeners();
   }
 
@@ -310,7 +310,7 @@ class TraceService extends ChangeNotifier {
               eventAction: ForegroundTaskEventAction.nothing(),
               autoRunOnBoot: false,
               allowWakeLock: true,
-              allowWifiLock: true),
+              allowWifiLock: true,),
         );
         _fgInited = true;
       }

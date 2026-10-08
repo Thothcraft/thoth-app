@@ -58,7 +58,7 @@ class _EventsScreenState extends ConsumerState<EventsScreen> {
     return Column(children: [
       _FilterBar(
           selected: _filter,
-          onChanged: (f) => setState(() => _filter = f)),
+          onChanged: (f) => setState(() => _filter = f),),
       Expanded(
         child: RefreshIndicator(
           onRefresh: () async => ref.invalidate(contextEventsProvider),
@@ -70,21 +70,21 @@ class _EventsScreenState extends ConsumerState<EventsScreen> {
                       padding: EdgeInsets.all(24),
                       child: Column(children: [
                         Icon(Icons.timeline,
-                            size: 48, color: Colors.grey),
+                            size: 48, color: Colors.grey,),
                         SizedBox(height: 12),
                         Text('No activity yet',
-                            style: TextStyle(color: Colors.grey)),
+                            style: TextStyle(color: Colors.grey),),
                         SizedBox(height: 4),
                         Text(
                             'Space transitions and device events appear '
                             'here as they happen.',
                             textAlign: TextAlign.center,
                             style: TextStyle(
-                                fontSize: 12, color: Colors.grey)),
-                      ]),
+                                fontSize: 12, color: Colors.grey,),),
+                      ],),
                     ),
                   ),
-                ])
+                ],)
               : ListView.builder(
                   padding: const EdgeInsets.symmetric(vertical: 8),
                   itemCount: filtered.length,
@@ -98,14 +98,14 @@ class _EventsScreenState extends ConsumerState<EventsScreen> {
                         if (showHeader)
                           Padding(
                             padding: const EdgeInsets.fromLTRB(
-                                16, 14, 16, 4),
+                                16, 14, 16, 4,),
                             child: Text(_dayLabel(item.ts),
                                 style: TextStyle(
                                     fontSize: 12,
                                     fontWeight: FontWeight.w700,
                                     color: Theme.of(c)
                                         .colorScheme
-                                        .outline)),
+                                        .outline,),),
                           ),
                         _EventTile(item: item),
                       ],
@@ -114,7 +114,7 @@ class _EventsScreenState extends ConsumerState<EventsScreen> {
                 ),
         ),
       ),
-    ]);
+    ],);
   }
 
   // ── normalization ──────────────────────────────────────────────
@@ -152,7 +152,7 @@ class _EventsScreenState extends ConsumerState<EventsScreen> {
     DateTime ts;
     if (tsRaw is num) {
       ts = DateTime.fromMillisecondsSinceEpoch(
-          (tsRaw > 1e12 ? tsRaw : tsRaw * 1000).round());
+          (tsRaw > 1e12 ? tsRaw : tsRaw * 1000).round(),);
     } else {
       ts = DateTime.tryParse('$tsRaw') ?? DateTime.now();
     }
@@ -264,10 +264,10 @@ class _EventTile extends StatelessWidget {
           ? Text(item.sub,
               style: const TextStyle(fontSize: 11),
               maxLines: 1,
-              overflow: TextOverflow.ellipsis)
+              overflow: TextOverflow.ellipsis,)
           : null,
       trailing: Text(time,
-          style: const TextStyle(fontSize: 11, color: Colors.grey)),
+          style: const TextStyle(fontSize: 11, color: Colors.grey),),
     );
   }
 }

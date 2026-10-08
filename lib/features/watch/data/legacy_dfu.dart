@@ -76,7 +76,7 @@ class LegacyDfu {
     }
     if (_cp == null || _pkt == null) {
       throw StateError(
-          'DFU service not on this watch (stock bootloader build?)');
+          'DFU service not on this watch (stock bootloader build?)',);
     }
   }
 
@@ -85,7 +85,7 @@ class LegacyDfu {
   /// means the request never entered the gatt queue (link busy with the
   /// link-layer's housekeeping ops), so a retry cannot double-apply.
   Future<void> _write(BluetoothCharacteristic c, List<int> bytes,
-      {required bool preferNoResponse}) async {
+      {required bool preferNoResponse,}) async {
     final noRsp = preferNoResponse
         ? c.properties.writeWithoutResponse
         : !c.properties.write;
@@ -114,12 +114,12 @@ class LegacyDfu {
   /// deadline only when a notification *arrived*, so a silent link
   /// (or a missed notify) hung the upload forever.
   Future<void> _awaitResp(int opcode,
-      {Duration timeout = const Duration(seconds: 30)}) async {
+      {Duration timeout = const Duration(seconds: 30),}) async {
     final v = await _cpValues.stream
         .firstWhere((v) =>
-            v.isNotEmpty && v[0] == 0x10 && v.length >= 3 && v[1] == opcode)
+            v.isNotEmpty && v[0] == 0x10 && v.length >= 3 && v[1] == opcode,)
         .timeout(timeout, onTimeout: () => throw TimeoutException(
-            'no response for DFU op 0x${opcode.toRadixString(16)}'));
+            'no response for DFU op 0x${opcode.toRadixString(16)}',),);
     if (v[2] != 0x01) {
       throw StateError('DFU op 0x${opcode.toRadixString(16)} '
           'rejected: status ${v[2]}');

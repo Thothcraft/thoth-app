@@ -35,7 +35,7 @@ class EntityDetailScreen extends ConsumerWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text('Current context',
-                      style: Theme.of(context).textTheme.titleMedium),
+                      style: Theme.of(context).textTheme.titleMedium,),
                   const SizedBox(height: 8),
                   states.when(
                     loading: () => const LinearProgressIndicator(),
@@ -44,7 +44,7 @@ class EntityDetailScreen extends ConsumerWidget {
                       final live = list.where((s) => s.active).toList();
                       if (live.isEmpty) {
                         return const Text('No active context.',
-                            style: TextStyle(color: Colors.black54));
+                            style: TextStyle(color: Colors.black54),);
                       }
                       return Column(children: [
                         for (final s in live)
@@ -57,7 +57,7 @@ class EntityDetailScreen extends ConsumerWidget {
                                 '${s.estimator} · '
                                 '${s.ageSeconds.round()}s'),
                           ),
-                      ]);
+                      ],);
                     },
                   ),
                 ],
@@ -70,7 +70,7 @@ class EntityDetailScreen extends ConsumerWidget {
           snapshot.maybeWhen(
             data: (snap) {
               final rels = snap.relationships.where((r) =>
-                  r.subject == entityId || r.object == entityId).toList();
+                  r.subject == entityId || r.object == entityId,).toList();
               if (rels.isEmpty) return const SizedBox.shrink();
               return Card(
                 child: Padding(
@@ -79,7 +79,7 @@ class EntityDetailScreen extends ConsumerWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text('Relationships',
-                            style: Theme.of(context).textTheme.titleMedium),
+                            style: Theme.of(context).textTheme.titleMedium,),
                         for (final r in rels)
                           ListTile(
                             dense: true,
@@ -87,13 +87,13 @@ class EntityDetailScreen extends ConsumerWidget {
                             leading: const Icon(Icons.hub_outlined, size: 18),
                             title: Text(
                                 '${r.subject} —${r.predicate}→ ${r.object}',
-                                style: const TextStyle(fontSize: 13)),
+                                style: const TextStyle(fontSize: 13),),
                             subtitle: Text(
                                 '${(r.confidence * 100).round()}% · '
                                 '${r.active ? 'active' : 'ended'}',
-                                style: const TextStyle(fontSize: 11)),
+                                style: const TextStyle(fontSize: 11),),
                           ),
-                      ]),
+                      ],),
                 ),
               );
             },
@@ -109,19 +109,19 @@ class EntityDetailScreen extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text('Evidence',
-                        style: Theme.of(context).textTheme.titleMedium),
+                        style: Theme.of(context).textTheme.titleMedium,),
                     const SizedBox(height: 4),
                     const Text(
                         'Observations and predictions supporting the '
                         'context above — evidence is not asserted truth.',
-                        style: TextStyle(fontSize: 11, color: Colors.black45)),
+                        style: TextStyle(fontSize: 11, color: Colors.black45),),
                     const SizedBox(height: 8),
                     evidence.when(
                       loading: () => const LinearProgressIndicator(),
                       error: (e, _) => Text('$e'),
                       data: (list) => list.isEmpty
                           ? const Text('No evidence yet.',
-                              style: TextStyle(color: Colors.black54))
+                              style: TextStyle(color: Colors.black54),)
                           : Column(children: [
                               for (final ev in list.take(10))
                                 ListTile(
@@ -130,18 +130,18 @@ class EntityDetailScreen extends ConsumerWidget {
                                   title: Text(ev.key,
                                       style: const TextStyle(
                                           fontFamily: 'monospace',
-                                          fontSize: 12)),
+                                          fontSize: 12,),),
                                   subtitle: Text(
                                       '${ev.value} · '
                                       '${ev.sourceId ?? ''} · '
                                       '${ev.confidence != null ? '${(ev.confidence! * 100).round()}%' : ''}',
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
-                                      style: const TextStyle(fontSize: 11)),
+                                      style: const TextStyle(fontSize: 11),),
                                 ),
-                            ]),
+                            ],),
                     ),
-                  ]),
+                  ],),
             ),
           ),
           const SizedBox(height: 12),
@@ -154,13 +154,13 @@ class EntityDetailScreen extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text('History',
-                        style: Theme.of(context).textTheme.titleMedium),
+                        style: Theme.of(context).textTheme.titleMedium,),
                     events.when(
                       loading: () => const LinearProgressIndicator(),
                       error: (e, _) => Text('$e'),
                       data: (list) => list.isEmpty
                           ? const Text('No transitions recorded.',
-                              style: TextStyle(color: Colors.black54))
+                              style: TextStyle(color: Colors.black54),)
                           : Column(children: [
                               for (final ev in list.take(20))
                                 ListTile(
@@ -176,14 +176,14 @@ class EntityDetailScreen extends ConsumerWidget {
                                   ),
                                   title: Text(
                                       '${ev.type} ${ev.value ?? ev.key}',
-                                      style: const TextStyle(fontSize: 13)),
+                                      style: const TextStyle(fontSize: 13),),
                                   subtitle: Text(ev.key,
                                       style:
-                                          const TextStyle(fontSize: 11)),
+                                          const TextStyle(fontSize: 11),),
                                 ),
-                            ]),
+                            ],),
                     ),
-                  ]),
+                  ],),
             ),
           ),
         ],

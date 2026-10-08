@@ -64,7 +64,7 @@ class _RoomSettingsScreenState extends State<RoomSettingsScreen> {
     };
     final devices = (d['devices'] as List? ?? []).where((x) =>
         '${x['room_id'] ?? d['room_id'] ?? ''}' == _roomId ||
-        (x['room_id'] == '' && _roomId == '${d['room_id'] ?? ''}'));
+        (x['room_id'] == '' && _roomId == '${d['room_id'] ?? ''}'),);
     for (final dev in devices) {
       final id = dev['device_id'];
       final p = dev['pos'] as List?;
@@ -104,7 +104,7 @@ class _RoomSettingsScreenState extends State<RoomSettingsScreen> {
           bool required = false,
           double? min,
           double? max,
-          bool integer = false}) =>
+          bool integer = false,}) =>
       Padding(
         padding: const EdgeInsets.only(bottom: 12),
         child: TextFormField(
@@ -112,18 +112,21 @@ class _RoomSettingsScreenState extends State<RoomSettingsScreen> {
           decoration: InputDecoration(labelText: label, hintText: 'Not set'),
           keyboardType: numeric
               ? const TextInputType.numberWithOptions(
-                  decimal: true, signed: true)
+                  decimal: true, signed: true,)
               : TextInputType.text,
           validator: (text) {
-            if ((text ?? '').trim().isEmpty)
+            if ((text ?? '').trim().isEmpty) {
               return required ? 'Required' : null;
+            }
             if (!numeric) return null;
             final v = double.tryParse(text!);
             if (v == null || !v.isFinite) return 'Enter a finite number';
-            if (min != null && v < min || max != null && v > max)
+            if (min != null && v < min || max != null && v > max) {
               return 'Outside the allowed range';
-            if (integer && v != v.roundToDouble())
+            }
+            if (integer && v != v.roundToDouble()) {
               return 'Enter a whole floor number';
+            }
             return null;
           },
         ),
@@ -137,8 +140,9 @@ class _RoomSettingsScreenState extends State<RoomSettingsScreen> {
     try {
       final latest =
           await NodeClient.instance.getMap(widget.deviceId, '/api/v1/room');
-      if (latest['updated_at'] != _doc!['updated_at'])
+      if (latest['updated_at'] != _doc!['updated_at']) {
         throw StateError('Layout changed elsewhere. Reload before saving.');
+      }
       final next = Map<String, dynamic>.from(jsonDecode(jsonEncode(_doc)));
       final r = _roomId == '${next['room_id'] ?? ''}'
           ? next
@@ -151,8 +155,8 @@ class _RoomSettingsScreenState extends State<RoomSettingsScreen> {
         'anchor': {
           'latitude': _n('latitude'),
           'longitude': _n('longitude'),
-          'altitude_m': _n('altitude')
-        }
+          'altitude_m': _n('altitude'),
+        },
       };
       r['name'] = _t('name');
       r['dims'] = {'w': _n('width'), 'd': _n('depth'), 'h': _n('height')};
@@ -162,7 +166,7 @@ class _RoomSettingsScreenState extends State<RoomSettingsScreen> {
         'heading_deg': _n('heading'),
         'origin_enu_m': ['east', 'north', 'up'].every((k) => _n(k) != null)
             ? [_n('east'), _n('north'), _n('up')]
-            : null
+            : null,
       };
       for (final dev in next['devices'] as List? ?? []) {
         final id = dev['device_id'];
@@ -174,13 +178,14 @@ class _RoomSettingsScreenState extends State<RoomSettingsScreen> {
       final saved = await NodeClient.instance
           .put(widget.deviceId, '/api/v1/room', body: next);
       if (!mounted) return;
-      if (saved is! Map || saved['format'] != 'room/v1')
+      if (saved is! Map || saved['format'] != 'room/v1') {
         throw StateError('Layout was not accepted');
+      }
       setState(() {
         _doc = Map<String, dynamic>.from(saved);
       });
       ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('House and room layout saved')));
+          const SnackBar(content: Text('House and room layout saved')),);
     } catch (e) {
       if (mounted) setState(() => _error = '$e');
     } finally {
@@ -194,24 +199,24 @@ class _RoomSettingsScreenState extends State<RoomSettingsScreen> {
           IconButton(
               onPressed: _saving ? null : _load,
               icon: const Icon(Icons.refresh),
-              tooltip: 'Reload saved layout'),
-        ]),
+              tooltip: 'Reload saved layout',),
+        ],),
         body: _doc == null
             ? Center(
                 child: _error == null
                     ? const CircularProgressIndicator()
-                    : Text(_error!))
+                    : Text(_error!),)
             : Form(
                 key: _form,
                 child: ListView(padding: const EdgeInsets.all(20), children: [
                   const Text(
-                      'Use the same house ID and origin on every node. Radio strength alone cannot determine floors or wall boundaries.'),
+                      'Use the same house ID and origin on every node. Radio strength alone cannot determine floors or wall boundaries.',),
                   const SizedBox(height: 16),
                   _field('houseId', 'House ID',
-                      numeric: false, required: _surveyed),
+                      numeric: false, required: _surveyed,),
                   _field('houseName', 'House name', numeric: false),
                   _field('latitude', 'Latitude',
-                      min: -84.999999, max: 84.999999),
+                      min: -84.999999, max: 84.999999,),
                   _field('longitude', 'Longitude', min: -180, max: 180),
                   _field('altitude', 'House origin altitude (m, optional)'),
                   DropdownButtonFormField<String>(
@@ -220,48 +225,49 @@ class _RoomSettingsScreenState extends State<RoomSettingsScreen> {
                       items: [
                         _doc!,
                         ...(_doc!['rooms'] as List? ?? [])
-                            .cast<Map<String, dynamic>>()
+                            .cast<Map<String, dynamic>>(),
                       ]
                           .map((r) => DropdownMenuItem(
                               value: '${r['room_id'] ?? ''}',
                               child: Text(
-                                  '${r['name'] ?? r['room_id'] ?? 'Main room'}')))
+                                  '${r['name'] ?? r['room_id'] ?? 'Main room'}',),),)
                           .toList(),
                       onChanged: (v) {
-                        if (v != null)
+                        if (v != null) {
                           setState(() {
                             _roomId = v;
                             _fill();
                           });
-                      }),
+                        }
+                      },),
                   const SizedBox(height: 16),
                   _field('name', 'Room name', numeric: false),
                   for (final k in ['width', 'depth', 'height'])
                     _field(k, 'Room $k (m)', required: true, min: 0.01),
                   _field('floor', 'Floor (ground = 0)',
-                      integer: true, required: _surveyed),
+                      integer: true, required: _surveyed,),
                   _field('heading', 'Heading clockwise from north (degrees)',
-                      required: _surveyed, min: 0, max: 359.999999),
+                      required: _surveyed, min: 0, max: 359.999999,),
                   const Text(
-                      'Room floor-centre offsets from the house origin. Heading points toward room −Z. Device coordinates use X across, Y up, Z back.'),
+                      'Room floor-centre offsets from the house origin. Heading points toward room −Z. Device coordinates use X across, Y up, Z back.',),
                   for (final k in ['east', 'north', 'up'])
                     _field(k, 'Room origin $k (m)', required: _surveyed),
                   SwitchListTile(
                       title: const Text('Measured room and anchor confirmed'),
                       value: _surveyed,
-                      onChanged: (v) => setState(() => _surveyed = v)),
+                      onChanged: (v) => setState(() => _surveyed = v),),
                   const Divider(),
                   const Text('Device anchors',
-                      style: TextStyle(fontWeight: FontWeight.bold)),
+                      style: TextStyle(fontWeight: FontWeight.bold),),
                   for (final dev in _doc!['devices'] as List? ?? [])
                     if (_fields.containsKey('${dev['device_id']}.x')) ...[
                       Text('${dev['device_id']}'),
                       for (final axis in ['x', 'y', 'z'])
                         _field('${dev['device_id']}.$axis', 'Device $axis (m)',
-                            required: true),
+                            required: true,),
                       _field('${dev['device_id']}.uncertainty',
                           'Placement uncertainty (m)',
-                          min: 0),
+                          min: 0,),
                     ],
                   TextButton.icon(
                       icon: const Icon(Icons.add_location_alt_outlined),
@@ -270,23 +276,23 @@ class _RoomSettingsScreenState extends State<RoomSettingsScreen> {
                         setState(() {
                           final devices = (_doc!['devices'] ??= []) as List;
                           devices.removeWhere(
-                              (d) => d['device_id'] == widget.deviceId);
+                              (d) => d['device_id'] == widget.deviceId,);
                           devices.add({
                             'device_id': widget.deviceId,
                             'room_id': _roomId,
                             'pos': [0.0, 0.0, 0.0],
-                            'sensors': []
+                            'sensors': [],
                           });
                           _fill();
                         });
-                      }),
+                      },),
                   if (_error != null)
                     Text(_error!,
                         style: TextStyle(
-                            color: Theme.of(context).colorScheme.error)),
+                            color: Theme.of(context).colorScheme.error,),),
                   FilledButton(
                       onPressed: _saving ? null : _save,
-                      child: Text(_saving ? 'Saving…' : 'Save layout')),
-                ])),
+                      child: Text(_saving ? 'Saving…' : 'Save layout'),),
+                ],),),
       );
 }
