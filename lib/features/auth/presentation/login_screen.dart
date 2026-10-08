@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../../shared/widgets/cell_logo.dart';
 import '../application/auth_provider.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
@@ -29,7 +30,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     setState(() => _busy = true);
     final ok = await ref.read(authProvider.notifier).login(
         _username.text, _password.text,
-        rememberDevice: _rememberDevice);
+        rememberDevice: _rememberDevice,);
     if (!mounted) return;
     setState(() => _busy = false);
     if (ok) context.go('/devices');
@@ -50,10 +51,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Image.asset('assets/images/thoth_logo.png',
-                        height: 72,
-                        errorBuilder: (_, __, ___) =>
-                            const Icon(Icons.science, size: 72),),
+                    const Center(child: CellLogo(size: 72)),
                     const SizedBox(height: 16),
                     Text('Sign in to ThothCraft',
                         textAlign: TextAlign.center,
@@ -85,7 +83,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       title: const Text('Remember this device'),
                       subtitle: const Text(
                           'Stay signed in across app restarts',
-                          style: TextStyle(fontSize: 11)),
+                          style: TextStyle(fontSize: 11),),
                       controlAffinity: ListTileControlAffinity.leading,
                       contentPadding: EdgeInsets.zero,
                       dense: true,

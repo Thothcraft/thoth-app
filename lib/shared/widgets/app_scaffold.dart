@@ -5,6 +5,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/constants/app_constants.dart';
 import '../../core/theme/app_colors.dart';
+import 'cell_logo.dart';
 import '../../features/auth/application/auth_provider.dart';
 import '../../routes/app_router.dart';
 
@@ -45,13 +46,7 @@ class AppScaffold extends ConsumerWidget {
       appBar: AppBar(
         title: Row(
           children: [
-            Image.asset(
-              'assets/images/thoth_logo.png',
-              height: 30,
-              width: 30,
-              errorBuilder: (_, __, ___) =>
-                  const Icon(Icons.science, size: 30),
-            ),
+            const CellLogo(size: 30),
             const SizedBox(width: 8),
             const Text(AppConstants.appName),
           ],
@@ -89,7 +84,7 @@ class AppScaffold extends ConsumerWidget {
   }
 
   Widget _buildDrawer(
-      BuildContext context, WidgetRef ref, AuthState auth) {
+      BuildContext context, WidgetRef ref, AuthState auth,) {
     return Drawer(
       child: ListView(
         padding: EdgeInsets.zero,
@@ -104,13 +99,7 @@ class AppScaffold extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Image.asset(
-                  'assets/images/thoth_logo.png',
-                  height: 44,
-                  width: 44,
-                  errorBuilder: (_, __, ___) =>
-                      const Icon(Icons.science, size: 44, color: Colors.white),
-                ),
+                const CellLogo(size: 44, brightness: Brightness.dark),
                 const SizedBox(height: 10),
                 Text(
                   auth.username ?? AppConstants.appName,
@@ -123,34 +112,34 @@ class AppScaffold extends ConsumerWidget {
                 const SizedBox(height: 4),
                 Row(children: [
                   _PlanBadge(plan: auth.plan, onDark: true),
-                ]),
+                ],),
               ],
             ),
           ),
 
           const _DrawerLabel('System'),
           _item(context, Icons.watch_outlined, 'Watch (PineTime)',
-              () => context.go(AppRoutes.watch)),
+              () => context.go(AppRoutes.watch),),
           _item(context, Icons.toggle_on_outlined, 'Automation & actuators',
-              () => context.go(AppRoutes.actuators)),
+              () => context.go(AppRoutes.actuators),),
           _item(context, Icons.science_outlined, 'Research & models',
-              () => context.go(AppRoutes.research)),
+              () => context.go(AppRoutes.research),),
           _item(context, Icons.insights_outlined, 'Context & entities',
-              () => context.push('/context/home')),
+              () => context.push('/context/home'),),
 
           const _DrawerLabel('Setup & tools'),
           _item(context, Icons.add_link, 'Pair a device',
-              () => context.push(AppRoutes.pair)),
+              () => context.push(AppRoutes.pair),),
           _item(context, Icons.qr_code_scanner, 'Set up a node',
-              () => context.push(AppRoutes.setup)),
+              () => context.push(AppRoutes.setup),),
           _item(context, Icons.my_location, 'Calibrate a space',
-              () => context.push(AppRoutes.calibrate)),
+              () => context.push(AppRoutes.calibrate),),
           _item(context, Icons.watch_outlined, 'Enroll a wearable',
-              () => context.push('/watch/enroll')),
+              () => context.push('/watch/enroll'),),
 
           const Divider(height: 24),
           _item(context, Icons.policy_outlined, 'Privacy & terms',
-              () => context.push(AppRoutes.legal)),
+              () => context.push(AppRoutes.legal),),
           ListTile(
             leading: const Icon(Icons.open_in_new),
             title: const Text('Open portal'),
@@ -180,7 +169,7 @@ class AppScaffold extends ConsumerWidget {
   }
 
   Widget _item(
-      BuildContext context, IconData icon, String label, void Function() go) {
+      BuildContext context, IconData icon, String label, void Function() go,) {
     return ListTile(
       dense: true,
       leading: Icon(icon, size: 22),
