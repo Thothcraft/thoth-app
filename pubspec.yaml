@@ -1,7 +1,7 @@
 name: thothcraft
 description: Revolutionary AI/IoT platform mobile app - Federated Learning, Differential Privacy, and Smart Sensors.
 publish_to: 'none'
-version: 1.0.0+1
+version: 1.1.0+2
 
 environment:
   sdk: '>=3.6.0 <4.0.0'
@@ -93,9 +93,6 @@ flutter:
 
   # Assets
   assets:
-    # Logo
-    - assets/images/thoth_logo.png
-    
     # Product Images
     - assets/images/products/white_bg.jpg
     - assets/images/products/closeup.jpg

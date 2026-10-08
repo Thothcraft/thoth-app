@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Thoth Cell mark — same geometry as cell_logo.dart / cell-geometry.ts.
+     108dp adaptive viewport; the 64-unit mark is drawn centered. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <group
+        android:translateX="22"
+        android:translateY="22"
+        android:scaleX="1"
+        android:scaleY="1">
+        <!-- faces -->
+        <path
+            android:fillColor="#e9e2d0"
+            android:pathData="M32,6 L54.5,19 L32,32 L9.5,19 Z" />
+        <path
+            android:fillColor="#11110f"
+            android:pathData="M9.5,19 L32,32 L32,58 L9.5,45 Z" />
+        <path
+            android:fillColor="#a3502e"
+            android:pathData="M32,32 L54.5,19 L54.5,45 L32,58 Z" />
+        <!-- lattice — ink strokes over the light faces -->
+        <path
+            android:strokeColor="#4717110F"
+            android:strokeWidth="0.9"
+            android:strokeLineCap="round"
+            android:pathData="M24.5,10.33 L47,23.33 M17,14.67 L39.5,27.67 M39.5,10.33 L17,23.33 M47,14.67 L24.5,27.67 M32,40.67 L54.5,27.67 M32,49.33 L54.5,36.33 M39.5,27.67 L39.5,53.67 M47,23.33 L47,49.33" />
+        <!-- lattice — paper strokes over the dark face -->
+        <path
+            android:strokeColor="#52F4F1E9"
+            android:strokeWidth="0.9"
+            android:strokeLineCap="round"
+            android:pathData="M9.5,27.67 L32,40.67 M9.5,36.33 L32,49.33 M17,23.33 L17,49.33 M24.5,27.67 L24.5,53.67" />
+        <!-- hex edge -->
+        <path
+            android:fillColor="#00000000"
+            android:strokeColor="#11110f"
+            android:strokeWidth="1.2"
+            android:strokeLineJoin="round"
+            android:pathData="M32,6 L54.5,19 L54.5,45 L32,58 L9.5,45 L9.5,19 Z" />
+        <!-- nucleus ring + dot -->
+        <path
+            android:fillColor="#00000000"
+            android:strokeColor="#B2F4F1E9"
+            android:strokeWidth="1.2"
+            android:pathData="M39.5,32 A7.5,7.5 0 1 1 24.5,32 A7.5,7.5 0 1 1 39.5,32 Z" />
+        <path
+            android:fillColor="#F4F1E9"
+            android:pathData="M36,32 A4,4 0 1 1 28,32 A4,4 0 1 1 36,32 Z" />
+    </group>
+</vector>
