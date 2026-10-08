@@ -74,7 +74,7 @@ class WatchRelay {
   /// DNS-namespace uuid5 of the BLE id — identical to Brain's
   /// ``_normalized_device_uuid`` for non-UUID ids.
   static String deviceUuidFor(String bleId) =>
-      const Uuid().v5(Uuid.NAMESPACE_DNS, bleId);
+      const Uuid().v5(Namespace.dns.value, bleId);
 
   /// One-shot pairing: start a session, claim the code as the signed-in
   /// user, exchange the pairing secret for the watch's device JWT.

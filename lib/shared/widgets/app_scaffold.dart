@@ -44,11 +44,11 @@ class AppScaffold extends ConsumerWidget {
     final auth = ref.watch(authProvider);
     return Scaffold(
       appBar: AppBar(
-        title: Row(
+        title: const Row(
           children: [
-            const CellLogo(size: 30),
-            const SizedBox(width: 8),
-            const Text(AppConstants.appName),
+            CellLogo(size: 30),
+            SizedBox(width: 8),
+            Text(AppConstants.appName),
           ],
         ),
         actions: [

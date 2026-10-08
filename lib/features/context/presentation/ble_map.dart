@@ -1252,9 +1252,9 @@ class _MapControls extends StatelessWidget {
     final m = viewCtl.value.clone();
     final scale = m.getMaxScaleOnAxis();
     // Zoom around the viewport center.
-    m.translate(-160.0, -160.0);
-    m.scale(factor, factor);
-    m.translate(160.0, 160.0);
+    m.translateByDouble(-160.0, -160.0, 0.0, 1.0);
+    m.scaleByDouble(factor, factor, 1.0, 1.0);
+    m.translateByDouble(160.0, 160.0, 0.0, 1.0);
     if ((scale * factor).clamp(0.4, 6.0) == scale * factor) {
       viewCtl.value = m;
     }

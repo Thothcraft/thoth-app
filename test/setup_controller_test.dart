@@ -11,7 +11,7 @@ class FakeTransport implements ProvisioningTransport {
     'device_id': 'node-1',
     'model': 'pi5',
     'key_hash': '',
-  }, this.verify = true, this.failSend = false});
+  }, this.verify = true, this.failSend = false,});
 
   final Map<String, dynamic> identityDoc;
   final bool verify;
@@ -68,7 +68,7 @@ void main() {
 
   group('candidate matching', () {
     test('matches truncated sha256 of the setup key', () {
-      final id = SetupIdentity(nodeId: 'n', setupKey: 's3cret');
+      final id = const SetupIdentity(nodeId: 'n', setupKey: 's3cret');
       expect(matchCandidate(id, id.keyHash), MatchResult.matched);
       expect(matchCandidate(id, 'deadbeef'), MatchResult.noMatch);
       expect(matchCandidate(id, null), MatchResult.noAdvertisedHash);
@@ -77,7 +77,7 @@ void main() {
 
   group('SetupController', () {
     (ProviderContainer, SetupController) make(
-        {FakeTransport? transport}) {
+        {FakeTransport? transport,}) {
       final c = ProviderContainer();
       addTearDown(c.dispose);
       final ctl = c.read(setupControllerProvider.notifier);
@@ -88,10 +88,10 @@ void main() {
     test('advances verify → identity → wifi on a matching node', () async {
       final (_, ctl) = make();
       await ctl.acceptIdentity(
-          SetupIdentity(nodeId: 'n1', setupKey: 'k'));
+          const SetupIdentity(nodeId: 'n1', setupKey: 'k'),);
       expect(ctl.state.stage, SetupStage.discover);
       await ctl.selectCandidate(const CommissionCandidate(
-          id: 'AA:BB', name: 'thoth-1', rssi: -50));
+          id: 'AA:BB', name: 'thoth-1', rssi: -50,),);
       expect(ctl.state.stage, SetupStage.wifiDetails);
       expect(ctl.state.deviceUuid, 'node-1');
       expect(ctl.state.deviceModel, 'pi5');
@@ -101,9 +101,9 @@ void main() {
         () async {
       final (_, ctl) = make(transport: FakeTransport(verify: false));
       await ctl.acceptIdentity(
-          SetupIdentity(nodeId: 'n1', setupKey: 'k'));
+          const SetupIdentity(nodeId: 'n1', setupKey: 'k'),);
       await ctl.selectCandidate(const CommissionCandidate(
-          id: 'AA:BB', name: 'thoth-1', rssi: -50));
+          id: 'AA:BB', name: 'thoth-1', rssi: -50,),);
       expect(ctl.state.provisionPhase, ProvisionPhase.failed);
       expect(ctl.state.error, isNotNull);
     });
@@ -113,9 +113,9 @@ void main() {
       final t = FakeTransport();
       final (_, ctl) = make(transport: t);
       await ctl.acceptIdentity(
-          SetupIdentity(nodeId: 'n1', setupKey: 'k'));
+          const SetupIdentity(nodeId: 'n1', setupKey: 'k'),);
       await ctl.selectCandidate(const CommissionCandidate(
-          id: 'AA:BB', name: 'thoth-1', rssi: -50));
+          id: 'AA:BB', name: 'thoth-1', rssi: -50,),);
       await ctl.provisionWifi('ssid', 'psk');
       expect(t.sent, isTrue);
       expect(ctl.state.provisionPhase, ProvisionPhase.joiningWifi);

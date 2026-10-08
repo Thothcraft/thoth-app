@@ -177,7 +177,8 @@ class SettingsScreen extends ConsumerWidget {
     Position? pos;
     try {
       pos = await Geolocator.getCurrentPosition(
-          desiredAccuracy: LocationAccuracy.medium,);
+          locationSettings:
+              const LocationSettings(accuracy: LocationAccuracy.medium,),);
     } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context)
