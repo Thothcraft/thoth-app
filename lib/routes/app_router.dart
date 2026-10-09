@@ -16,6 +16,7 @@ import '../features/pairing/presentation/pairing_screen.dart';
 import '../features/setup/presentation/setup_screen.dart';
 import '../features/setup/presentation/ap_recovery_screen.dart';
 import '../features/calibrate/presentation/calibrate_screen.dart';
+import '../features/chat/presentation/chat_screen.dart';
 import '../features/context/presentation/context_home_screen.dart';
 import '../features/context/presentation/entity_detail_screen.dart';
 import '../features/context/presentation/relations_screen.dart';
@@ -56,6 +57,7 @@ class AppRoutes {
   static const String context = '/context';
   static const String setup = '/setup';
   static const String calibrate = '/calibrate';
+  static const String chat = '/chat';
 }
 
 /// Router is a provider so redirects react to auth state changes.
@@ -149,6 +151,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.calibrate,
         builder: (context, state) => const CalibrateScreen(),
+      ),
+      // Assistant — full-screen chat surface over /v1/chat.
+      GoRoute(
+        path: AppRoutes.chat,
+        builder: (context, state) => const ChatScreen(),
       ),
       GoRoute(
         path: '/watch/enroll',

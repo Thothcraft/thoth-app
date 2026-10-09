@@ -63,6 +63,12 @@ class AppScaffold extends ConsumerWidget {
       drawer: _buildDrawer(context, ref, auth),
       body: child,
       bottomNavigationBar: _buildNavBar(context),
+      floatingActionButton: FloatingActionButton(
+        heroTag: 'assistant',
+        tooltip: 'Assistant',
+        onPressed: () => context.push(AppRoutes.chat),
+        child: const Icon(Icons.auto_awesome),
+      ),
     );
   }
 
