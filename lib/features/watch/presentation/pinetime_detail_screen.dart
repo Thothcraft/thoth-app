@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:typed_data';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
@@ -11,6 +12,7 @@ import '../../../core/api/brain_client.dart';
 import '../../context/application/context_providers.dart';
 import '../../settings/application/app_settings.dart';
 import '../application/watch_providers.dart';
+import '../data/firmware_feed.dart';
 import '../data/legacy_dfu.dart';
 import '../data/watch_store.dart';
 import '../data/trace_service.dart';
@@ -1435,7 +1437,22 @@ class _FirmwareUpdateCardState extends ConsumerState<_FirmwareUpdateCard> {
   int? _percent;
   String _status = '';
   bool _running = false;
+  WatchFirmwareRelease? _latest;
+  bool _checked = false;
+  final _feed = WatchFirmwareFeed();
 
+  @override
+  void initState() {
+    super.initState();
+    _checkLatest();
+  }
+
+  Future<void> _checkLatest() async {
+    final rel = await _feed.latest();
+    if (mounted) setState(() { _latest = rel; _checked = true; });
+  }
+
+  /// Manual path: pick a local ``*-dfu.zip``.
   Future<void> _start() async {
     final picked = await FilePicker.platform.pickFiles(
       type: FileType.custom,
@@ -1444,7 +1461,6 @@ class _FirmwareUpdateCardState extends ConsumerState<_FirmwareUpdateCard> {
     );
     final path = picked?.files.single.path;
     if (path == null || !mounted) return;
-
     setState(() {
       _running = true;
       _percent = 0;
@@ -1452,6 +1468,46 @@ class _FirmwareUpdateCardState extends ConsumerState<_FirmwareUpdateCard> {
     });
     try {
       final (bin, dat) = LegacyDfu.unpackZip(path);
+      await _flash(bin, dat);
+    } catch (e) {
+      _fail(e);
+    }
+  }
+
+  /// Automatic path: download the latest published DFU zip (verified
+  /// against the release manifest sha256) and flash it.
+  Future<void> _startLatest() async {
+    final rel = _latest;
+    if (rel == null) return;
+    setState(() {
+      _running = true;
+      _percent = 0;
+      _status = 'Downloading ${rel.tag}…';
+    });
+    try {
+      final path = await _feed.download(rel, onProgress: (pct) {
+        if (mounted) {
+          setState(() => _status = 'Downloading ${rel.tag}… $pct%');
+        }
+      });
+      final (bin, dat) = LegacyDfu.unpackZip(path);
+      await _flash(bin, dat);
+    } catch (e) {
+      _fail(e);
+    }
+  }
+
+  void _fail(Object e) {
+    if (mounted) {
+      setState(() {
+        _status = 'DFU failed: $e';
+        _running = false;
+      });
+    }
+  }
+
+  Future<void> _flash(Uint8List bin, Uint8List dat) async {
+    try {
       // The InfiniTime app-side DfuService receives the image over the
       // live link (writes it to external flash, then reboots into
       // mcuboot) — no disconnect, no separate DFU advertiser needed.
@@ -1524,6 +1580,11 @@ class _FirmwareUpdateCardState extends ConsumerState<_FirmwareUpdateCard> {
 
   @override
   Widget build(BuildContext context) {
+    final installed = ref.read(watchManagerProvider.notifier)
+        .relayFor(widget.record.bleId)?.firmware;
+    final latestFw = _latest?.fwVersion ?? '';
+    final outdated = latestFw.isNotEmpty &&
+        firmwareIsNewer(installed ?? '', latestFw);
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -1533,10 +1594,27 @@ class _FirmwareUpdateCardState extends ConsumerState<_FirmwareUpdateCard> {
             Text('Firmware update (OTA)',
                 style: Theme.of(context).textTheme.titleMedium,),
             const SizedBox(height: 4),
-            const Text(
-                'Select a *-dfu.zip built from the fork. The watch reboots '
-                'into its mcuboot DFU loader during the transfer.',
-                style: TextStyle(fontSize: 12, color: Colors.black54),),
+            Text(
+                installed == null
+                    ? 'Watch reboots into its mcuboot DFU loader during the '
+                        'transfer.'
+                    : 'Installed: $installed'
+                        '${latestFw.isEmpty ? '' : ' · Latest: $latestFw'}',
+                style: const TextStyle(fontSize: 12, color: Colors.black54),),
+            if (outdated) ...[
+              const SizedBox(height: 6),
+              Row(children: [
+                Icon(Icons.new_releases, size: 16,
+                    color: Theme.of(context).colorScheme.primary,),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: Text('Update available: $latestFw',
+                      style: TextStyle(fontSize: 12,
+                          color: Theme.of(context).colorScheme.primary,
+                          fontWeight: FontWeight.w600),),
+                ),
+              ]),
+            ],
             const SizedBox(height: 8),
             if (_percent != null)
               LinearProgressIndicator(value: (_percent ?? 0) / 100),
@@ -1546,11 +1624,22 @@ class _FirmwareUpdateCardState extends ConsumerState<_FirmwareUpdateCard> {
                 child: Text(_status, style: const TextStyle(fontSize: 12)),
               ),
             const SizedBox(height: 8),
-            FilledButton.tonalIcon(
-              icon: const Icon(Icons.system_update),
-              label: Text(_running ? 'Updating…' : 'Choose DFU package'),
-              onPressed: _running ? null : _start,
-            ),
+            Wrap(spacing: 8, runSpacing: 8, children: [
+              FilledButton.icon(
+                icon: const Icon(Icons.system_update),
+                label: Text(_running
+                    ? 'Updating…'
+                    : _latest == null
+                        ? (_checked ? 'No release found' : 'Checking…')
+                        : 'Update to ${_latest!.fwVersion.isEmpty ? _latest!.tag : _latest!.fwVersion}'),
+                onPressed: _running || _latest == null ? null : _startLatest,
+              ),
+              OutlinedButton.icon(
+                icon: const Icon(Icons.folder_open),
+                label: const Text('Local zip'),
+                onPressed: _running ? null : _start,
+              ),
+            ]),
           ],
         ),
       ),
