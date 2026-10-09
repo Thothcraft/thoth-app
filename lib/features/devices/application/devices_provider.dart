@@ -33,6 +33,28 @@ class ThothDevice {
     return a is Map ? Map<String, dynamic>.from(a) : null;
   }
 
+  /// Local mDNS name (``thoth-<name>.local``) — reported by the node
+  /// heartbeat; derived from the device name when absent.
+  String get hostname {
+    final h = hardwareInfo?['hostname'] ??
+        (hardwareInfo?['local_api'] is Map
+            ? (hardwareInfo!['local_api'] as Map)['hostname']
+            : null);
+    if (h is String && h.isNotEmpty) return h;
+    final label = name
+        .toLowerCase()
+        .replaceAll(RegExp(r'[^a-z0-9-]+'), '-')
+        .replaceAll(RegExp(r'^-+|-+$'), '');
+    return '${label.startsWith('thoth-') ? label : 'thoth-$label'}.local';
+  }
+
+  /// ``http://<hostname>:<port>`` for the local dashboard (port 5000).
+  String get localUrl {
+    final api = hardwareInfo?['local_api'];
+    final port = api is Map && api['port'] != null ? api['port'] : 5000;
+    return 'http://$hostname:$port';
+  }
+
   factory ThothDevice.fromJson(Map<String, dynamic> json) {
     Map<String, dynamic>? hw;
     final raw = json['hardware_info'];

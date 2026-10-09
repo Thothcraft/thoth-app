@@ -94,7 +94,10 @@ class DevicesScreen extends ConsumerWidget {
                       color: d.online ? Colors.green : Colors.grey,
                     ),
                     title: Text(d.name),
-                    subtitle: Text(sub.toString()),
+                    subtitle: Text(isWatch
+                        ? sub.toString()
+                        : '${sub.toString()}\n${d.hostname}:5000',),
+                    isThreeLine: !isWatch,
                     trailing: d.batteryLevel != null
                         ? Text('${d.batteryLevel}%')
                         : null,

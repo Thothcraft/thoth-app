@@ -308,7 +308,8 @@ class TraceService extends ChangeNotifier {
           // behind the screen-off power-save state.
           foregroundTaskOptions: ForegroundTaskOptions(
               eventAction: ForegroundTaskEventAction.nothing(),
-              autoRunOnBoot: false,
+              autoRunOnBoot: true,
+              autoRunOnMyPackageReplaced: true,
               allowWakeLock: true,
               allowWifiLock: true,),
         );
