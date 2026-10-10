@@ -24,6 +24,11 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   final List<_Msg> _msgs = [];
   final List<ChatAttachment> _pending = [];
   bool _sending = false;
+  // Answer tier slider — 0 = 'standard' (fast, gpt-4o-mini),
+  // 1 = 'advanced' (gpt-4o + a much larger context bundle).
+  double _tier = 0;
+
+  String get _modelTier => _tier >= 0.5 ? 'advanced' : 'standard';
 
   static const _suggestions = [
     'What can you see right now?',
@@ -61,7 +66,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
           history: history.length > 12
               ? history.sublist(history.length - 12)
               : history,
-          attachments: atts,);
+          attachments: atts,
+          model: _modelTier,);
       if (!mounted) return;
       setState(() {
         _msgs.removeWhere((m) => m.thinking);
@@ -201,9 +207,46 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                 ],
               ),
             ),
+          _modelSlider(),
           _composer(),
         ],),
       ),
+    );
+  }
+
+  Widget _modelSlider() {
+    final advanced = _modelTier == 'advanced';
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 2, 16, 0),
+      child: Row(children: [
+        Icon(Icons.bolt,
+            size: 16,
+            color: advanced ? Colors.grey : AppColors.primaryBlue,),
+        const SizedBox(width: 4),
+        Text('Fast',
+            style: TextStyle(
+                fontSize: 11,
+                fontWeight:
+                    advanced ? FontWeight.normal : FontWeight.w600,
+                color: advanced ? Colors.grey : null,),),
+        Expanded(
+          child: Slider(
+            value: _tier,
+            divisions: 1,
+            onChanged: (v) => setState(() => _tier = v),
+          ),
+        ),
+        Text('Advanced',
+            style: TextStyle(
+                fontSize: 11,
+                fontWeight:
+                    advanced ? FontWeight.w600 : FontWeight.normal,
+                color: advanced ? null : Colors.grey,),),
+        const SizedBox(width: 4),
+        Icon(Icons.psychology,
+            size: 16,
+            color: advanced ? AppColors.primaryBlue : Colors.grey,),
+      ],),
     );
   }
 
@@ -310,6 +353,13 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                         : Theme.of(context)
                             .colorScheme
                             .onSurface,),
+                if (m.modelId != null)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 6),
+                    child: Text(m.modelId!,
+                        style: const TextStyle(
+                            fontSize: 10, color: Colors.grey),),
+                  ),
                 for (final w in m.widgets) _WidgetView(w, _send),
                 if (m.contextUsed != null)
                   Padding(
@@ -463,7 +513,8 @@ class _Msg {
         content = text,
         attachments = atts,
         widgets = const [],
-        contextUsed = null;
+        contextUsed = null,
+        modelId = null;
 
   _Msg.assistant(ChatAnswer a)
       : isUser = false,
@@ -472,7 +523,8 @@ class _Msg {
         content = a.answer,
         attachments = const [],
         widgets = a.widgets,
-        contextUsed = a.contextUsed;
+        contextUsed = a.contextUsed,
+        modelId = a.modelId;
 
   _Msg.error(String msg)
       : isUser = false,
@@ -481,7 +533,8 @@ class _Msg {
         content = msg,
         attachments = const [],
         widgets = const [],
-        contextUsed = null;
+        contextUsed = null,
+        modelId = null;
 
   _Msg.thinking()
       : isUser = false,
@@ -490,7 +543,8 @@ class _Msg {
         content = '',
         attachments = const [],
         widgets = const [],
-        contextUsed = null;
+        contextUsed = null,
+        modelId = null;
 
   final bool isUser;
   final bool isError;
@@ -499,6 +553,7 @@ class _Msg {
   final List<ChatAttachment> attachments;
   final List<Map<String, dynamic>> widgets;
   final Map<String, dynamic>? contextUsed;
+  final String? modelId;
 }
 
 class _Avatar extends StatelessWidget {

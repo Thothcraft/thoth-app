@@ -28,6 +28,8 @@ class ChatAnswer {
     required this.widgets,
     required this.contextUsed,
     required this.attachments,
+    this.modelTier,
+    this.modelId,
   });
 
   factory ChatAnswer.fromJson(Map<String, dynamic> j) => ChatAnswer(
@@ -44,12 +46,16 @@ class ChatAnswer {
                 ?.map((e) => '$e')
                 .toList() ??
             const [],
+        modelTier: j['model'] is Map ? '${j['model']['tier']}' : null,
+        modelId: j['model'] is Map ? '${j['model']['id']}' : null,
       );
 
   final String answer;
   final List<Map<String, dynamic>> widgets;
   final Map<String, dynamic>? contextUsed;
   final List<String> attachments;
+  final String? modelTier;
+  final String? modelId;
 }
 
 /// POST /v1/chat — context-grounded rich answers, metered server-side.
@@ -59,12 +65,14 @@ class ChatRepository {
     List<ChatTurn> history = const [],
     List<ChatAttachment> attachments = const [],
     bool includeContext = true,
+    String model = 'standard',
   }) async {
     final res = await BrainClient.instance.postV1('/chat', body: {
       'message': message,
       'history': [for (final t in history) t.toJson()],
       'attachments': [for (final a in attachments) a.toJson()],
       'include_context': includeContext,
+      'model': model,
     },);
     return ChatAnswer.fromJson(res);
   }
