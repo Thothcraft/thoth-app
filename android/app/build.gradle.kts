@@ -1,8 +1,20 @@
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id("dev.flutter.flutter-gradle-plugin")
 }
+
+// Release signing: android/key.properties (gitignored) holds the upload
+// key for Play/other stores. Falls back to the debug config when absent
+// so `flutter run --release` and CI keep working.
+val keyPropsFile = rootProject.file("key.properties")
+val keyProps = Properties().apply {
+    if (keyPropsFile.exists()) keyPropsFile.inputStream().use(::load)
+}
+val releaseSigningReady = keyPropsFile.exists() &&
+    file(keyProps.getProperty("storeFile", "")).exists()
 
 android {
     namespace = "com.thothcraft.thothcraft"
@@ -31,11 +43,21 @@ android {
         versionName = flutter.versionName
     }
 
+    signingConfigs {
+        create("upload") {
+            keyAlias = keyProps.getProperty("keyAlias")
+            keyPassword = keyProps.getProperty("keyPassword")
+            storeFile = file(keyProps.getProperty("storeFile", ""))
+            storePassword = keyProps.getProperty("storePassword")
+        }
+    }
+
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig = signingConfigs.getByName("debug")
+            signingConfig = if (releaseSigningReady)
+                signingConfigs.getByName("upload")
+            else
+                signingConfigs.getByName("debug")
         }
     }
 }
