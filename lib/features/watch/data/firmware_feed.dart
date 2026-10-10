@@ -40,7 +40,7 @@ class WatchFirmwareFeed {
       final res = await _dio.get<Map<String, dynamic>>(_api,
           options: Options(
               headers: {'Accept': 'application/vnd.github+json'},
-              receiveTimeout: const Duration(seconds: 15)),);
+              receiveTimeout: const Duration(seconds: 15),),);
       final assets = (res.data?['assets'] as List?) ?? const [];
       Map<String, dynamic>? manifest;
       Map<String, dynamic>? zip;
@@ -60,7 +60,7 @@ class WatchFirmwareFeed {
         if (mUrl != null) {
           final m = await _dio.get<String>(mUrl,
               options: Options(responseType: ResponseType.plain,
-                  receiveTimeout: const Duration(seconds: 10)),);
+                  receiveTimeout: const Duration(seconds: 10),),);
           final j = jsonDecode(m.data ?? '{}') as Map<String, dynamic>;
           fw = j['fw_version'] as String? ?? '';
           sha = j['sha256'] as String?;

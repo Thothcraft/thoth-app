@@ -1489,7 +1489,7 @@ class _FirmwareUpdateCardState extends ConsumerState<_FirmwareUpdateCard> {
         if (mounted) {
           setState(() => _status = 'Downloading ${rel.tag}… $pct%');
         }
-      });
+      },);
       final (bin, dat) = LegacyDfu.unpackZip(path);
       await _flash(bin, dat);
     } catch (e) {
@@ -1611,9 +1611,9 @@ class _FirmwareUpdateCardState extends ConsumerState<_FirmwareUpdateCard> {
                   child: Text('Update available: $latestFw',
                       style: TextStyle(fontSize: 12,
                           color: Theme.of(context).colorScheme.primary,
-                          fontWeight: FontWeight.w600),),
+                          fontWeight: FontWeight.w600,),),
                 ),
-              ]),
+              ],),
             ],
             const SizedBox(height: 8),
             if (_percent != null)
@@ -1631,7 +1631,7 @@ class _FirmwareUpdateCardState extends ConsumerState<_FirmwareUpdateCard> {
                     ? 'Updating…'
                     : _latest == null
                         ? (_checked ? 'No release found' : 'Checking…')
-                        : 'Update to ${_latest!.fwVersion.isEmpty ? _latest!.tag : _latest!.fwVersion}'),
+                        : 'Update to ${_latest!.fwVersion.isEmpty ? _latest!.tag : _latest!.fwVersion}',),
                 onPressed: _running || _latest == null ? null : _startLatest,
               ),
               OutlinedButton.icon(
@@ -1639,7 +1639,7 @@ class _FirmwareUpdateCardState extends ConsumerState<_FirmwareUpdateCard> {
                 label: const Text('Local zip'),
                 onPressed: _running ? null : _start,
               ),
-            ]),
+            ],),
           ],
         ),
       ),
