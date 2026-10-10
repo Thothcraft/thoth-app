@@ -115,7 +115,7 @@ class _InferScreenState extends ConsumerState<InferScreen> {
     }
     _toast(sent > 0
         ? 'Sent to $sent watch${sent == 1 ? '' : 'es'}'
-        : 'Watch alert failed — is it in range?');
+        : 'Watch alert failed — is it in range?',);
   }
 
   void _toast(String msg) => ScaffoldMessenger.of(context)
@@ -138,17 +138,17 @@ class _InferScreenState extends ConsumerState<InferScreen> {
                       color: AppColors.primaryBlue,),
                   const SizedBox(width: 8),
                   Text('Context inference',
-                      style: Theme.of(context).textTheme.titleSmall),
-                ]),
+                      style: Theme.of(context).textTheme.titleSmall,),
+                ],),
                 const SizedBox(height: 4),
                 Text('LLM judges the stored sensor evidence — occupancy, '
                     'device identity, activity.',
-                    style: Theme.of(context).textTheme.bodySmall),
+                    style: Theme.of(context).textTheme.bodySmall,),
                 const SizedBox(height: 12),
                 DropdownButtonFormField<String>(
                   initialValue: _tier,
                   decoration: const InputDecoration(
-                      labelText: 'Reasoning tier', isDense: true),
+                      labelText: 'Reasoning tier', isDense: true,),
                   items: [
                     for (final t in (_options.tiers.isEmpty
                         ? const ['quick', 'standard', 'deep']
@@ -163,7 +163,7 @@ class _InferScreenState extends ConsumerState<InferScreen> {
                   initialValue: _model ?? '',
                   decoration: const InputDecoration(
                       labelText: 'Model (explicit override)',
-                      isDense: true),
+                      isDense: true,),
                   items: [
                     DropdownMenuItem(value: '',
                         child: Text('tier default'
@@ -174,17 +174,17 @@ class _InferScreenState extends ConsumerState<InferScreen> {
                       DropdownMenuItem(value: m, child: Text(m)),
                   ],
                   onChanged: (v) => setState(
-                      () => _model = (v == null || v.isEmpty) ? null : v),
+                      () => _model = (v == null || v.isEmpty) ? null : v,),
                 ),
                 const SizedBox(height: 8),
                 SwitchListTile(
                   dense: true,
                   contentPadding: EdgeInsets.zero,
                   title: const Text('Gather stored evidence',
-                      style: TextStyle(fontSize: 13)),
+                      style: TextStyle(fontSize: 13),),
                   subtitle: const Text(
                       'Brain assembles devices + scenes + scans + map',
-                      style: TextStyle(fontSize: 11)),
+                      style: TextStyle(fontSize: 11),),
                   value: _gather,
                   onChanged: (v) => setState(() => _gather = v),
                 ),
@@ -193,7 +193,7 @@ class _InferScreenState extends ConsumerState<InferScreen> {
                     keyboardType: TextInputType.number,
                     decoration: const InputDecoration(
                         labelText: 'Gather window (seconds)',
-                        isDense: true),
+                        isDense: true,),
                     controller: _gatherCtl,
                   ),
                 const SizedBox(height: 8),
@@ -202,7 +202,7 @@ class _InferScreenState extends ConsumerState<InferScreen> {
                   decoration: const InputDecoration(
                       labelText: 'Entity hint (optional)',
                       hintText: 'e.g. person:me, place:office',
-                      isDense: true),
+                      isDense: true,),
                 ),
                 SwitchListTile(
                   dense: true,
@@ -210,7 +210,7 @@ class _InferScreenState extends ConsumerState<InferScreen> {
                   title: const Text('Dry run', style: TextStyle(fontSize: 13)),
                   subtitle: const Text(
                       'Preview only — nothing written to the map',
-                      style: TextStyle(fontSize: 11)),
+                      style: TextStyle(fontSize: 11),),
                   value: _dryRun,
                   onChanged: (v) => setState(() => _dryRun = v),
                 ),
@@ -222,7 +222,7 @@ class _InferScreenState extends ConsumerState<InferScreen> {
                       icon: _busy
                           ? const SizedBox(width: 16, height: 16,
                               child: CircularProgressIndicator(
-                                  strokeWidth: 2, color: Colors.white))
+                                  strokeWidth: 2, color: Colors.white,),)
                           : const Icon(Icons.play_arrow, size: 18),
                       label: Text(_busy ? 'Inferring…' : 'Infer now'),
                     ),
@@ -235,13 +235,13 @@ class _InferScreenState extends ConsumerState<InferScreen> {
                       icon: const Icon(Icons.watch_outlined),
                     ),
                   ],
-                ]),
+                ],),
                 if (_error != null) ...[
                   const SizedBox(height: 8),
                   Text(_error!,
                       style: TextStyle(
                           fontSize: 12,
-                          color: Theme.of(context).colorScheme.error)),
+                          color: Theme.of(context).colorScheme.error,),),
                 ],
               ],
             ),
@@ -337,7 +337,7 @@ class _Json extends StatelessWidget {
             width: double.infinity,
             child: SelectableText(pretty,
                 style: const TextStyle(
-                    fontSize: 11, fontFamily: 'monospace')),
+                    fontSize: 11, fontFamily: 'monospace',),),
           ),
         ],
       ),
@@ -355,5 +355,5 @@ class _JsonList extends StatelessWidget {
   Widget build(BuildContext context) => _Json(
       '$title (${items.length})',
       items.map((e) => e is Map
-          ? Map<String, dynamic>.from(e) : '$e').toList(),);
+          ? Map<String, dynamic>.from(e) : '$e',).toList(),);
 }

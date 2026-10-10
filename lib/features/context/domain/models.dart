@@ -378,7 +378,7 @@ List<dynamic> _decodeList(dynamic v) {
 /// (gpt-4o class or better).
 class InferOptions {
   const InferOptions({this.tiers = const [], this.models = const [],
-      this.defaults = const {}, this.gatherDefaultS = 900});
+      this.defaults = const {}, this.gatherDefaultS = 900,});
 
   final List<String> tiers;
   final List<String> models;
@@ -459,7 +459,7 @@ class InferResult {
 class InferLast {
   const InferLast({this.at, this.modelId, this.tier, this.dryRun,
       this.summary, this.analysis, this.modelText,
-      this.input, this.output});
+      this.input, this.output,});
 
   final double? at;
   final String? modelId;

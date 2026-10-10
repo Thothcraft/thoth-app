@@ -358,7 +358,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                     padding: const EdgeInsets.only(top: 6),
                     child: Text(m.modelId!,
                         style: const TextStyle(
-                            fontSize: 10, color: Colors.grey),),
+                            fontSize: 10, color: Colors.grey,),),
                   ),
                 for (final w in m.widgets) _WidgetView(w, _send),
                 if (m.contextUsed != null)
