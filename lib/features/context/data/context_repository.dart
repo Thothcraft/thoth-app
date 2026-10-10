@@ -202,6 +202,48 @@ class ContextRepository {
     },);
   }
 
+  // ── LLM context inference — /v1/context/infer* ──────────────────────────
+
+  /// Reasoning tiers + explicit model allowlist (all ≥128k context).
+  Future<InferOptions> inferOptions() async {
+    final res = await _brain.getV1('/context/infer/options');
+    return InferOptions.fromJson(res);
+  }
+
+  /// Run one inference window. ``thinking`` picks the tier; ``model``
+  /// overrides with an explicit allowlisted id; ``gatherWindowS`` > 0
+  /// asks Brain to assemble the comprehensive bundle (registered
+  /// devices, per-node scenes with radar fields, radio scans, digital
+  /// context, descriptor aggregates, the current map).
+  Future<InferResult> infer({
+    String thinking = 'standard',
+    String? model,
+    double gatherWindowS = 0,
+    String? entityHint,
+    bool dryRun = false,
+  }) async {
+    final res = await _brain.postV1('/context/infer', body: {
+      'thinking': thinking,
+      if (model != null && model.isNotEmpty) 'model': model,
+      if (gatherWindowS > 0) 'gather_window_s': gatherWindowS,
+      if (entityHint != null && entityHint.isNotEmpty)
+        'entity_hint': entityHint,
+      if (dryRun) 'dry_run': true,
+    },);
+    return InferResult.fromJson(res);
+  }
+
+  /// The persisted last run — null when nothing ran yet or Brain
+  /// predates the endpoint (404).
+  Future<InferLast?> inferLast() async {
+    try {
+      final res = await _brain.getV1('/context/infer/last');
+      return InferLast.fromJson(res);
+    } catch (_) {
+      return null;
+    }
+  }
+
   // ── device pairing (existing contract) ──────────────────────────────────
 
   /// Claim a node by its 8-char pairing code.

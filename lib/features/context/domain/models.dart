@@ -368,3 +368,131 @@ List<dynamic> _decodeList(dynamic v) {
   }
   return const [];
 }
+
+// ---------------------------------------------------------------------------
+// LLM context inference — /v1/context/infer
+// ---------------------------------------------------------------------------
+
+/// Selectable reasoning tiers + explicit models served by
+/// ``GET /context/infer/options`` — all entries are large-context
+/// (gpt-4o class or better).
+class InferOptions {
+  const InferOptions({this.tiers = const [], this.models = const [],
+      this.defaults = const {}, this.gatherDefaultS = 900});
+
+  final List<String> tiers;
+  final List<String> models;
+  final Map<String, String> defaults;
+  final double gatherDefaultS;
+
+  factory InferOptions.fromJson(Map<String, dynamic> j) => InferOptions(
+        tiers: [for (final t in _decodeList(j['tiers'])) '$t'],
+        models: [for (final m in _decodeList(j['models'])) '$m'],
+        defaults: {
+          for (final e in _decodeMap(j['defaults']).entries)
+            e.key: '${e.value}',
+        },
+        gatherDefaultS: (j['gather_default_s'] as num?)?.toDouble() ?? 900,
+      );
+}
+
+/// One /context/infer response — the form the model produced plus the
+/// exact payload it saw (``seen``) for the "what the model saw" pane.
+class InferResult {
+  const InferResult({
+    this.form = const {},
+    this.summary,
+    this.analysis,
+    this.modelText,
+    this.modelId,
+    this.thinking,
+    this.seen,
+    this.questions = const [],
+    this.uncertainties = const [],
+    this.deviceUpdates = const [],
+    this.receipt,
+    this.dryRun = false,
+    this.generatedAt,
+  });
+
+  final Map<String, dynamic> form;
+  final String? summary;
+  final String? analysis;
+  final String? modelText;
+  final String? modelId;
+  final String? thinking;
+  final Map<String, dynamic>? seen;
+  final List<dynamic> questions;
+  final List<dynamic> uncertainties;
+  final List<dynamic> deviceUpdates;
+  final Map<String, dynamic>? receipt;
+  final bool dryRun;
+  final double? generatedAt;
+
+  List<dynamic> get states =>
+      form['states'] is List ? form['states'] as List : const [];
+  List<dynamic> get entities =>
+      form['entities'] is List ? form['entities'] as List : const [];
+  List<dynamic> get relationships =>
+      form['relationships'] is List ? form['relationships'] as List : const [];
+
+  factory InferResult.fromJson(Map<String, dynamic> j) => InferResult(
+        form: _decodeMap(j['form']),
+        summary: j['summary']?.toString(),
+        analysis: j['analysis']?.toString(),
+        modelText: j['model_text']?.toString(),
+        modelId: j['model_id']?.toString(),
+        thinking: j['thinking']?.toString(),
+        seen: _decodeMap(j['seen']),
+        questions: _decodeList(j['questions']),
+        uncertainties: _decodeList(j['uncertainties']),
+        deviceUpdates: _decodeList(j['device_updates']),
+        receipt: j['receipt'] is Map
+            ? Map<String, dynamic>.from(j['receipt'] as Map) : null,
+        dryRun: j['dry_run'] == true,
+        generatedAt: (j['generated_at'] as num?)?.toDouble(),
+      );
+}
+
+/// The retained ``infer:last`` entity attributes — what the model saw
+/// and produced on the most recent run.
+class InferLast {
+  const InferLast({this.at, this.modelId, this.tier, this.dryRun,
+      this.summary, this.analysis, this.modelText,
+      this.input, this.output});
+
+  final double? at;
+  final String? modelId;
+  final String? tier;
+  final bool? dryRun;
+  final String? summary;
+  final String? analysis;
+  final String? modelText;
+  final String? input;
+  final String? output;
+
+  /// Fold into an [InferResult]-shaped view for the screen.
+  InferResult toResult() => InferResult(
+        form: _decodeMap(output),
+        summary: summary,
+        analysis: analysis,
+        modelText: modelText,
+        modelId: modelId,
+        thinking: tier,
+        seen: _decodeMap(input),
+        dryRun: dryRun ?? false,
+        generatedAt: at,
+      );
+
+  factory InferLast.fromJson(Map<String, dynamic> j) => InferLast(
+        at: (j['at'] as num?)?.toDouble(),
+        modelId: j['model_id']?.toString(),
+        tier: j['tier']?.toString(),
+        dryRun: j['dry_run'] as bool?,
+        summary: j['summary']?.toString(),
+        analysis: j['analysis']?.toString(),
+        modelText: j['model_text']?.toString(),
+        input: j['input']?.toString(),
+        output: j['output']?.toString(),
+      );
+}

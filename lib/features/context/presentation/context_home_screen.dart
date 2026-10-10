@@ -83,7 +83,11 @@ class ContextHomeScreen extends ConsumerWidget {
           const SizedBox(height: 20),
 
           // ── What's happening now ──────────────────────────────────────
-          const _SectionTitle('Now'),
+          _SectionTitle('Now', action: TextButton.icon(
+            icon: const Icon(Icons.auto_awesome, size: 16),
+            label: const Text('Infer'),
+            onPressed: () => context.push('/context/infer'),
+          ),),
           snapshot.when(
             loading: () => const _Skeleton(),
             error: (_, __) => const SizedBox.shrink(),

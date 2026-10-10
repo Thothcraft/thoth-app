@@ -132,6 +132,8 @@ class AppScaffold extends ConsumerWidget {
               () => context.go(AppRoutes.research),),
           _item(context, Icons.insights_outlined, 'Context & entities',
               () => context.push('/context/home'),),
+          _item(context, Icons.auto_awesome, 'Context inference (LLM)',
+              () => context.push('/context/infer'),),
 
           const _DrawerLabel('Setup & tools'),
           _item(context, Icons.add_link, 'Pair a device',

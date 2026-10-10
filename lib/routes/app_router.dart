@@ -19,6 +19,7 @@ import '../features/calibrate/presentation/calibrate_screen.dart';
 import '../features/chat/presentation/chat_screen.dart';
 import '../features/context/presentation/context_home_screen.dart';
 import '../features/context/presentation/entity_detail_screen.dart';
+import '../features/context/presentation/infer_screen.dart';
 import '../features/context/presentation/relations_screen.dart';
 import '../features/context/presentation/space_detail_screen.dart';
 import '../features/watch/presentation/enroll_screen.dart';
@@ -185,6 +186,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => Scaffold(
           appBar: AppBar(title: const Text('Context')),
           body: const ContextHomeScreen(),
+        ),
+      ),
+      GoRoute(
+        path: '/context/infer',
+        builder: (context, state) => Scaffold(
+          appBar: AppBar(title: const Text('Infer')),
+          body: const InferScreen(),
         ),
       ),
       GoRoute(
